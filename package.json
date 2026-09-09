@@ -24,6 +24,7 @@
   "scripts": {
     "dev": "vite --config playground/vite.config.ts",
     "build": "vite build && tsc -p tsconfig.build.json",
+    "generate:icons": "node tool/generate-icons.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
