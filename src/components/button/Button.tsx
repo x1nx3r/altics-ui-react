@@ -6,7 +6,7 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
 };
 const variants = {
-  primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+  primary: "bg-primary text-white hover:bg-primary/90",
   secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
   outline: "border border-input bg-background hover:bg-muted",
   ghost: "hover:bg-muted",

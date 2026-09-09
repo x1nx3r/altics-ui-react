@@ -1,7 +1,7 @@
 :root {
   --color-background: 0 0% 100%;
   --color-foreground: 222 47% 11%;
-  --color-primary: 222 47% 11%;
+  --color-primary: 217 59% 28%;
   --color-primary-foreground: 210 40% 98%;
   --color-secondary: 210 40% 96%;
   --color-secondary-foreground: 222 47% 11%;
@@ -12,11 +12,113 @@
   --color-ring: 222 89% 55%;
   --color-destructive: 0 72% 51%;
   --color-destructive-foreground: 210 40% 98%;
+
+  --color-primary-50: #f0f4f9;
+  --color-primary-100: #d9e2ef;
+  --color-primary-200: #c2cfe6;
+  --color-primary-300: #a8b7d8;
+  --color-primary-400: #8e9ecb;
+  --color-primary-500: #7485bd;
+  --color-primary-600: #5a6db0;
+  --color-primary-700: #4055a2;
+  --color-primary-800: #2d3d8f;
+  --color-primary-900: #1d3d72;
+  --color-primary-950: #162d5a;
+  --color-primary-1000: #0f1f38;
+
+  --color-secondary-50: #f0f9f8;
+  --color-secondary-100: #d9eff0;
+  --color-secondary-200: #c2e5e8;
+  --color-secondary-300: #a8d7dd;
+  --color-secondary-400: #8ec9d2;
+  --color-secondary-500: #74bbc8;
+  --color-secondary-600: #5aadbe;
+  --color-secondary-700: #4095b0;
+  --color-secondary-800: #2d7da2;
+  --color-secondary-900: #1d6592;
+  --color-secondary-950: #164d7a;
+
+  --color-text-brand-primary: #102341;
+
+  --color-text-brand-secondary: #183562;
+  --color-text-brand-secondary-hover: #142C52;
+  --color-text-brand-tertiary: #1D3D72;
+  --color-text-brand-tertiary-alt: #1D3D72;
+
+  --color-text-error-primary: #DC2626;
+  --color-text-warning-primary: #CA8A04;
+  --color-text-success-primary: #16A34A;
+
+  --color-text-primary: #1a1a1a;
+  --color-text-primary-on-brand: #ffffff;
+
+  --color-text-secondary: #404040;
+  --color-text-secondary-hover: #525252;
+  --color-text-secondary-on-brand: #9CC4F2;
+
+  --color-text-tertiary: #525252;
+  --color-text-tertiary-hover: #404040;
+  --color-text-tertiary-on-brand: #9CC4F2;
+
+  --color-text-quaternary: #737373;
+  --color-text-quaternary-on-brand: #7EAAE4;
+
+  --color-placeholder: #737373;
+
+  --color-text-disabled: #bfbfbf;
+  --color-text-white: #ffffff;
+  --color-text-inverse: #ffffff;
+  --color-text-link: #1d3d72;
+  --color-text-link-hover: #162d5a;
+
+  --color-border-primary: #d4d4d4;
+  --color-border-secondary: #e0e0e0;
+  --color-border-light: #ebebeb;
+  --color-border-dark: #a6a6a6;
+
+  --color-bg-white: #ffffff;
+  --color-bg-brand-solid: #1d3d72;
+  --color-bg-neutral-50: #fafafa;
+  --color-bg-neutral-100: #f5f5f5;
+  --color-bg-neutral-200: #ebebeb;
+  --color-bg-primary-light: #f0f4f9;
+  --color-bg-secondary-light: #f0e5d6;
+  --color-bg-success-light: #f5faf7;
+  --color-bg-warning-light: #faf9f5;
+  --color-bg-error-light: #faf5f5;
+
+  --color-shadow-xs: rgba(0, 0, 0, 0.05);
+  --color-shadow-sm: rgba(0, 0, 0, 0.1);
+  --color-shadow-md: rgba(0, 0, 0, 0.15);
+  --color-shadow-lg: rgba(0, 0, 0, 0.2);
+  --color-shadow-xl: rgba(0, 0, 0, 0.25);
+  --color-shadow-skeumorphic-inner: rgba(0, 0, 0, 0.05);
+  --color-shadow-skeumorphic-inner-border: rgba(0, 0, 0, 0.18);
+
+  --color-interactive-default: #1d3d72;
+  --color-interactive-hover: #162d5a;
+  --color-interactive-focus: #1d3d72;
+  --color-interactive-disabled: #bfbfbf;
+
+  --color-primary-alias: #1d3d72;
+  --color-primary-foreground-alias: #ffffff;
+  --color-secondary-alias: #ffffff;
+  --color-secondary-foreground-alias: #404040;
+  --color-muted-alias: #f5f5f5;
+  --color-muted-foreground-alias: #808080;
+  --color-background-alias: #ffffff;
+  --color-foreground-alias: #1a1a1a;
+  --color-border-alias: #d4d4d4;
+  --color-input-alias: #d4d4d4;
+  --color-ring-alias: #1d3d72;
+  --color-destructive-alias: #a54c4c;
+  --color-destructive-foreground-alias: #ffffff;
 }
+
 .dark {
   --color-background: 222 47% 11%;
   --color-foreground: 210 40% 98%;
-  --color-primary: 210 40% 98%;
+  --color-primary: 217 59% 28%;
   --color-primary-foreground: 222 47% 11%;
   --color-secondary: 217 33% 18%;
   --color-secondary-foreground: 210 40% 98%;
@@ -27,12 +129,80 @@
   --color-ring: 213 94% 68%;
   --color-destructive: 0 63% 31%;
   --color-destructive-foreground: 210 40% 98%;
+
+  --color-primary-50: #0f1f38;
+  --color-primary-100: #162d5a;
+  --color-primary-200: #1d3d72;
+  --color-primary-300: #2d3d8f;
+  --color-primary-400: #4055a2;
+  --color-primary-500: #5a6db0;
+  --color-primary-600: #7485bd;
+  --color-primary-700: #8e9ecb;
+  --color-primary-800: #a8b7d8;
+  --color-primary-900: #c2cfe6;
+  --color-primary-950: #d9e2ef;
+
+  --color-secondary-50: #164d7a;
+  --color-secondary-100: #1d6592;
+  --color-secondary-200: #2d7da2;
+  --color-secondary-300: #4095b0;
+  --color-secondary-400: #5aadbe;
+  --color-secondary-500: #74bbc8;
+  --color-secondary-600: #8ec9d2;
+  --color-secondary-700: #a8d7dd;
+  --color-secondary-800: #c2e5e8;
+  --color-secondary-900: #d9eff0;
+  --color-secondary-950: #f0f9f8;
+
+  --color-text-brand-primary: #FAFAFA;
+
+  --color-text-brand-secondary: #D4D4D4;
+  --color-text-brand-secondary-hover: #E5E5E5;
+  --color-text-brand-tertiary: #A3A3A3;
+  --color-text-brand-tertiary-alt: #FAFAFA;
+
+  --color-text-error-primary: #F87171;
+  --color-text-warning-primary: #FACC15;
+  --color-text-success-primary: #4ADE80;
+
+  --color-text-primary: #FAFAFA;
+  --color-text-primary-on-brand: #FAFAFA;
+
+  --color-text-secondary: #D4D4D4;
+  --color-text-secondary-hover: #E5E5E5;
+  --color-text-secondary-on-brand: #D4D4D4;
+
+  --color-text-tertiary: #A3A3A3;
+  --color-text-tertiary-hover: #D4D4D4;
+  --color-text-tertiary-on-brand: #A3A3A3;
+
+  --color-text-quaternary: #A3A3A3;
+  --color-text-quaternary-on-brand: #A3A3A3;
+
+  --color-placeholder: #737373;
+
+  --color-border-primary: #3a3a3a;
+  --color-border-secondary: #2a2a2a;
+  --color-border-light: #1a1a1a;
+  --color-border-dark: #5a5a5a;
+
+  --color-bg-white: #1a1a1a;
+  --color-bg-brand-solid: #2d3d8f;
+  --color-bg-neutral-50: #0a0a0a;
+  --color-bg-neutral-100: #1a1a1a;
+  --color-bg-neutral-200: #2a2a2a;
+  --color-bg-primary-light: #1d3d72;
+  --color-bg-secondary-light: #2d3d8f;
+  --color-bg-success-light: #1d6528;
+  --color-bg-warning-light: #6f4f1d;
+  --color-bg-error-light: #542020;
 }
+
 @media (prefers-color-scheme: dark) {
   :root:not(.light):not(.dark) {
     --color-background: 222 47% 11%;
     --color-foreground: 210 40% 98%;
-    --color-primary: 210 40% 98%;
+    --color-primary: 217 59% 28%;
     --color-primary-foreground: 222 47% 11%;
     --color-secondary: 217 33% 18%;
     --color-secondary-foreground: 210 40% 98%;

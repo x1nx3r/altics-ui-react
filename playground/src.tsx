@@ -1,6 +1,5 @@
 import { createRoot } from "react-dom/client";
 import { useState } from "react";
-import "../src/styles/index.css";
 import {
   Alert,
   Badge,
@@ -11,7 +10,9 @@ import {
   Skeleton,
   Stack,
   Textarea,
+  Text,
 } from "../src";
+import { TextExamples } from "../src/components/typography/Text.examples";
 function App() {
   const [dark, setDark] = useState(false);
   return (
@@ -19,7 +20,7 @@ function App() {
       className={
         dark
           ? "dark min-h-screen bg-background py-10 text-foreground"
-          : "min-h-screen bg-background py-10 text-foreground"
+          : "min-h-screen bg-white py-10 text-foreground"
       }
     >
       <Container>
@@ -31,15 +32,15 @@ function App() {
           >
             Toggle theme
           </Button>
-          <Card>
+          <Card className={dark ? "bg-background text-foreground" : "bg-white text-foreground"}>
             <Card.Header>
-              <h1 className="text-xl font-semibold">Altics UI</h1>
+              <Text size="xl" uppercase>Altics UI</Text>
               <Badge>Preview</Badge>
             </Card.Header>
             <Card.Content>
               <Stack>
-                <Alert>Accessible, token-based components.</Alert>
-                <Input placeholder="Email address" />
+                <Alert><Text>Accessible, token-based components.</Text></Alert>
+                <Input className=" focus:border-1 focus:border-brand-500" placeholder="Email address" />
                 <Textarea placeholder="Message" />
                 <div className="flex gap-2">
                   <Button>Save</Button>
@@ -51,6 +52,12 @@ function App() {
                   </Button>
                 </div>
                 <Skeleton className="h-8 w-48" />
+                <TextExamples />
+                <Card className="shadow-xs"><Card.Content className="p-8"><Text>Shadow XS Card</Text></Card.Content></Card>
+                <Card className="shadow-sm"><Card.Content className="p-8"><Text>Shadow SM Card</Text></Card.Content></Card>
+                <Card className="shadow-md"><Card.Content className="p-8"><Text>Shadow MD Card</Text></Card.Content></Card>
+                <Card className="shadow-lg"><Card.Content className="p-8"><Text>Shadow LG Card</Text></Card.Content></Card>
+                <Card className="shadow-xl"><Card.Content className="p-8"><Text>Shadow XL Card</Text></Card.Content></Card>
               </Stack>
             </Card.Content>
           </Card>

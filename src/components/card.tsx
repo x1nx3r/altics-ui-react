@@ -6,7 +6,7 @@ const Root = forwardRef<HTMLDivElement, Props>(
     <div
       ref={ref}
       className={cn(
-        "rounded-lg border border-border bg-background text-foreground shadow-sm",
+        "rounded-lg border border-border shadow-sm",
         className,
       )}
       {...props}
@@ -26,7 +26,7 @@ const Header = forwardRef<HTMLDivElement, Props>(
 Header.displayName = "Card.Header";
 const Content = forwardRef<HTMLDivElement, Props>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+    <div ref={ref} className={cn("p-6", className)} {...props} />
   ),
 );
 Content.displayName = "Card.Content";
@@ -34,7 +34,7 @@ const Footer = forwardRef<HTMLDivElement, Props>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("flex items-center p-6 pt-0", className)}
+      className={cn("flex items-center p-6", className)}
       {...props}
     />
   ),
