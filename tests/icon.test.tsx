@@ -1,8 +1,9 @@
-import { readdirSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/react";
 import { Icon, ActivityIcon, ArrowLeftIcon, BoxAltIcon } from "../src";
 import * as IconsBarrel from "../src/components/icon/icons";
+
+const svgModules = import.meta.glob("../src/assets/icons/*.svg");
 
 describe("Icon (static)", () => {
   it("renders a generated icon with size", () => {
@@ -64,9 +65,7 @@ describe("Icon (static)", () => {
   });
 
   it("exports every SVG as a component (codegen drift guard)", () => {
-    const svgCount = readdirSync("src/assets/icons").filter((f) =>
-      f.toLowerCase().endsWith(".svg"),
-    ).length;
+    const svgCount = Object.keys(svgModules).length;
     const componentCount = Object.values(IconsBarrel).filter(
       (v) => typeof v === "function",
     ).length;
