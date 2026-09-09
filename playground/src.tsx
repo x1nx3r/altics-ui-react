@@ -17,11 +17,13 @@ import {
   Stack,
   Textarea,
   Text,
+  ThemeProvider,
 } from "../src";
 import { TextExamples } from "../src/components/typography/Text.examples";
 function App() {
   const [dark, setDark] = useState(false);
   return (
+    <ThemeProvider defaultTheme={dark ? "dark" : "light"}>
     <main
       className={
         dark
@@ -80,6 +82,7 @@ function App() {
         </Stack>
       </Container>
     </main>
+    </ThemeProvider>
   );
 }
 createRoot(document.getElementById("root")!).render(<App />);
