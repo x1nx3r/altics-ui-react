@@ -81,7 +81,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <span className="ml-1 flex shrink-0 items-center text-muted-foreground">{leading}</span>
         )}
         {leading && showLeadingDivider && (
-          <span aria-hidden="true" className="mx-2.5 h-5 w-px shrink-0 bg-border" />
+          <span aria-hidden="true" className="mx-2.5 h-full w-px shrink-0 bg-border" />
         )}
         <input
           ref={ref}
@@ -96,7 +96,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {trailing && showTrailingDivider && (
-          <span aria-hidden="true" className="mx-2.5 h-5 w-px shrink-0 bg-border" />
+          <span aria-hidden="true" className="mx-2.5 h-full w-px shrink-0 bg-border" />
         )}
         {trailing && (
           <span className="mr-1 flex shrink-0 items-center text-muted-foreground">{trailing}</span>
