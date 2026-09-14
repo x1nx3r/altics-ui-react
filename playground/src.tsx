@@ -1,21 +1,29 @@
 import { createRoot } from "react-dom/client";
 import { useState } from "react";
 import {
+  ActivityIcon,
   Alert,
+  ArrowLeftIcon,
   Badge,
+  BoxAltIcon,
   Button,
   Card,
   Container,
+  Home01Icon,
+  Icon,
   Input,
+  SearchLgIcon,
   Skeleton,
   Stack,
   Textarea,
   Text,
+  ThemeProvider,
 } from "../src";
 import { TextExamples } from "../src/components/typography/Text.examples";
 function App() {
   const [dark, setDark] = useState(false);
   return (
+    <ThemeProvider defaultTheme={dark ? "dark" : "light"}>
     <main
       className={
         dark
@@ -52,6 +60,16 @@ function App() {
                   </Button>
                 </div>
                 <Skeleton className="h-8 w-48" />
+                <div className="flex items-center gap-4">
+                  <ActivityIcon size={24} />
+                  <ArrowLeftIcon size={24} />
+                  <Home01Icon size={32} />
+                  <SearchLgIcon size={32} className="text-primary" />
+                  <BoxAltIcon size={48} />
+                  <Icon size={24}>
+                    <ActivityIcon />
+                  </Icon>
+                </div>
                 <TextExamples />
                 <Card className="shadow-xs"><Card.Content className="p-8"><Text>Shadow XS Card</Text></Card.Content></Card>
                 <Card className="shadow-sm"><Card.Content className="p-8"><Text>Shadow SM Card</Text></Card.Content></Card>
@@ -64,6 +82,7 @@ function App() {
         </Stack>
       </Container>
     </main>
+    </ThemeProvider>
   );
 }
 createRoot(document.getElementById("root")!).render(<App />);
