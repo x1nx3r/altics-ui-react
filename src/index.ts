@@ -2,6 +2,7 @@ import "./styles/index.css";
 export { Button, IconButton, LinkButton, type ButtonProps, type IconButtonProps, type LinkButtonProps } from "./components/button";
 export {
   Input,
+  InputDivider,
   Textarea,
   type InputProps,
   type TextareaProps,

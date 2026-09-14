@@ -1,5 +1,6 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import { cn } from "../../lib/cn";
+import { InputDivider } from "./InputDivider";
 
 /** Horizontal rhythm per size, Figma: text 14px sm/md, 16px lg. */
 const sizes = {
@@ -80,9 +81,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {leading && (
           <span className="ml-1 flex shrink-0 items-center text-muted-foreground">{leading}</span>
         )}
-        {leading && showLeadingDivider && (
-          <span aria-hidden="true" className="mx-2.5 h-full w-px shrink-0 bg-border" />
-        )}
+        {leading && showLeadingDivider && <InputDivider />}
         <input
           ref={ref}
           disabled={disabled}
@@ -95,9 +94,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           {...props}
         />
-        {trailing && showTrailingDivider && (
-          <span aria-hidden="true" className="mx-2.5 h-full w-px shrink-0 bg-border" />
-        )}
+        {trailing && showTrailingDivider && <InputDivider />}
         {trailing && (
           <span className="mr-1 flex shrink-0 items-center text-muted-foreground">{trailing}</span>
         )}
