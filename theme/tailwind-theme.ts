@@ -380,6 +380,12 @@ export const themeExtend = {
     link: "var(--color-text-link)",
     "link-hover": "var(--color-text-link-hover)",
     placeholder: "var(--color-placeholder)",
+
+    // The flat `primary` / `secondary` keys above shadow the nested
+    // colors.primary / colors.secondary objects for text utilities, which
+    // drops their `-foreground` variants. Restore them here.
+    "primary-foreground": "hsl(var(--color-primary-foreground) / <alpha-value>)",
+    "secondary-foreground": "hsl(var(--color-secondary-foreground) / <alpha-value>)",
   },
   spacing: {
     none: "var(--spacing-none)",
