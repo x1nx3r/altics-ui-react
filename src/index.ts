@@ -2,9 +2,11 @@ import "./styles/index.css";
 export { Button, IconButton, LinkButton, type ButtonProps, type IconButtonProps, type LinkButtonProps } from "./components/button";
 export {
   Input,
+  Field,
   Textarea,
   Label,
   type InputProps,
+  type FieldProps,
   type TextareaProps,
 } from "./components/form";
 export { Card } from "./components/card";
