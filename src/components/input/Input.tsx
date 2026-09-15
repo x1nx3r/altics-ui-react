@@ -147,49 +147,66 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const showTrailingDivider =
       divider === true || (typeof divider === "object" && !!divider.trailing);
 
-    // Exactly one class per side. cn is a plain join and Tailwind decides by
-    // source order, so emitting both `pr-3` and `pr-0` silently kept `pr-3`.
-    // The region carries the sheet's inset, so a slot adds none of its own and
-    // a panel on an edge takes the padding over. Overflow content is the
-    // exception: its chips, and its placeholder while empty, sit on a smaller
-    // inset, and the placeholder's extra 2px rides on the input below.
-    const regionPaddingLeft = attachedLeading ? "pl-0" : wraps || scrolls ? "pl-2.5" : "pl-3";
     // The trailing slot does not take its width from the line: the region
     // reserves it, so the slot can be positioned and the text still has an edge
     // to run to. Scroll mode is the exception, where the slot rides the
     // scrolling line, which is also what keeps it reachable.
     const reservesTrailing = Boolean(trailing || helpIcon) && !attachedTrailing && !scrolls;
-    const regionPaddingRight = reservesTrailing
-      ? sizes[size].trailingPad
-      : attachedTrailing
-        ? "pr-0"
-        : "pr-3";
-    // With a panel on an edge the field keeps the text inset from the panel.
-    const inputPaddingLeft = attachedLeading
-      ? "pl-3"
-      : leading && !showLeadingDivider
-        ? "pl-2"
-        : undefined;
-    const inputPaddingRight = attachedTrailing
-      ? "pr-3"
-      : trailing && !showTrailingDivider
-        ? "pr-2"
-        : undefined;
+
+    // Everything one side of the field contributes, chosen in a single place:
+    // the region's padding, the text's padding, the slot's gap to a panel, and
+    // the corners on that side. Deriving all four from one state is what keeps
+    // them from drifting apart — the slot margin and the region padding once
+    // disagreed about who insets the content, and the marker sat 4px in. cn
+    // joins without resolving conflicts, so a side must yield one class per
+    // property: emitting `pr-3` and `pr-0` together silently kept `pr-3`.
+    const edge = (side: "leading" | "trailing") => {
+      const attached = side === "leading" ? attachedLeading : attachedTrailing;
+      const hasSlot = side === "leading" ? Boolean(leading) : Boolean(trailing);
+      const divider = side === "leading" ? showLeadingDivider : showTrailingDivider;
+      // The sheet's inset from this edge, the gap the input leaves when a slot
+      // has no divider, and the corners this side owns.
+      const inset = side === "leading" ? "pl-3" : "pr-3";
+      const slotGap = side === "leading" ? "pl-2" : "pr-2";
+      const rounded = side === "leading" ? "rounded-l-md" : "rounded-r-md";
+
+      // A panel owns the edge: it draws the border there and meets the content
+      // 12px in, so the region gives its padding up and its corners square off.
+      if (attached) {
+        return {
+          region: side === "leading" ? "pl-0" : "pr-0",
+          input: inset,
+          slot: side === "leading" ? "ml-3" : null,
+          rounding: side === "leading" ? "rounded-l-none" : "rounded-r-none",
+        };
+      }
+      if (side === "trailing" && reservesTrailing) {
+        return {
+          region: sizes[size].trailingPad,
+          input: undefined,
+          slot: null,
+          rounding: rounded,
+        };
+      }
+      return {
+        // Overflow content lines up on the chip inset rather than the text one,
+        // and an empty tags field keeps its placeholder 2px further in, on the
+        // input below.
+        region: side === "leading" && (wraps || scrolls) ? "pl-2.5" : inset,
+        // Without a divider the input leaves the gap to the text; with one, the
+        // divider owns that gap.
+        input: hasSlot && !divider ? slotGap : undefined,
+        slot: null,
+        rounding: rounded,
+      };
+    };
+    const leadingEdge = edge("leading");
+    const trailingEdge = edge("trailing");
     // Borders belong to the regions, not the box. The value region then owns
     // the border its focus outline paints over, which is how the sheets make
     // focus replace the border instead of sitting beside it. With a panel, the
     // region's inner edge is the divider.
     const borderColour = error ? "border-red-300" : "border-neutral-300";
-    // The focus outline follows the rounding of whichever corner the value
-    // region owns. With a panel on a side, that side stays square.
-    const regionRounding =
-      attachedLeading && attachedTrailing
-        ? "rounded-none"
-        : attachedLeading
-          ? "rounded-r-md"
-          : attachedTrailing
-            ? "rounded-l-md"
-            : "rounded-md";
 
     return (
       <div
@@ -244,9 +261,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             (wraps || scrolls) && "gap-x-1.5 has-[[data-slot=tag]]:pl-2",
             wraps && cn("flex-wrap gap-y-1.5", sizes[size].wrapPad),
             borderColour,
-            regionRounding,
-            regionPaddingLeft,
-            regionPaddingRight,
+            leadingEdge.rounding,
+            trailingEdge.rounding,
+            leadingEdge.region,
+            trailingEdge.region,
             "focus-within:outline focus-within:outline-2 focus-within:outline-offset-[-2px]",
             error ? "focus-within:outline-focus-error" : "focus-within:outline-focus",
           )}
@@ -273,9 +291,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                             // The sheets put 12px between a panel and the
                             // content beside it. Without a panel the region's
                             // padding is the inset, so the slot adds nothing.
-                            // A ternary, because ReactNode in an && can yield
-                            // 0, which is not a class name.
-                            attachedLeading ? "ml-3" : null,
+                            leadingEdge.slot,
                           ),
                     ),
               )}
@@ -294,8 +310,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               // Sheet: 8px from the last chip to the text, against a 6px chip
               // gap, so the text carries the extra 2px.
               (wraps || scrolls) && "ml-0.5",
-              inputPaddingLeft,
-              inputPaddingRight,
+              leadingEdge.input,
+              trailingEdge.input,
               textAlign === "center" && "text-center",
               textAlign === "right" && "text-right",
             )}
