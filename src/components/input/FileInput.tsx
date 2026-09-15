@@ -1,6 +1,6 @@
 import { useId, useState, type ChangeEvent } from "react";
 import { cn } from "../../lib/cn";
-import { File04Icon, HelpCircleIcon } from "../icon/icons";
+import { HelpCircleIcon } from "../icon/icons";
 import { Input, type InputProps } from "./Input";
 import { Spinner } from "../display";
 
@@ -63,21 +63,21 @@ export function FileInput({
       placeholder={placeholder}
       trailing={
         <>
-          {loading ? (
-            <Spinner className="h-4 w-4 text-neutral-400" />
-          ) : (
-            <File04Icon size={16} />
-          )}
-          {onHelpClick && (
+          {/* The sheet shows the spinner beside the file icon while uploading,
+              not instead of it. */}
+          {loading && <Spinner size={16} className="text-focus" />}
+          {onHelpClick ? (
             <button
               type="button"
               aria-label="Help"
               disabled={disabled}
               onClick={onHelpClick}
-              className="rounded-sm text-neutral-400 transition-colors hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-sm transition-colors hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
             >
               <HelpCircleIcon size={16} />
             </button>
+          ) : (
+            <HelpCircleIcon size={16} />
           )}
         </>
       }
