@@ -21,6 +21,7 @@ const sizes = {
     box: "h-9 text-sm",
     wrapBox: "min-h-9 text-sm",
     wrapPad: "py-[5px]",
+    trailingPad: "pr-9",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
     scrollInput: "h-full min-w-16",
@@ -29,6 +30,7 @@ const sizes = {
     box: "h-10 text-base",
     wrapBox: "min-h-10 text-base",
     wrapPad: "py-[7px]",
+    trailingPad: "pr-10",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
     scrollInput: "h-full min-w-16",
@@ -37,6 +39,7 @@ const sizes = {
     box: "h-11 text-base",
     wrapBox: "min-h-11 text-base",
     wrapPad: "py-[9px]",
+    trailingPad: "pr-11",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
     scrollInput: "h-full min-w-16",
@@ -151,7 +154,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     // exception: its chips, and its placeholder while empty, sit on a smaller
     // inset, and the placeholder's extra 2px rides on the input below.
     const regionPaddingLeft = attachedLeading ? "pl-0" : wraps || scrolls ? "pl-2.5" : "pl-3";
-    const regionPaddingRight = attachedTrailing ? "pr-0" : "pr-3";
+    // The trailing slot does not take its width from the line: the region
+    // reserves it, so the slot can be positioned and the text still has an edge
+    // to run to. Scroll mode is the exception, where the slot rides the
+    // scrolling line, which is also what keeps it reachable.
+    const reservesTrailing = Boolean(trailing || helpIcon) && !attachedTrailing && !scrolls;
+    const regionPaddingRight = reservesTrailing
+      ? sizes[size].trailingPad
+      : attachedTrailing
+        ? "pr-0"
+        : "pr-3";
     // With a panel on an edge the field keeps the text inset from the panel.
     const inputPaddingLeft = attachedLeading
       ? "pl-3"
@@ -218,7 +230,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             innerRef.current?.focus();
           }}
           className={cn(
-            "flex min-w-0 flex-1 items-center self-stretch border",
+            "relative flex min-w-0 flex-1 items-center self-stretch border",
             // Sheet, in px from the field's edge: a chip sits 8 in, the text
             // 12, chips are 6 apart and 8 from the text. Chips and text share
             // one line in both modes, so the chips switch the region to their
@@ -287,18 +299,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {(trailing || helpIcon) && (
             <span
               className={cn(
-                // Either overflow mode dissolves this slot so the marker sits
-                // at the sheet inset. Safe in both: only the chips strip
-                // scrolls, so the marker cannot scroll out of reach.
-                wraps || scrolls
-                  ? "contents"
-                  : cn(
-                      "flex shrink-0 items-center gap-2",
-                      error ? "text-red-600" : "text-neutral-400",
-                      // A panel sits 12px from the content; without one the
-                      // region's padding is the inset.
-                      attachedTrailing ? "mr-3" : null,
-                    ),
+                // Out of the flow, so a trailing adornment cannot wrap onto a
+                // row of its own or add height to the box; the region reserves
+                // its width instead. Positioned 12px in, which is also the
+                // sheet's gap when a panel sits on that edge.
+                scrolls
+                  ? "flex shrink-0 items-center gap-2"
+                  : "absolute inset-y-0 right-3 flex items-center gap-2",
+                error ? "text-red-600" : "text-neutral-400",
               )}
             >
               {trailing}

@@ -89,8 +89,9 @@ describe("NumberInput", () => {
     const hRight = region(horizontal.container)
       .className.split(" ")
       .filter((c) => c.startsWith("pr-"));
-    // the counter's buttons sit on the same inset as every other trailing slot
-    expect(hRight).toEqual(["pr-3"]);
+    // The counter's button is a trailing slot, so the region reserves its
+    // width rather than letting it take space from the line.
+    expect(hRight).toEqual(["pr-10"]);
   });
 
   it("centres the value in the horizontal orientation only", () => {

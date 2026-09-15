@@ -150,15 +150,29 @@ describe("Input", () => {
     expect(strip.className).toContain("min-w-0");
   });
 
-  it("dissolves its slots in wrap mode so they flow with the text", () => {
+  it("keeps both slots out of the wrapping flow", () => {
     const { container } = render(<Input overflow="wrap" leading="Rp" trailing="kg" />);
     const region = valueRegion(container);
     expect(region.className).toContain("gap-x-1.5");
     expect(region.className).toContain("has-[[data-slot=tag]]:pl-2");
-    // a slot is one un-wrappable box; wrap mode lets its children onto the line
-    for (const slot of [...region.querySelectorAll(":scope > span")]) {
-      expect(slot.className).toContain("contents");
-    }
+    const slots = [...region.querySelectorAll(":scope > span")];
+    // The leading slot dissolves, so its children wrap with the text.
+    expect(slots[0].className).toContain("contents");
+    // The trailing slot is positioned instead: a slot is one un-wrappable box,
+    // so in the flow it would jump to a row of its own and add height.
+    expect(slots[slots.length - 1].className).toContain("absolute");
+    expect(slots[slots.length - 1].className).not.toContain("contents");
+  });
+
+  it("reserves the trailing slot's width with padding, not with the line", () => {
+    const rendered = render(<Input trailing={<span>pick</span>} />);
+    const cls = valueRegion(rendered.container).className;
+    // md reserves pr-10; nothing in the line may also claim it.
+    expect(cls).toContain("pr-10");
+    expect(cls).not.toContain("pr-3");
+    // scroll mode keeps the slot in the line, so the plain inset stays
+    const scrolled = render(<Input overflow="scroll" trailing={<span>pick</span>} />);
+    expect(valueRegion(scrolled.container).className).toContain("pr-3");
   });
 
   it("keeps the sheet rhythm in scroll mode too", () => {
@@ -216,12 +230,11 @@ describe("Input", () => {
     ).toHaveLength(1);
   });
 
-  it("insets both edges when only one affix is present", () => {
+  it("insets the left edge when only a trailing slot is present", () => {
     const { container } = render(<Input trailing={<span>pick</span>} />);
-    const cls = container.querySelector('[data-slot="value"]')!.className;
-    // The region carries the sheet inset on both sides; a slot adds none.
-    expect(cls).toContain("pl-3");
-    expect(cls).toContain("pr-3");
+    // The region carries the sheet inset, so one slot does not collapse the
+    // other side. The right is the trailing reservation, covered above.
+    expect(container.querySelector('[data-slot="value"]')!.className).toContain("pl-3");
   });
 });
 
