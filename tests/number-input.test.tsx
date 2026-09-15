@@ -65,6 +65,21 @@ describe("NumberInput", () => {
     expect(field(container).value).toBe("8");
   });
 
+  it("keeps exactly one padding class per side so the panel sits flush", () => {
+    const vertical = render(<NumberInput orientation="vertical" />);
+    const vBox = box(vertical.container);
+    const rightClasses = vBox.className.split(" ").filter((c) => c.startsWith("pr-"));
+    expect(rightClasses).toEqual(["pr-0"]);
+    // the field itself keeps the text inset from the panel
+    expect(field(vertical.container).className).toContain("pr-3");
+
+    const horizontal = render(<NumberInput />);
+    const hRight = box(horizontal.container).className
+      .split(" ")
+      .filter((c) => c.startsWith("pr-"));
+    expect(hRight).toEqual(["pr-2.5"]);
+  });
+
   it("centres the value in the horizontal orientation only", () => {
     const horizontal = render(<NumberInput defaultValue={5} />);
     expect(field(horizontal.container).className).toContain("text-center");
