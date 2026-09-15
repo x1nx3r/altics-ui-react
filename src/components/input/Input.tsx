@@ -1,5 +1,6 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import { cn } from "../../lib/cn";
+import { AlertCircleIcon, HelpCircleIcon } from "../icon/icons";
 import { InputDivider } from "./InputDivider";
 
 /** Horizontal rhythm per size, Figma: text 14px sm/md, 16px lg. */
@@ -38,6 +39,16 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
    * type left-aligned.
    */
   textAlign?: "left" | "center" | "right";
+  /**
+   * Show the trailing help marker. The sheets draw a question mark for a
+   * normal field and the same circle with an exclamation mark in red-600 when
+   * the field is in error. Types whose trailing slot is taken (password,
+   * steppers, tags) leave it out.
+   */
+  helpIcon?: boolean;
+  /** Runs when the help marker is pressed. Without this the marker is only a
+   * visual affordance and is hidden from assistive technology. */
+  onHelpClick?: () => void;
 };
 
 /**
@@ -58,6 +69,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       attachedLeading,
       attachedTrailing,
       textAlign = "left",
+      helpIcon = true,
+      onHelpClick,
       divider = false,
       "aria-invalid": invalid,
       ...props
@@ -180,14 +193,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {trailing && showTrailingDivider && <InputDivider />}
-          {trailing && (
+          {(trailing || helpIcon) && (
             <span
               className={cn(
-                "flex shrink-0 items-center gap-2 text-neutral-400",
+                "flex shrink-0 items-center gap-2",
+                // The marker is neutral at rest and red when the field is invalid.
+                error ? "text-red-600" : "text-neutral-400",
                 attachedTrailing ? "mr-3" : "mr-1",
               )}
             >
               {trailing}
+              {helpIcon && <HelpMarker error={!!error} disabled={disabled} onClick={onHelpClick} />}
             </span>
           )}
         </span>
@@ -207,3 +223,34 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   },
 );
 Input.displayName = "Input";
+
+/**
+ * Trailing marker: a question mark at rest, the same circle with an
+ * exclamation mark when the field is in error. Decorative unless a handler is
+ * given, in which case it becomes a button.
+ */
+function HelpMarker({
+  error,
+  disabled,
+  onClick,
+}: {
+  error: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
+}) {
+  const Glyph = error ? AlertCircleIcon : HelpCircleIcon;
+
+  if (!onClick) return <Glyph size={16} />;
+
+  return (
+    <button
+      type="button"
+      aria-label="Help"
+      disabled={disabled}
+      onClick={onClick}
+      className="rounded-sm transition-colors hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      <Glyph size={16} />
+    </button>
+  );
+}

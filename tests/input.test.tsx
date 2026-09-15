@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { render } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { Field, Input, InputDivider } from "../src";
 
 const valueRegion = (container: HTMLElement) =>
@@ -57,6 +57,42 @@ describe("Input", () => {
       /(^|\s)border(-|\s|$)/,
     );
     expect(valueRegion(container).className).toContain("border-red-300");
+  });
+
+  it("shows a help marker by default, which turns red and becomes an alert on error", () => {
+    const normal = render(<Input />);
+    const normalMarker = normal.container.querySelector("svg")!;
+    expect(normalMarker).not.toBeNull();
+    expect(normal.container.querySelector('[data-slot="value"]')!.textContent).toBe("");
+    // neutral wrapper at rest
+    const normalWrapper = normalMarker.closest("span")!;
+    expect(normalWrapper.className).toContain("text-neutral-400");
+
+    const errored = render(<Input error />);
+    const errorMarker = errored.container.querySelector("svg")!;
+    expect(errorMarker.closest("span")!.className).toContain("text-red-600");
+    // the glyph itself changes, not just the colour
+    expect(errorMarker.innerHTML).not.toBe(normalMarker.innerHTML);
+  });
+
+  it("hides the marker when helpIcon is false", () => {
+    const { container } = render(<Input helpIcon={false} />);
+    expect(container.querySelector("svg")).toBeNull();
+  });
+
+  it("makes the marker a button when a handler is given", () => {
+    const onHelpClick = vi.fn();
+    render(<Input onHelpClick={onHelpClick} />);
+    const button = screen.getByLabelText("Help");
+    fireEvent.click(button);
+    expect(onHelpClick).toHaveBeenCalled();
+  });
+
+  it("keeps consumer trailing content before the marker", () => {
+    const { container } = render(<Input trailing={<span data-testid="x">kg</span>} />);
+    const wrapper = container.querySelector("span.gap-2")!;
+    const kids = [...wrapper.children].map((el) => el.tagName.toLowerCase());
+    expect(kids).toEqual(["span", "svg"]);
   });
 
   it("renders the affixes around the text field", () => {

@@ -140,6 +140,7 @@ export function NumberInput({
     <Input
       type="text"
       size={size}
+      helpIcon={false}
       disabled={disabled}
       inputMode="decimal"
       role="spinbutton"

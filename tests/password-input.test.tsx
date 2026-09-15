@@ -58,6 +58,12 @@ describe("PasswordInput", () => {
     expect(toggleButton(container).disabled).toBe(true);
   });
 
+  it("shows only the visibility toggle, no help marker", () => {
+    const { container } = render(<PasswordInput />);
+    // the eye is the only icon; the sheets give password fields no marker
+    expect(container.querySelectorAll("svg")).toHaveLength(1);
+  });
+
   it("keeps the rest of the Input contract", () => {
     const { container } = render(
       <PasswordInput size="lg" error placeholder="Password" leading="key" />,

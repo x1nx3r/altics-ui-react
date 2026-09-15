@@ -38,6 +38,7 @@ export function PasswordInput({
   return (
     <Input
       type={isVisible ? "text" : "password"}
+      helpIcon={false}
       disabled={disabled}
       trailing={
         <button

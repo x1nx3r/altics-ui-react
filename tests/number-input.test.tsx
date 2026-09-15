@@ -147,6 +147,13 @@ describe("NumberInput", () => {
     expect((screen.getByLabelText("Decrease") as HTMLButtonElement).disabled).toBe(true);
   });
 
+  it("shows only the steppers, no help marker", () => {
+    const horizontal = render(<NumberInput />);
+    expect(horizontal.container.querySelectorAll("svg")).toHaveLength(2);
+    const vertical = render(<NumberInput orientation="vertical" />);
+    expect(vertical.container.querySelectorAll("svg")).toHaveLength(2);
+  });
+
   it("keeps the rest of the Input contract", () => {
     const { container } = render(<NumberInput size="lg" error />);
     expect(box(container).className).toContain("h-11");
