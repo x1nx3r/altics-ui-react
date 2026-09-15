@@ -1,5 +1,12 @@
 import "./styles/index.css";
-export { Button, IconButton, LinkButton, type ButtonProps, type IconButtonProps, type LinkButtonProps } from "./components/button";
+export {
+  Button,
+  IconButton,
+  LinkButton,
+  type ButtonProps,
+  type IconButtonProps,
+  type LinkButtonProps,
+} from "./components/button";
 export {
   FileInput,
   Input,
@@ -7,12 +14,14 @@ export {
   NumberInput,
   OtpInput,
   PasswordInput,
+  TagsInput,
   Textarea,
   type FileInputProps,
   type InputProps,
   type NumberInputProps,
   type OtpInputProps,
   type PasswordInputProps,
+  type TagsInputProps,
   type TextareaProps,
 } from "./components/input";
 export { Field, Label, type FieldProps } from "./components/field";
