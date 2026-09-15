@@ -3,9 +3,11 @@ export { Button, IconButton, LinkButton, type ButtonProps, type IconButtonProps,
 export {
   Input,
   InputDivider,
+  NumberInput,
   PasswordInput,
   Textarea,
   type InputProps,
+  type NumberInputProps,
   type PasswordInputProps,
   type TextareaProps,
 } from "./components/input";
