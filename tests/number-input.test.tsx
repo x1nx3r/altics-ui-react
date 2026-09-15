@@ -65,6 +65,14 @@ describe("NumberInput", () => {
     expect(field(container).value).toBe("8");
   });
 
+  it("centres the value in the horizontal orientation only", () => {
+    const horizontal = render(<NumberInput defaultValue={5} />);
+    expect(field(horizontal.container).className).toContain("text-center");
+
+    const vertical = render(<NumberInput orientation="vertical" defaultValue={5} />);
+    expect(field(vertical.container).className).not.toContain("text-center");
+  });
+
   it("steps with the arrow keys", () => {
     const { container } = render(<NumberInput defaultValue={5} />);
     fireEvent.keyDown(field(container), { key: "ArrowUp" });

@@ -143,6 +143,7 @@ export function NumberInput({
       disabled={disabled}
       inputMode="decimal"
       role="spinbutton"
+      textAlign={orientation === "horizontal" ? "center" : "left"}
       aria-valuenow={current ?? undefined}
       aria-valuemin={min}
       aria-valuemax={max}
