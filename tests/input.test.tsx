@@ -121,8 +121,13 @@ describe("Input", () => {
     const growing = render(<Input overflow="wrap" />);
     expect(container(growing).className).toContain("min-h-10");
     expect(container(growing).className).not.toMatch(/(^|\s)h-10(\s|$)/);
-    // the field itself accounts for the region's two 1px borders
-    expect(fieldOf(growing).className).toContain("h-[38px]");
+    const region = valueRegion(growing.container);
+    expect(region.className).toContain("flex-wrap");
+    // The sheet insets a chip by 8px from the border box and the region's own
+    // border takes 1px of it, so a row is 24 + 14 + 2 = the size height.
+    expect(region.className).toContain("py-[7px]");
+    // every item is one chip tall, so the rows stay 24 + 6 apart
+    expect(fieldOf(growing).className).toContain("h-6");
   });
 
   it("keeps the size height and scrolls the line when the overflow is scroll", () => {

@@ -7,33 +7,38 @@ import { InputDivider } from "./InputDivider";
  * Horizontal rhythm per size, Figma: text 14px sm, 16px md and lg. The cap
  * height of the sheets' placeholder text settles it: 11.5px at md and lg,
  * 10.1px at sm, so md and lg share a size and sm is one step down.
- * `wrap*` swaps the fixed height for a minimum, so content can wrap onto more
- * lines and the box grows. The field keeps its own height in that mode and
- * needs a floor, or it would squeeze to nothing on a full line. That height is
- * the size minus the region's two 1px borders, so a single row still measures
- * exactly the size height. `scroll*` keeps the plain height and reserves a
- * field wide enough to type in while the rest of the line scrolls.
+ * `wrap*` is for content that can take more than one line. Inside, every item
+ * is one chip tall, so a row is 24px plus the 6px gap and the box grows in
+ * those steps. The padding is the sheet's chip inset, so a single row still
+ * measures exactly the size height and the chips keep the same breathing room
+ * once the box has grown. The inset is 6, 8 and 10 from the border box and the
+ * region's own border accounts for 1px of it, hence 5, 7 and 9.
+ * `scroll*` keeps the plain height and reserves a field wide enough to type in
+ * while the rest of the line scrolls.
  */
 const sizes = {
   sm: {
     box: "h-9 text-sm",
     wrapBox: "min-h-9 text-sm",
+    wrapPad: "py-[5px]",
     input: "h-full min-w-0",
-    wrapInput: "h-[34px] min-w-16",
+    wrapInput: "h-6 min-w-16",
     scrollInput: "h-full min-w-16",
   },
   md: {
     box: "h-10 text-base",
     wrapBox: "min-h-10 text-base",
+    wrapPad: "py-[7px]",
     input: "h-full min-w-0",
-    wrapInput: "h-[38px] min-w-16",
+    wrapInput: "h-6 min-w-16",
     scrollInput: "h-full min-w-16",
   },
   lg: {
     box: "h-11 text-base",
     wrapBox: "min-h-11 text-base",
+    wrapPad: "py-[9px]",
     input: "h-full min-w-0",
-    wrapInput: "h-[42px] min-w-16",
+    wrapInput: "h-6 min-w-16",
     scrollInput: "h-full min-w-16",
   },
 };
@@ -203,7 +208,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             // one line in both modes, so the chips switch the region to their
             // own inset and the text's extra 2px rides on the input below.
             (wraps || scrolls) && "gap-x-1.5 has-[[data-slot=tag]]:pl-2",
-            wraps && "flex-wrap gap-y-1.5",
+            wraps && cn("flex-wrap gap-y-1.5", sizes[size].wrapPad),
             borderColour,
             regionRounding,
             regionPaddingLeft,
