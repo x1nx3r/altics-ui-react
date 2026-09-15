@@ -22,15 +22,17 @@ describe("Input", () => {
     }
   });
 
-  it("marks the field invalid and paints the border when error is set", () => {
+  it("marks the field invalid and paints the sheet error border when error is set", () => {
     const { container } = render(<Input error placeholder="Email" />);
     expect(container.querySelector("input")?.getAttribute("aria-invalid")).toBe("true");
-    expect(container.firstElementChild?.className).toContain("border-destructive");
+    // sheet: error rest border is red-300
+    expect(container.firstElementChild?.className).toContain("border-red-300");
   });
 
-  it("keeps the normal border when error is absent", () => {
+  it("keeps the sheet rest border when error is absent", () => {
     const { container } = render(<Input />);
-    expect(container.firstElementChild?.className).toContain("border-input");
+    // sheet: rest border is neutral-300
+    expect(container.firstElementChild?.className).toContain("border-neutral-300");
   });
 
   it("renders the affixes around the text field", () => {

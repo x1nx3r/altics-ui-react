@@ -2,7 +2,7 @@ import { forwardRef, type TextareaHTMLAttributes } from "react";
 import { cn } from "../../lib/cn";
 
 const field =
-  "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+  "flex w-full rounded-md border border-neutral-300 bg-background px-3 py-2 text-sm text-foreground placeholder:text-placeholder focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50";
 
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   /**

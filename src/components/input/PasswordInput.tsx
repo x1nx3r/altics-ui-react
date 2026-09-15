@@ -47,8 +47,8 @@ export function PasswordInput({
           aria-pressed={isVisible}
           aria-label={isVisible ? "Hide password" : "Show password"}
           className={cn(
-            "rounded-sm text-muted-foreground transition-colors",
-            "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "rounded-sm text-neutral-400 transition-colors",
+            "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
             "disabled:cursor-not-allowed disabled:opacity-50",
           )}
         >

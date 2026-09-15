@@ -58,7 +58,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <div
         className={cn(
           "flex w-full items-center rounded-md border bg-background transition-colors",
-          "focus-within:outline-none focus-within:ring-2 focus-within:ring-ring",
+          // Sheets: focus is the border edge thickening to 2px in place, not a
+          // ring around the box. An outline with a negative offset paints over
+          // the 1px border without participating in layout, so nothing shifts.
+          "focus-within:outline focus-within:outline-2 focus-within:outline-offset-[-2px]",
+          error ? "focus-within:outline-focus-error" : "focus-within:outline-focus",
           sizes[size].box,
           // Each side is independent: an affix insets its own edge, and the
           // opposite edge keeps the plain text inset. Without this, a
@@ -73,13 +77,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               ? "pr-3"
               : "pr-2.5"
             : "pr-3",
-          error ? "border-destructive" : "border-input",
+          // Sheets: rest border is neutral-300, error border red-300.
+          error ? "border-red-300" : "border-neutral-300",
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}
       >
         {leading && (
-          <span className="ml-1 flex shrink-0 items-center text-muted-foreground">{leading}</span>
+          <span className="ml-1 flex shrink-0 items-center text-neutral-600">{leading}</span>
         )}
         {leading && showLeadingDivider && <InputDivider />}
         <input
@@ -87,7 +92,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           disabled={disabled}
           aria-invalid={invalidState}
           className={cn(
-            "h-full min-w-0 flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed",
+            "h-full min-w-0 flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
             sizes[size].input,
             Boolean(leading) && !showLeadingDivider && "pl-2",
             Boolean(trailing) && !showTrailingDivider && "pr-2",
@@ -96,7 +101,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         />
         {trailing && showTrailingDivider && <InputDivider />}
         {trailing && (
-          <span className="mr-1 flex shrink-0 items-center text-muted-foreground">{trailing}</span>
+          <span className="mr-1 flex shrink-0 items-center text-neutral-400">{trailing}</span>
         )}
       </div>
     );
