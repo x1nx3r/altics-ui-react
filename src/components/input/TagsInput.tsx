@@ -7,20 +7,46 @@ export type TagsInputProps = Omit<
   InputProps,
   "value" | "defaultValue" | "onChange" | "leading" | "trailing"
 > & {
-  /** The tags. Use this for controlled use. */
-  value?: string[];
-  /** The initial tags. Use this for uncontrolled use. */
-  defaultValue?: string[];
-  onValueChange?: (tags: string[]) => void;
-  /** Where the tags render: inside the field, or in a row below it. */
-  chips?: "inside" | "below";
   /**
-   * What the field does when the tags outgrow one line. `"wrap"` (default)
-   * grows the box taller; `"scroll"` keeps the sheet height and scrolls the
-   * line sideways. Only applies to chips inside.
+   * The tags. Give this and `onValueChange` to control the field yourself
+   * @default undefined
+   */
+  value?: string[];
+
+  /**
+   * The initial tags, for uncontrolled use
+   * @default []
+   */
+  defaultValue?: string[];
+
+  /**
+   * Runs with the next set of tags whenever one is added or removed
+   * @default undefined
+   */
+  onValueChange?: (tags: string[]) => void;
+
+  /**
+   * Where the tags render
+   * @default "inside"
+   * @option "inside" - chips in the field, which wrap or scroll
+   * @option "below" - a row under the field, leaving the field its sheet height
+   */
+  chips?: "inside" | "below";
+
+  /**
+   * What the field does when the tags outgrow one line. Only applies to chips
+   * inside
+   * @default "wrap"
+   * @option "wrap" - grows the box taller, a row at a time
+   * @option "scroll" - holds the sheet height and scrolls the chips sideways,
+   * revealing the newest tag as it arrives
    */
   overflow?: "wrap" | "scroll";
-  /** Stop accepting tags after this many. */
+
+  /**
+   * Stop accepting tags after this many
+   * @default undefined
+   */
   maxTags?: number;
 };
 
@@ -79,6 +105,21 @@ function Chip({
  * last tag, and a paste splits on commas and newlines. Empty and duplicate tags
  * are dropped. The chips render inside the field or in a row below it; inside,
  * they wrap onto more lines or scroll sideways under the sheet height.
+ *
+ * @example
+ * // Tags in the field, wrapping as they grow
+ * <TagsInput placeholder="Add a skill" defaultValue={["react"]} />
+ *
+ * @example
+ * // One row under the field, or one line that scrolls instead
+ * <TagsInput chips="below" />
+ * <TagsInput overflow="scroll" />
+ *
+ * @example
+ * // Capped, with the message printed by Field
+ * <Field label="Skills" error="Too many">
+ *   <TagsInput maxTags={3} />
+ * </Field>
  */
 export function TagsInput({
   value,

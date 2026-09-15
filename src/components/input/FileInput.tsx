@@ -7,17 +7,40 @@ export type FileInputProps = Omit<
   InputProps,
   "type" | "value" | "defaultValue" | "onChange" | "trailing" | "attachedTrailing" | "readOnly"
 > & {
-  /** Accepted file types, passed to the file input. */
+  /**
+   * Accepted file types, passed straight to the file input
+   * @default undefined
+   */
   accept?: string;
-  /** Permit more than one file. */
+
+  /**
+   * Permit more than one file
+   * @default false
+   */
   multiple?: boolean;
-  /** Runs when the selection changes. */
+
+  /**
+   * Runs with the next selection, as files rather than names
+   * @default undefined
+   */
   onFilesChange?: (files: File[]) => void;
-  /** Show progress instead of the file icon and block the action. */
+
+  /**
+   * Show a spinner in place of the file icon and block the action
+   * @default false
+   */
   loading?: boolean;
-  /** Runs when the help button is pressed. The button shows only when set. */
+
+  /**
+   * Runs when the help button is pressed. The button appears only when set
+   * @default undefined
+   */
   onHelpClick?: () => void;
-  /** Text of the action. */
+
+  /**
+   * Text of the action panel
+   * @default "Browse"
+   */
   actionLabel?: string;
 };
 
@@ -31,6 +54,13 @@ export type FileInputProps = Omit<
  * Focus covers the whole field. The sheet rings only the value area and drops
  * the divider, which would leave the action with no focus indicator of its
  * own; one visible outline for the control is the safer reading.
+ *
+ * @example
+ * <FileInput />
+ *
+ * @example
+ * // One PDF, with the action busy while it uploads
+ * <FileInput accept="application/pdf" loading />
  */
 export function FileInput({
   accept,

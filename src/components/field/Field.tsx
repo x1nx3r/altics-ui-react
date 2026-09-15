@@ -35,20 +35,62 @@ function useDevWarning(condition: boolean, message: string) {
 }
 
 export type FieldProps = Omit<HTMLAttributes<HTMLDivElement>, "label"> & {
-  /** Text above the box **/
+  /**
+   * Text above the control
+   * @default undefined
+   */
   label?: ReactNode;
-  /** If value is true, the label show a required asterisks **/
+
+  /**
+   * Mark the control required and draw the asterisk beside the label
+   * @default undefined
+   */
   required?: boolean;
-  /** Help text below the box, The error message replaces it **/
+
+  /**
+   * Help text under the control. Hidden while `error` has something to say
+   * @default undefined
+   */
   hint?: ReactNode;
-  /** If the value is a string, the box shows the error border.
-   * Field shows the string below the box
-   **/
+
+  /**
+   * Error message. A string paints the control's error border and prints the
+   * message under it
+   * @default undefined
+   */
   error?: string | false | null;
-  /** the input element. Field sets it's id and descriptions **/
+
+  /**
+   * The control. Field clones it to set `id`, `aria-describedby`, `error` and
+   * `required`, so it must be a component that forwards those
+   * @default undefined
+   */
   children: ReactNode;
 };
 
+/**
+ * Label, control, and one message under it.
+ *
+ * Field wires the pieces itself: it gives the control an id, points the label
+ * at it, and describes it with the hint, or with the error while one is set. A
+ * control that sets its own `error` or `required` keeps them.
+ *
+ * It wires the child by cloning it, so the child has to be a component that
+ * forwards `id`, `aria-describedby`, `error` and `required`. Anything else —
+ * text, a fragment, a plain `<input>` — leaves the label pointing at nothing,
+ * which is why it warns in development.
+ *
+ * @example
+ * <Field label="Email" hint="We never share it">
+ *   <Input type="email" />
+ * </Field>
+ *
+ * @example
+ * // The error replaces the hint and marks the control invalid
+ * <Field label="Email" error="Required">
+ *   <Input />
+ * </Field>
+ */
 export function Field({ label, required, hint, error, children, className, ...props }: FieldProps) {
   const id = useId();
   const hintId = `${id}-hint`;

@@ -4,18 +4,37 @@ import { EyeIcon, EyeOffIcon } from "../icon/icons";
 import { Input, type InputProps } from "./Input";
 
 export type PasswordInputProps = Omit<InputProps, "type" | "trailing"> & {
-  /** Initial visibility. Use this for uncontrolled use. */
+  /**
+   * Initial visibility, for uncontrolled use
+   * @default false
+   */
   defaultVisible?: boolean;
-  /** Visibility. Use this for controlled use. */
+
+  /**
+   * Visibility. Give this and `onVisibleChange` to control it yourself
+   * @default undefined
+   */
   visible?: boolean;
-  /** Runs when the user changes the visibility. */
+
+  /**
+   * Runs with the next visibility whenever the toggle is pressed
+   * @default undefined
+   */
   onVisibleChange?: (visible: boolean) => void;
 };
 
 /**
  * Password box with a visibility toggle.
- * The toggle occupies the trailing slot.
- * The value is always plain text; only the input type changes.
+ *
+ * The toggle takes the trailing slot, so the help marker stands down. The
+ * value is always plain text; only the input's `type` changes.
+ *
+ * @example
+ * <PasswordInput placeholder="Password" />
+ *
+ * @example
+ * // Driven from outside
+ * <PasswordInput visible={shown} onVisibleChange={setShown} />
  */
 export function PasswordInput({
   defaultVisible = false,

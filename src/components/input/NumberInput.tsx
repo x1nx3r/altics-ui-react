@@ -14,18 +14,47 @@ export type NumberInputProps = Omit<
   InputProps,
   "type" | "value" | "defaultValue" | "onChange" | "leading" | "trailing" | "inputMode" | "role"
 > & {
-  /** The value. Use this for controlled use. */
-  value?: number | null;
-  /** The initial value. Use this for uncontrolled use. */
-  defaultValue?: number | null;
-  /** Runs when the value changes. */
-  onValueChange?: (value: number | null) => void;
-  min?: number;
-  max?: number;
-  step?: number;
   /**
-   * "horizontal" puts the steppers at each end of the box.
-   * "vertical" puts a stacked stepper column at the trailing edge.
+   * The value. Give this and `onValueChange` to control the field yourself
+   * @default undefined
+   */
+  value?: number | null;
+
+  /**
+   * The initial value, for uncontrolled use
+   * @default null
+   */
+  defaultValue?: number | null;
+
+  /**
+   * Runs with the next value whenever it changes
+   * @default undefined
+   */
+  onValueChange?: (value: number | null) => void;
+
+  /**
+   * Lowest value the steppers stop at
+   * @default undefined
+   */
+  min?: number;
+
+  /**
+   * Highest value the steppers stop at
+   * @default undefined
+   */
+  max?: number;
+
+  /**
+   * How far a step moves, and how many decimals the field keeps
+   * @default 1
+   */
+  step?: number;
+
+  /**
+   * Where the steppers sit
+   * @default "horizontal"
+   * @option "horizontal" - one button at each end, the sheet's horizontal counter
+   * @option "vertical" - a stacked column in a panel on the trailing edge
    */
   orientation?: "horizontal" | "vertical";
 };
@@ -41,6 +70,21 @@ function precisionOf(step: number): number {
   return dot === -1 ? 0 : text.length - dot - 1;
 }
 
+/**
+ * Number field with steppers.
+ *
+ * The value is a number or null, while the field keeps its own text as you
+ * type, so a half-written decimal is never parsed mid-keystroke. The arrow keys
+ * step the value, and a step's decimals are honoured, so 0.1 does not drift.
+ *
+ * @example
+ * // A button at each end, the sheet's horizontal counter
+ * <NumberInput defaultValue={5} />
+ *
+ * @example
+ * // A stacked column on the trailing edge, the sheet's vertical counter
+ * <NumberInput orientation="vertical" min={0} max={10} step={0.5} />
+ */
 export function NumberInput({
   value,
   defaultValue = null,

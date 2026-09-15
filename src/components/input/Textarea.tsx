@@ -6,12 +6,28 @@ const field =
 
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   /**
-   * If the value is true, the box shows the error border
-   * If the values is a string, Field shows the string as the error message
+   * Error state. `true` paints the error border; a string does the same and
+   * `Field` prints the string below the box
+   * @default undefined
    */
   error?: string | boolean;
 };
 
+/**
+ * Multi-line text box.
+ *
+ * The same chrome as `Input` without the slots: a rounded border, 12px of
+ * side inset, and the sheets' focus outline drawn in place over the border.
+ * `Field` supplies the label, the hint and the error message.
+ *
+ * @example
+ * <Textarea placeholder="Notes" />
+ *
+ * @example
+ * <Field label="Notes" hint="Markdown is fine">
+ *   <Textarea rows={4} />
+ * </Field>
+ */
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, error, "aria-invalid": invalid, ...props }, ref) => (
     <textarea

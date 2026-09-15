@@ -13,26 +13,90 @@ import { Input, type InputProps } from "./Input";
 const cellWidth = { sm: "w-9", md: "w-10", lg: "w-11" };
 
 export type OtpInputProps = {
-  /** Number of cells. The sheets show four. */
+  /**
+   * Number of cells. The sheets draw four
+   * @default 4
+   */
   length?: number;
-  /** The code. Use this for controlled use. */
+
+  /**
+   * The code. Give this and `onValueChange` to control the field yourself
+   * @default undefined
+   */
   value?: string;
-  /** The initial code. Use this for uncontrolled use. */
+
+  /**
+   * The initial code, for uncontrolled use
+   * @default ""
+   */
   defaultValue?: string;
+
+  /**
+   * Runs with the next code on every keystroke
+   * @default undefined
+   */
   onValueChange?: (value: string) => void;
-  /** Runs once when the last cell is filled. */
+
+  /**
+   * Runs once, when the last cell is filled
+   * @default undefined
+   */
   onComplete?: (value: string) => void;
+
+  /**
+   * Cell size, following the field sizes
+   * @default "md"
+   */
   size?: InputProps["size"];
+
+  /**
+   * Error state, painted like every other field
+   * @default undefined
+   */
   error?: string | boolean;
+
+  /**
+   * Block editing; the cells fade like every other disabled field
+   * @default undefined
+   */
   disabled?: boolean;
+
+  /**
+   * Keep the code readable but not editable
+   * @default undefined
+   */
   readOnly?: boolean;
+
+  /**
+   * Focus the field on mount
+   * @default undefined
+   */
   autoFocus?: boolean;
-  /** "numeric" keeps digits only, "alphanumeric" keeps letters as well. */
+
+  /**
+   * What the cells accept
+   * @default "numeric"
+   * @option "numeric" - digits only
+   * @option "alphanumeric" - letters as well
+   */
   type?: "numeric" | "alphanumeric";
-  /** Name for native form submission. */
+
+  /**
+   * Name for native form submission
+   * @default undefined
+   */
   name?: string;
-  /** Accessible name for the field. */
+
+  /**
+   * Accessible name for the field
+   * @default "One-time code"
+   */
   label?: string;
+
+  /**
+   * Extra classes for the row of cells
+   * @default undefined
+   */
   className?: string;
 };
 
@@ -46,6 +110,13 @@ export type OtpInputProps = {
  *
  * The active cell draws the focus outline, taken from the same Input chrome as
  * every other field, so the sheets' focused look is unchanged.
+ *
+ * @example
+ * <OtpInput />
+ *
+ * @example
+ * // Six letters, reported once the last cell is filled
+ * <OtpInput length={6} type="alphanumeric" onComplete={submit} />
  */
 export function OtpInput({
   length = 4,
