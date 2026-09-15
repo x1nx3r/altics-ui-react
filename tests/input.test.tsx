@@ -38,6 +38,27 @@ describe("Input", () => {
     expect(valueRegion(container).className).toContain("border-neutral-300");
   });
 
+  it("draws the border on the value region, not the box", () => {
+    const { container } = render(<Input />);
+    const box = container.firstElementChild as HTMLElement;
+    const region = valueRegion(container);
+    // The box must not draw a border: the focus outline lives on the region, so
+    // a border on the box would show beside the outline instead of under it.
+    expect(box.className).not.toMatch(/(^|\s)border(-|\s|$)/);
+    // The region owns all four sides; its inner edge is the divider when a
+    // panel is attached.
+    expect(region.className).toMatch(/(^|\s)border(\s|$)/);
+    expect(region.className).toContain("border-neutral-300");
+  });
+
+  it("puts the error border on the value region too", () => {
+    const { container } = render(<Input error />);
+    expect((container.firstElementChild as HTMLElement).className).not.toMatch(
+      /(^|\s)border(-|\s|$)/,
+    );
+    expect(valueRegion(container).className).toContain("border-red-300");
+  });
+
   it("renders the affixes around the text field", () => {
     const { container } = render(<Input leading="Rp" trailing="kg" />);
     const region = container.querySelector('[data-slot="value"]')!;

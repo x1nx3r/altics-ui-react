@@ -67,6 +67,15 @@ describe("NumberInput", () => {
     expect(field(container).value).toBe("8");
   });
 
+  it("draws only the outer sides on the panel, so the seam is not doubled", () => {
+    const { container } = render(<NumberInput orientation="vertical" />);
+    const panel = box(container).querySelector('[data-slot="panel"]') as HTMLElement;
+    expect(panel.className).toContain("border-y");
+    expect(panel.className).toContain("border-r");
+    // the divider is the value region's own border
+    expect(panel.className).not.toContain("border-l");
+  });
+
   it("keeps exactly one padding class per side so the panel sits flush", () => {
     const vertical = render(<NumberInput orientation="vertical" />);
     const vRight = region(vertical.container).className
