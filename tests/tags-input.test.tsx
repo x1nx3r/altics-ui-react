@@ -194,6 +194,20 @@ describe("TagsInput", () => {
     expect(glyph("lg").getAttribute("width")).toBe("16");
   });
 
+  it("keeps a label that cannot fit inside the border", () => {
+    // The sheet never draws a tag wider than its field. Without the cap a
+    // pasted long tag renders wider than the box and spills past the border.
+    const long = "https://example.com/a/really/long/path/that/nobody/would/type";
+    const { container } = render(<TagsInput defaultValue={[long]} />);
+    const chip = chips(container)[0];
+    expect(chip.className).toContain("max-w-full");
+    const label = chip.querySelector("span")!;
+    expect(label.className).toContain("truncate");
+    expect(label.className).toContain("min-w-0");
+    // the ellipsis hides the end, so the full text stays reachable
+    expect(label.getAttribute("title")).toBe(long);
+  });
+
   it("steps the chip label down on sm", () => {
     const label = (size: "sm" | "md" | "lg") =>
       render(<TagsInput size={size} defaultValue={["a"]} />).container.querySelector(

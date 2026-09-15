@@ -29,6 +29,11 @@ export type TagsInputProps = Omit<
  * radius, 1px neutral-300 border, 10px left padding, 2px between the label and
  * the close glyph, and the glyph's centre 12px from the right edge. The label
  * and the glyph step down one size on sm.
+ *
+ * The sheet never draws a tag wider than its field, so a label that cannot fit
+ * is capped and ellipsised rather than allowed to break out of the border
+ * (MUI's Chip and Mantine's pill do the same). The label keeps the full text as
+ * a title, since the ellipsis hides the end of it.
  */
 function Chip({
   label,
@@ -44,9 +49,14 @@ function Chip({
   return (
     <span
       data-slot="tag"
-      className="flex h-6 shrink-0 items-center gap-0.5 rounded-sm border border-neutral-300 bg-background pr-1 pl-2.5"
+      className="flex h-6 max-w-full shrink-0 items-center gap-0.5 rounded-sm border border-neutral-300 bg-background pr-1 pl-2.5"
     >
-      <span className={cn("text-neutral-700", size === "sm" ? "text-xs" : "text-sm")}>{label}</span>
+      <span
+        title={label}
+        className={cn("min-w-0 truncate text-neutral-700", size === "sm" ? "text-xs" : "text-sm")}
+      >
+        {label}
+      </span>
       <button
         type="button"
         aria-label={`Remove ${label}`}
