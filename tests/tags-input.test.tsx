@@ -51,6 +51,36 @@ describe("TagsInput", () => {
     expect(chipsOf(container)).toHaveLength(3);
   });
 
+  it("commits the draft when the field loses focus", () => {
+    const onValueChange = vi.fn();
+    const { container } = render(<TagsInput onValueChange={onValueChange} />);
+    const input = inputOf(container);
+    fireEvent.change(input, { target: { value: "design" } });
+    fireEvent.blur(input);
+    expect(onValueChange).toHaveBeenCalledWith(["design"]);
+    expect(inputOf(container).value).toBe("");
+  });
+
+  it("keeps the draft when focus moves inside the field", () => {
+    // Pressing a chip's remove button should not mint a tag from the draft.
+    const onValueChange = vi.fn();
+    const { container } = render(<TagsInput defaultValue={["a"]} onValueChange={onValueChange} />);
+    const input = inputOf(container);
+    fireEvent.change(input, { target: { value: "design" } });
+    fireEvent.blur(input, { relatedTarget: screen.getByLabelText("Remove a") });
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(inputOf(container).value).toBe("design");
+  });
+
+  it("drops the draft on blur when asked", () => {
+    const onValueChange = vi.fn();
+    const { container } = render(<TagsInput commitOnBlur={false} onValueChange={onValueChange} />);
+    const input = inputOf(container);
+    fireEvent.change(input, { target: { value: "design" } });
+    fireEvent.blur(input);
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
   it("leaves a plain paste to the field", () => {
     const onValueChange = vi.fn();
     const { container } = render(<TagsInput onValueChange={onValueChange} />);

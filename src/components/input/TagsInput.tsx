@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ClipboardEvent,
+  type FocusEvent,
+  type KeyboardEvent,
+} from "react";
 import { cn } from "../../lib/cn";
 import { XIcon } from "../icon/icons";
 import { Input, type InputProps } from "./Input";
@@ -48,6 +55,14 @@ export type TagsInputProps = Omit<
    * @default undefined
    */
   maxTags?: number;
+
+  /**
+   * Commit the half-typed tag when the field loses focus instead of dropping
+   * it. Focus moving inside the field does not count, so pressing a chip's
+   * remove button leaves the draft to finish
+   * @default true
+   */
+  commitOnBlur?: boolean;
 };
 
 /**
@@ -131,6 +146,8 @@ export function TagsInput({
   size = "md",
   disabled,
   placeholder,
+  onBlur,
+  commitOnBlur = true,
   className,
   ...props
 }: TagsInputProps) {
@@ -178,6 +195,18 @@ export function TagsInput({
     }
   }
 
+  function handleBlur(event: FocusEvent<HTMLInputElement>) {
+    onBlur?.(event);
+    if (!commitOnBlur) return;
+    // Commit only when focus leaves the field. Moving to a chip's remove button
+    // keeps the draft on screen, so it is not lost and need not land yet.
+    const next = event.relatedTarget as Node | null;
+    const field = event.currentTarget.closest('[data-slot="box"]');
+    if (next && field?.contains(next)) return;
+    commit([draft]);
+    setDraft("");
+  }
+
   function handlePaste(event: ClipboardEvent<HTMLInputElement>) {
     const text = event.clipboardData.getData("text");
     if (!/[\n,]/.test(text)) return;
@@ -212,6 +241,7 @@ export function TagsInput({
       onChange={(event) => setDraft(event.target.value)}
       onKeyDown={handleKeyDown}
       onPaste={handlePaste}
+      onBlur={handleBlur}
       leading={chips === "inside" ? inside : undefined}
       {...props}
     />
