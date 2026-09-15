@@ -1,4 +1,4 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
+import { forwardRef, useCallback, useRef, type InputHTMLAttributes, type ReactNode } from "react";
 import { cn } from "../../lib/cn";
 import { AlertCircleIcon, HelpCircleIcon } from "../icon/icons";
 import { InputDivider } from "./InputDivider";
@@ -119,6 +119,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     ref,
   ) => {
     const invalidState = invalid ?? !!error;
+    // The field keeps its own handle on the input, so a click anywhere in the
+    // region can put the caret in the text without the caller having to hand a
+    // ref back. Merged with the forwarded ref rather than replacing it.
+    const innerRef = useRef<HTMLInputElement | null>(null);
+    const setInputRef = useCallback(
+      (node: HTMLInputElement | null) => {
+        innerRef.current = node;
+        if (typeof ref === "function") {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      },
+      [ref],
+    );
     // Both overflow modes keep the sheets' rhythm: a chip sits 8px in, the text
     // 12, chips are 6 apart and 8 from the text. They differ at the edge, so
     // they also need different slot handling below.
@@ -201,6 +216,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             band around the line instead of the whole input block. */}
         <span
           data-slot="value"
+          onMouseDown={(event) => {
+            // The region is a plain box, so a press on its padding, on a chip,
+            // or on an affix would otherwise do nothing at all. Leave the text
+            // itself alone: cancelling there would take away placing the caret
+            // and dragging to select.
+            if (disabled || event.target === innerRef.current) return;
+            event.preventDefault();
+            innerRef.current?.focus();
+          }}
           className={cn(
             "flex min-w-0 flex-1 items-center self-stretch border",
             // Sheet, in px from the field's edge: a chip sits 8 in, the text
@@ -249,7 +273,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           {leading && showLeadingDivider && <InputDivider />}
           <input
-            ref={ref}
+            ref={setInputRef}
             disabled={disabled}
             aria-invalid={invalidState}
             className={cn(

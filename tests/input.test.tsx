@@ -175,6 +175,29 @@ describe("Input", () => {
     expect(region.className).not.toContain("overflow-x-auto");
   });
 
+  it("focuses the text from a press anywhere in the region", () => {
+    const rendered = render(<Input leading="Rp" trailing="kg" />);
+    const region = valueRegion(rendered.container);
+    const input = fieldOf(rendered);
+    // The region is a plain box: without this a press on its padding or on an
+    // affix does nothing.
+    expect(fireEvent.mouseDown(region)).toBe(false); // prevented
+    expect(document.activeElement).toBe(input);
+  });
+
+  it("leaves a press on the text itself alone", () => {
+    const rendered = render(<Input />);
+    const input = fieldOf(rendered);
+    // Cancelling here would take away placing the caret and dragging to select.
+    expect(fireEvent.mouseDown(input)).toBe(true); // not prevented
+  });
+
+  it("does not focus a disabled field", () => {
+    const rendered = render(<Input disabled />);
+    fireEvent.mouseDown(valueRegion(rendered.container));
+    expect(document.activeElement).not.toBe(fieldOf(rendered));
+  });
+
   it("renders the affixes around the text field", () => {
     const { container } = render(<Input leading="Rp" trailing="kg" />);
     const region = container.querySelector('[data-slot="value"]')!;

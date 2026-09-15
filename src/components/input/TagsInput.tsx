@@ -33,7 +33,9 @@ export type TagsInputProps = Omit<
  * The sheet never draws a tag wider than its field, so a label that cannot fit
  * is capped and ellipsised rather than allowed to break out of the border
  * (MUI's Chip and Mantine's pill do the same). The label keeps the full text as
- * a title, since the ellipsis hides the end of it.
+ * a title, since the ellipsis hides the end of it. The chip also refuses text
+ * selection, which pairs with the field focusing on any press: Mantine marks
+ * its pills the same way for the same reason.
  */
 function Chip({
   label,
@@ -49,7 +51,7 @@ function Chip({
   return (
     <span
       data-slot="tag"
-      className="flex h-6 max-w-full shrink-0 items-center gap-0.5 rounded-sm border border-neutral-300 bg-background pr-1 pl-2.5"
+      className="flex h-6 max-w-full shrink-0 items-center gap-0.5 rounded-sm border border-neutral-300 bg-background pr-1 pl-2.5 select-none"
     >
       <span
         title={label}

@@ -194,6 +194,15 @@ describe("TagsInput", () => {
     expect(glyph("lg").getAttribute("width")).toBe("16");
   });
 
+  it("puts the caret in the field from a press on a chip", () => {
+    const { container } = render(<TagsInput defaultValue={["a"]} />);
+    const chip = chips(container)[0];
+    expect(fireEvent.mouseDown(chip)).toBe(false); // prevented
+    expect(document.activeElement).toBe(field(container));
+    // the label is not selectable, which is what makes that safe
+    expect(chip.className).toContain("select-none");
+  });
+
   it("keeps a label that cannot fit inside the border", () => {
     // The sheet never draws a tag wider than its field. Without the cap a
     // pasted long tag renders wider than the box and spills past the border.
