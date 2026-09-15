@@ -6,10 +6,7 @@ import { plugins, themeExtend } from "../theme/tailwind-theme";
 
 // Figma is the source of truth; these tests lock the mapping so a partial
 // edit (token without config, config without token) fails loudly.
-const tokensCss = readFileSync(
-  join(process.cwd(), "src/theme/tokens.css"),
-  "utf8",
-);
+const tokensCss = readFileSync(join(process.cwd(), "src/theme/tokens.css"), "utf8");
 function rootBlock(): string {
   return tokensCss.slice(0, tokensCss.indexOf(".dark"));
 }
@@ -107,8 +104,8 @@ describe("Tailwind preset", () => {
 
   it("keeps triplet colors in H S% L% shape", () => {
     const defined = definedVars(rootBlock());
-    const triplets = [...defined.entries()].filter(([, v]) =>
-      /^[\d.\s%]+$/.test(v) && v.includes("%"),
+    const triplets = [...defined.entries()].filter(
+      ([, v]) => /^[\d.\s%]+$/.test(v) && v.includes("%"),
     );
     expect(triplets.length).toBeGreaterThan(0);
     for (const [name, value] of triplets) {

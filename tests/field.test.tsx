@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Field, Input } from "../src";
+import { inputOf } from "./helpers";
 
-const control = (container: HTMLElement) => container.querySelector("input") as HTMLInputElement;
 const warnings = (spy: { mock: { calls: unknown[][] } }) =>
   spy.mock.calls.filter(([message]) => String(message).includes("Field needs a child it can wire"));
 
@@ -13,7 +13,7 @@ describe("Field", () => {
         <Input />
       </Field>,
     );
-    const input = control(container);
+    const input = inputOf(container);
     expect(input.id).not.toBe("");
     expect(screen.getByText("Email").getAttribute("for")).toBe(input.id);
     expect(input.getAttribute("aria-describedby")).toBe(screen.getByText("We never share it.").id);
@@ -27,7 +27,7 @@ describe("Field", () => {
     );
     const alert = screen.getByRole("alert");
     expect(alert.textContent).toBe("Required");
-    expect(control(container).getAttribute("aria-describedby")).toBe(alert.id);
+    expect(inputOf(container).getAttribute("aria-describedby")).toBe(alert.id);
   });
 
   it("marks a required control and shows the asterisk", () => {
@@ -36,7 +36,7 @@ describe("Field", () => {
         <Input />
       </Field>,
     );
-    expect(control(container).required).toBe(true);
+    expect(inputOf(container).required).toBe(true);
     expect(screen.getByText("*")).toBeTruthy();
   });
 

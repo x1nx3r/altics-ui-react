@@ -6,7 +6,7 @@ import { OtpInput } from "../src";
 const field = (container: HTMLElement) =>
   container.querySelector("input[aria-label]") as HTMLInputElement;
 const slots = (container: HTMLElement) =>
-  [...container.querySelectorAll('[aria-hidden="true"]')] as HTMLElement[];
+  [...container.querySelectorAll('[data-slot="otp-cell"]')] as HTMLElement[];
 /** Mirror cells hold their character in an input, not in text. */
 const mirrored = (container: HTMLElement) =>
   slots(container).map((s) => (s.querySelector("input") as HTMLInputElement).value);

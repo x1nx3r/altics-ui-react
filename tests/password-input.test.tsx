@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/react";
 import { PasswordInput } from "../src";
+import { boxOf } from "./helpers";
 
 function toggleButton(container: HTMLElement) {
   return container.querySelector("button")!;
@@ -68,7 +69,7 @@ describe("PasswordInput", () => {
     const { container } = render(
       <PasswordInput size="lg" error placeholder="Password" leading="key" />,
     );
-    const box = container.firstElementChild!;
+    const box = boxOf(container);
     expect(box.className).toContain("h-11");
     // sheet: error rest border is red-300
     expect(container.querySelector('[data-slot="value"]')!.className).toContain("border-red-300");

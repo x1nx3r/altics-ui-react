@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { FileInput } from "../src";
+import { boxOf, regionOf } from "./helpers";
 
-const box = (container: HTMLElement) => container.firstElementChild as HTMLElement;
-const display = (container: HTMLElement) => container.querySelector("input[readonly]") as HTMLInputElement;
-const picker = (container: HTMLElement) => container.querySelector("input[type='file']") as HTMLInputElement;
-const region = (container: HTMLElement) =>
-  container.querySelector('[data-slot="value"]') as HTMLElement;
+const display = (container: HTMLElement) =>
+  container.querySelector("input[readonly]") as HTMLInputElement;
+const picker = (container: HTMLElement) =>
+  container.querySelector("input[type='file']") as HTMLInputElement;
 
 function choose(container: HTMLElement, files: File[]) {
   fireEvent.change(picker(container), { target: { files } });
@@ -42,9 +42,9 @@ describe("FileInput", () => {
 
   it("renders the action region attached to the edge, divided from the rest", () => {
     const { container } = render(<FileInput />);
-    const panel = box(container).querySelector('[data-slot="panel"]');
+    const panel = boxOf(container).querySelector('[data-slot="panel"]');
     expect(panel).not.toBeNull();
-    expect(region(container).className).toContain("pr-0");
+    expect(regionOf(container).className).toContain("pr-0");
     expect(screen.getByText("Browse")).toBeTruthy();
   });
 
@@ -54,7 +54,7 @@ describe("FileInput", () => {
     const label = screen.getByText("Browse");
     expect(label.getAttribute("for")).toBe(input.id);
     // the input lives inside the box, so focus-within still applies
-    expect(box(container).contains(input)).toBe(true);
+    expect(boxOf(container).contains(input)).toBe(true);
   });
 
   it("takes a custom action label", () => {
@@ -88,11 +88,11 @@ describe("FileInput", () => {
 
   it("rings only the value region on focus, and the divider belongs to it", () => {
     const { container } = render(<FileInput />);
-    const value = region(container);
-    const panel = box(container).querySelector('[data-slot="panel"]') as HTMLElement;
+    const value = regionOf(container);
+    const panel = boxOf(container).querySelector('[data-slot="panel"]') as HTMLElement;
     expect(value.className).toContain("focus-within:outline-2");
     // the box itself carries no focus decoration any more
-    expect(box(container).className).not.toContain("focus-within:outline");
+    expect(boxOf(container).className).not.toContain("focus-within:outline");
     // the divider sits on the value region so the outline paints over it
     // the region owns all four borders, so its inner edge is the divider the
     // outline paints over; the panel only draws its outer sides
@@ -105,7 +105,7 @@ describe("FileInput", () => {
 
   it("keeps the rest of the Input contract", () => {
     const { container } = render(<FileInput size="lg" error />);
-    expect(box(container).className).toContain("h-11");
-    expect(region(container).className).toContain("border-red-300");
+    expect(boxOf(container).className).toContain("h-11");
+    expect(regionOf(container).className).toContain("border-red-300");
   });
 });

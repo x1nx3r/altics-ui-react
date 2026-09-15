@@ -1,20 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Field, Input, InputDivider } from "../src";
-
-const valueRegion = (container: HTMLElement) =>
-  container.querySelector('[data-slot="value"]') as HTMLElement;
-const container = (rendered: { container: HTMLElement }) =>
-  rendered.container.firstElementChild as HTMLElement;
-const fieldOf = (rendered: { container: HTMLElement }) =>
-  rendered.container.querySelector("input") as HTMLInputElement;
+import { boxOf, dividersOf, inputOf, markerSlotOf, regionOf } from "./helpers";
 
 describe("Input", () => {
   it("renders a textbox with the md size by default", () => {
     const { container } = render(<Input placeholder="Email" />);
     const input = container.querySelector("input");
     expect(input?.placeholder).toBe("Email");
-    expect(container.firstElementChild?.className).toContain("h-10");
+    expect(boxOf(container).className).toContain("h-10");
   });
 
   it("sizes the box per the size prop", () => {
@@ -25,7 +19,7 @@ describe("Input", () => {
     ] as const;
     for (const [size, expected] of cases) {
       const { container } = render(<Input size={size} />);
-      expect(container.firstElementChild?.className, size).toContain(expected);
+      expect(boxOf(container).className, size).toContain(expected);
     }
   });
 
@@ -39,7 +33,7 @@ describe("Input", () => {
     ] as const;
     for (const [size, expected] of cases) {
       const { container } = render(<Input size={size} />);
-      expect(container.firstElementChild?.className, size).toContain(expected);
+      expect(boxOf(container).className, size).toContain(expected);
     }
   });
 
@@ -47,19 +41,19 @@ describe("Input", () => {
     const { container } = render(<Input error placeholder="Email" />);
     expect(container.querySelector("input")?.getAttribute("aria-invalid")).toBe("true");
     // sheet: error rest border is red-300, drawn by the value region
-    expect(valueRegion(container).className).toContain("border-red-300");
+    expect(regionOf(container).className).toContain("border-red-300");
   });
 
   it("keeps the sheet rest border when error is absent", () => {
     const { container } = render(<Input />);
     // sheet: rest border is neutral-300, drawn by the value region
-    expect(valueRegion(container).className).toContain("border-neutral-300");
+    expect(regionOf(container).className).toContain("border-neutral-300");
   });
 
   it("draws the border on the value region, not the box", () => {
     const { container } = render(<Input />);
-    const box = container.firstElementChild as HTMLElement;
-    const region = valueRegion(container);
+    const box = boxOf(container);
+    const region = regionOf(container);
     // The box must not draw a border: the focus outline lives on the region, so
     // a border on the box would show beside the outline instead of under it.
     expect(box.className).not.toMatch(/(^|\s)border(-|\s|$)/);
@@ -71,10 +65,8 @@ describe("Input", () => {
 
   it("puts the error border on the value region too", () => {
     const { container } = render(<Input error />);
-    expect((container.firstElementChild as HTMLElement).className).not.toMatch(
-      /(^|\s)border(-|\s|$)/,
-    );
-    expect(valueRegion(container).className).toContain("border-red-300");
+    expect(boxOf(container).className).not.toMatch(/(^|\s)border(-|\s|$)/);
+    expect(regionOf(container).className).toContain("border-red-300");
   });
 
   it("shows a help marker by default, which turns red and becomes an alert on error", () => {
@@ -108,40 +100,40 @@ describe("Input", () => {
 
   it("keeps consumer trailing content before the marker", () => {
     const { container } = render(<Input trailing={<span data-testid="x">kg</span>} />);
-    const wrapper = container.querySelector("span.gap-2")!;
+    const wrapper = markerSlotOf(container)!;
     const kids = [...wrapper.children].map((el) => el.tagName.toLowerCase());
     expect(kids).toEqual(["span", "svg"]);
   });
 
   it("trades the size height for a minimum when the overflow is wrap", () => {
     const fixed = render(<Input />);
-    expect(container(fixed).className).toContain("h-10");
-    expect(container(fixed).className).not.toContain("min-h-10");
+    expect(boxOf(fixed.container).className).toContain("h-10");
+    expect(boxOf(fixed.container).className).not.toContain("min-h-10");
 
     const growing = render(<Input overflow="wrap" />);
-    expect(container(growing).className).toContain("min-h-10");
-    expect(container(growing).className).not.toMatch(/(^|\s)h-10(\s|$)/);
-    const region = valueRegion(growing.container);
+    expect(boxOf(growing.container).className).toContain("min-h-10");
+    expect(boxOf(growing.container).className).not.toMatch(/(^|\s)h-10(\s|$)/);
+    const region = regionOf(growing.container);
     expect(region.className).toContain("flex-wrap");
     // The sheet insets a chip by 8px from the border box and the region's own
     // border takes 1px of it, so a row is 24 + 14 + 2 = the size height.
     expect(region.className).toContain("py-[7px]");
     // every item is one chip tall, so the rows stay 24 + 6 apart
-    expect(fieldOf(growing).className).toContain("h-6");
+    expect(inputOf(growing.container).className).toContain("h-6");
   });
 
   it("keeps the size height and scrolls the line when the overflow is scroll", () => {
     const rendered = render(<Input overflow="scroll" />);
-    expect(container(rendered).className).toContain("h-10");
-    expect(container(rendered).className).not.toContain("min-h-10");
+    expect(boxOf(rendered.container).className).toContain("h-10");
+    expect(boxOf(rendered.container).className).not.toContain("min-h-10");
     // the text keeps a usable width instead of collapsing to nothing
-    expect(fieldOf(rendered).className).toContain("min-w-16");
-    expect(valueRegion(rendered.container).className).not.toContain("flex-wrap");
+    expect(inputOf(rendered.container).className).toContain("min-w-16");
+    expect(regionOf(rendered.container).className).not.toContain("flex-wrap");
   });
 
   it("scrolls the leading slot rather than the whole field", () => {
     const { container } = render(<Input overflow="scroll" leading="Rp" trailing="kg" />);
-    const region = valueRegion(container);
+    const region = regionOf(container);
     // The field must not scroll: the text and the marker would scroll out of
     // reach, and with them the only way to click into the field.
     expect(region.className).not.toContain("overflow-x-auto");
@@ -152,7 +144,7 @@ describe("Input", () => {
 
   it("keeps both slots out of the wrapping flow", () => {
     const { container } = render(<Input overflow="wrap" leading="Rp" trailing="kg" />);
-    const region = valueRegion(container);
+    const region = regionOf(container);
     expect(region.className).toContain("gap-x-1.5");
     expect(region.className).toContain("has-[[data-slot=tag]]:pl-2");
     const slots = [...region.querySelectorAll(":scope > span")];
@@ -166,33 +158,33 @@ describe("Input", () => {
 
   it("reserves the trailing slot's width with padding, not with the line", () => {
     const rendered = render(<Input trailing={<span>pick</span>} />);
-    const cls = valueRegion(rendered.container).className;
+    const cls = regionOf(rendered.container).className;
     // md reserves pr-10; nothing in the line may also claim it.
     expect(cls).toContain("pr-10");
     expect(cls).not.toContain("pr-3");
     // scroll mode keeps the slot in the line, so the plain inset stays
     const scrolled = render(<Input overflow="scroll" trailing={<span>pick</span>} />);
-    expect(valueRegion(scrolled.container).className).toContain("pr-3");
+    expect(regionOf(scrolled.container).className).toContain("pr-3");
   });
 
   it("keeps the sheet rhythm in scroll mode too", () => {
     const { container } = render(<Input overflow="scroll" leading="Rp" trailing="kg" />);
-    const region = valueRegion(container);
+    const region = regionOf(container);
     expect(region.className).toContain("gap-x-1.5");
     expect(region.className).toContain("has-[[data-slot=tag]]:pl-2");
   });
 
   it("leaves a plain field alone", () => {
     const { container } = render(<Input leading="Rp" trailing="kg" />);
-    const region = valueRegion(container);
+    const region = regionOf(container);
     expect(region.className).not.toContain("contents");
     expect(region.className).not.toContain("overflow-x-auto");
   });
 
   it("focuses the text from a press anywhere in the region", () => {
     const rendered = render(<Input leading="Rp" trailing="kg" />);
-    const region = valueRegion(rendered.container);
-    const input = fieldOf(rendered);
+    const region = regionOf(rendered.container);
+    const input = inputOf(rendered.container);
     // The region is a plain box: without this a press on its padding or on an
     // affix does nothing.
     expect(fireEvent.mouseDown(region)).toBe(false); // prevented
@@ -201,7 +193,7 @@ describe("Input", () => {
 
   it("leaves a press on the text itself alone", () => {
     const rendered = render(<Input />);
-    const input = fieldOf(rendered);
+    const input = inputOf(rendered.container);
     // Cancelling here would take away placing the caret and dragging to select.
     expect(fireEvent.mouseDown(input)).toBe(true); // not prevented
   });
@@ -209,26 +201,28 @@ describe("Input", () => {
   it("exposes its state as data attributes for consumers to style", () => {
     // The attribute appears only while the state holds, so a consumer can write
     // [data-invalid] instead of tracking classes.
-    const plain = container(render(<Input />));
+    const plain = boxOf(render(<Input />).container);
     for (const attr of ["data-disabled", "data-invalid", "data-overflow"]) {
       expect(plain.hasAttribute(attr), attr).toBe(false);
     }
 
-    const errored = container(render(<Input error />));
+    const errored = boxOf(render(<Input error />).container);
     expect(errored.getAttribute("data-invalid")).toBe("true");
     expect(errored.hasAttribute("data-disabled")).toBe(false);
 
-    expect(container(render(<Input disabled />)).getAttribute("data-disabled")).toBe("true");
-    expect(container(render(<Input overflow="wrap" />)).getAttribute("data-overflow")).toBe("wrap");
-    expect(container(render(<Input overflow="scroll" />)).getAttribute("data-overflow")).toBe(
+    expect(boxOf(render(<Input disabled />).container).getAttribute("data-disabled")).toBe("true");
+    expect(boxOf(render(<Input overflow="wrap" />).container).getAttribute("data-overflow")).toBe(
+      "wrap",
+    );
+    expect(boxOf(render(<Input overflow="scroll" />).container).getAttribute("data-overflow")).toBe(
       "scroll",
     );
   });
 
   it("does not focus a disabled field", () => {
     const rendered = render(<Input disabled />);
-    fireEvent.mouseDown(valueRegion(rendered.container));
-    expect(document.activeElement).not.toBe(fieldOf(rendered));
+    fireEvent.mouseDown(regionOf(rendered.container));
+    expect(document.activeElement).not.toBe(inputOf(rendered.container));
   });
 
   it("renders the affixes around the text field", () => {
@@ -240,12 +234,14 @@ describe("Input", () => {
 
   it("draws one divider per side only when the divider prop asks for it", () => {
     const box = (ui: React.ReactElement) => render(ui).container;
-    expect(box(<Input leading="Rp" trailing="kg" />).querySelectorAll("span.w-px")).toHaveLength(0);
+    expect(dividersOf(boxOf(render(<Input leading="Rp" trailing="kg" />).container))).toHaveLength(
+      0,
+    );
     expect(
-      box(<Input leading="Rp" trailing="kg" divider />).querySelectorAll("span.w-px"),
+      dividersOf(boxOf(render(<Input leading="Rp" trailing="kg" divider />).container)),
     ).toHaveLength(2);
     expect(
-      box(<Input leading="https://" divider={{ leading: true }} />).querySelectorAll("span.w-px"),
+      dividersOf(boxOf(render(<Input leading="https://" divider={{ leading: true }} />).container)),
     ).toHaveLength(1);
   });
 
@@ -260,7 +256,7 @@ describe("Input", () => {
 describe("InputDivider", () => {
   it("is decorative and spans the box height", () => {
     const { container } = render(<InputDivider />);
-    const el = container.firstElementChild as HTMLElement;
+    const el = dividersOf(container)[0];
     expect(el.getAttribute("aria-hidden")).toBe("true");
     expect(el.className).toContain("h-full");
     expect(el.className).toContain("w-px");
