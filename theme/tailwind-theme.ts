@@ -62,12 +62,16 @@ export const themeExtend = {
     border: "hsl(var(--color-border) / <alpha-value>)",
     input: "hsl(var(--color-input) / <alpha-value>)",
     ring: "hsl(var(--color-ring) / <alpha-value>)",
-    placeholder: "--color-placeholder / <alpha-value>)",
+    placeholder: "hsl(var(--color-placeholder) / <alpha-value>)",
     destructive: {
       DEFAULT: "hsl(var(--color-destructive) / <alpha-value>)",
       foreground:
         "hsl(var(--color-destructive-foreground) / <alpha-value>)",
     },
+    // Focus ring colours from the sheets (brand-500 / red-500). The tokens
+    // existed but were never reachable as utilities.
+    focus: "hsl(var(--color-focus-ring) / <alpha-value>)",
+    "focus-error": "hsl(var(--color-focus-ring-error) / <alpha-value>)",
     // Tailwind 4.3 default colors
     slate: {
       50: "var(--color-slate-50)",
