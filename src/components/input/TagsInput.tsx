@@ -1,4 +1,4 @@
-import { useState, type ClipboardEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
 import { cn } from "../../lib/cn";
 import { XIcon } from "../icon/icons";
 import { Input, type InputProps } from "./Input";
@@ -14,6 +14,12 @@ export type TagsInputProps = Omit<
   onValueChange?: (tags: string[]) => void;
   /** Where the tags render: inside the field, or in a row below it. */
   chips?: "inside" | "below";
+  /**
+   * What the field does when the tags outgrow one line. `"wrap"` (default)
+   * grows the box taller; `"scroll"` keeps the sheet height and scrolls the
+   * line sideways. Only applies to chips inside.
+   */
+  overflow?: "wrap" | "scroll";
   /** Stop accepting tags after this many. */
   maxTags?: number;
 };
@@ -59,13 +65,15 @@ function Chip({
  *
  * Enter or comma commits the typed text, Backspace on an empty field removes the
  * last tag, and a paste splits on commas and newlines. Empty and duplicate tags
- * are dropped. The chips render inside the field or in a row below it.
+ * are dropped. The chips render inside the field or in a row below it; inside,
+ * they wrap onto more lines or scroll sideways under the sheet height.
  */
 export function TagsInput({
   value,
   defaultValue = [],
   onValueChange,
   chips = "inside",
+  overflow = "wrap",
   maxTags,
   size = "md",
   disabled,
@@ -76,6 +84,14 @@ export function TagsInput({
   const [uncontrolled, setUncontrolled] = useState<string[]>(defaultValue);
   const tags = value ?? uncontrolled;
   const [draft, setDraft] = useState("");
+  const chipRow = useRef<HTMLSpanElement | null>(null);
+
+  // Scroll mode puts the newest chip past the right edge of the strip, so bring
+  // the row back to its end. Nothing to do while the row still fits.
+  useEffect(() => {
+    if (overflow !== "scroll") return;
+    chipRow.current?.scrollIntoView?.({ inline: "end", block: "nearest" });
+  }, [overflow, tags.length]);
 
   function commit(candidates: string[]) {
     const next = [...tags];
@@ -121,18 +137,29 @@ export function TagsInput({
     <Chip key={tag} label={tag} size={size} disabled={disabled} onRemove={() => remove(tag)} />
   ));
 
+  // The scrolling strip scrolls its whole row, so the row carries the reveal.
+  const inside =
+    overflow === "scroll" ? (
+      <span ref={chipRow} className="flex shrink-0 items-center gap-x-1.5">
+        {chipNodes}
+      </span>
+    ) : (
+      chipNodes
+    );
+
   const field = (
     <Input
       disabled={disabled}
       size={size}
-      // Chips inside can wrap, so the box grows past its size height.
-      grow={chips === "inside"}
+      // Chips inside pick how the line copes at the edge: wrap and the box
+      // grows, scroll and the chips move sideways under the sheet height.
+      overflow={chips === "inside" ? overflow : undefined}
       placeholder={tags.length === 0 ? placeholder : undefined}
       value={draft}
       onChange={(event) => setDraft(event.target.value)}
       onKeyDown={handleKeyDown}
       onPaste={handlePaste}
-      leading={chips === "inside" ? chipNodes : undefined}
+      leading={chips === "inside" ? inside : undefined}
       {...props}
     />
   );

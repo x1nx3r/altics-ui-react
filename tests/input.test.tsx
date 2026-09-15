@@ -113,26 +113,61 @@ describe("Input", () => {
     expect(kids).toEqual(["span", "svg"]);
   });
 
-  it("keeps the size height by default and trades it for a minimum when growing", () => {
+  it("trades the size height for a minimum when the overflow is wrap", () => {
     const fixed = render(<Input />);
     expect(container(fixed).className).toContain("h-10");
     expect(container(fixed).className).not.toContain("min-h-10");
 
-    const growing = render(<Input grow />);
+    const growing = render(<Input overflow="wrap" />);
     expect(container(growing).className).toContain("min-h-10");
     expect(container(growing).className).not.toMatch(/(^|\s)h-10(\s|$)/);
     // the field itself accounts for the region's two 1px borders
     expect(fieldOf(growing).className).toContain("h-[38px]");
   });
 
-  it("wraps and dissolves its slots when growing", () => {
-    const { container } = render(<Input grow leading="Rp" trailing="kg" />);
+  it("keeps the size height and scrolls the line when the overflow is scroll", () => {
+    const rendered = render(<Input overflow="scroll" />);
+    expect(container(rendered).className).toContain("h-10");
+    expect(container(rendered).className).not.toContain("min-h-10");
+    // the text keeps a usable width instead of collapsing to nothing
+    expect(fieldOf(rendered).className).toContain("min-w-16");
+    expect(valueRegion(rendered.container).className).not.toContain("flex-wrap");
+  });
+
+  it("scrolls the leading slot rather than the whole field", () => {
+    const { container } = render(<Input overflow="scroll" leading="Rp" trailing="kg" />);
     const region = valueRegion(container);
-    expect(region.className).toContain("flex-wrap");
-    // a slot is one un-wrappable box; in grow mode its children join the wrap
+    // The field must not scroll: the text and the marker would scroll out of
+    // reach, and with them the only way to click into the field.
+    expect(region.className).not.toContain("overflow-x-auto");
+    const strip = region.querySelector(":scope > span")!;
+    expect(strip.className).toContain("overflow-x-auto");
+    expect(strip.className).toContain("min-w-0");
+  });
+
+  it("dissolves its slots in wrap mode so they flow with the text", () => {
+    const { container } = render(<Input overflow="wrap" leading="Rp" trailing="kg" />);
+    const region = valueRegion(container);
+    expect(region.className).toContain("gap-x-1.5");
+    expect(region.className).toContain("has-[[data-slot=tag]]:pl-2");
+    // a slot is one un-wrappable box; wrap mode lets its children onto the line
     for (const slot of [...region.querySelectorAll(":scope > span")]) {
       expect(slot.className).toContain("contents");
     }
+  });
+
+  it("keeps the sheet rhythm in scroll mode too", () => {
+    const { container } = render(<Input overflow="scroll" leading="Rp" trailing="kg" />);
+    const region = valueRegion(container);
+    expect(region.className).toContain("gap-x-1.5");
+    expect(region.className).toContain("has-[[data-slot=tag]]:pl-2");
+  });
+
+  it("leaves a plain field alone", () => {
+    const { container } = render(<Input leading="Rp" trailing="kg" />);
+    const region = valueRegion(container);
+    expect(region.className).not.toContain("contents");
+    expect(region.className).not.toContain("overflow-x-auto");
   });
 
   it("renders the affixes around the text field", () => {

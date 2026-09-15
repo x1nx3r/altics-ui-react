@@ -150,6 +150,30 @@ describe("TagsInput", () => {
     expect(belowBox.className).not.toContain("min-h-10");
   });
 
+  it("keeps the sheet height and scrolls the chips on overflow='scroll'", () => {
+    const { container } = render(<TagsInput overflow="scroll" defaultValue={["a", "b"]} />);
+    const box = container.querySelector("div.flex.w-full")!;
+    expect(box.className).toContain("h-10");
+    expect(box.className).not.toContain("min-h-10");
+    const region = container.querySelector('[data-slot="value"]')!;
+    expect(region.className).not.toContain("flex-wrap");
+    // The chips scroll in their own strip, not the whole field, so the text
+    // stays where it is and stays clickable however many chips there are.
+    expect(region.querySelector("span")!.className).toContain("overflow-x-auto");
+    // a chip never shrinks and the text keeps a floor, so the strip gives way
+    expect(chips(container)[0].className).toContain("shrink-0");
+    expect(field(container).className).toContain("min-w-16");
+  });
+
+  it("leaves the field alone when the chips sit below", () => {
+    // the row below is outside the field, so no overflow mode reaches it
+    const { container } = render(
+      <TagsInput chips="below" overflow="scroll" defaultValue={["a"]} />,
+    );
+    const region = container.querySelector('[data-slot="value"]')!;
+    expect(region.className).not.toContain("overflow-x-auto");
+  });
+
   it("paints a chip to the sheet's numbers", () => {
     // Figma md: 24px tall at every size, 6px radius, 1px neutral-300 border,
     // 10px left padding, and a 2px gap before the close glyph.
@@ -180,13 +204,15 @@ describe("TagsInput", () => {
     expect(label("lg")).toContain("text-sm");
   });
 
-  it("uses the sheet's insets when the field grows", () => {
+  it("uses the sheet's insets in either overflow mode", () => {
     // The sheets inset a chip 4px less than the text, and leave 8px between the
-    // last chip and the text against a 6px chip gap.
-    const { container } = render(<TagsInput defaultValue={["a"]} />);
-    const region = container.querySelector('[data-slot="value"]')!;
-    expect(region.className).toContain("has-[[data-slot=tag]]:pl-2");
-    expect(field(container).className).toContain("ml-0.5");
+    // last chip and the text against a 6px chip gap. Both modes honour that.
+    for (const overflow of ["wrap", "scroll"] as const) {
+      const { container } = render(<TagsInput overflow={overflow} defaultValue={["a"]} />);
+      const region = container.querySelector('[data-slot="value"]')!;
+      expect(region.className, overflow).toContain("has-[[data-slot=tag]]:pl-2");
+      expect(field(container).className, overflow).toContain("ml-0.5");
+    }
   });
 
   it("keeps the sheet's chip gap in the row below", () => {
