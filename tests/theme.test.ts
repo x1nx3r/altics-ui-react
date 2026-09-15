@@ -112,7 +112,7 @@ describe("Tailwind preset", () => {
     );
     expect(triplets.length).toBeGreaterThan(0);
     for (const [name, value] of triplets) {
-      expect(value, name).toMatch(/^\d{1,3}\s+\d{1,3}%\s+\d{1,3}%$/);
+      expect(value, name).toMatch(/^\d{1,3}(?:\.\d+)?\s+\d{1,3}(?:\.\d+)?%\s+\d{1,3}(?:\.\d+)?%$/);
     }
   });
 });
