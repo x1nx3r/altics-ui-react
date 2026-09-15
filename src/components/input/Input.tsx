@@ -4,7 +4,9 @@ import { AlertCircleIcon, HelpCircleIcon } from "../icon/icons";
 import { InputDivider } from "./InputDivider";
 
 /**
- * Horizontal rhythm per size, Figma: text 14px sm/md, 16px lg.
+ * Horizontal rhythm per size, Figma: text 14px sm, 16px md and lg. The cap
+ * height of the sheets' placeholder text settles it: 11.5px at md and lg,
+ * 10.1px at sm, so md and lg share a size and sm is one step down.
  * `grow*` swaps the fixed height for a minimum, so content can wrap onto more
  * lines and the box grows. The field keeps its own height in that mode and
  * needs a floor, or it would squeeze to nothing on a full line. That height is
@@ -19,8 +21,8 @@ const sizes = {
     growInput: "h-[34px] min-w-16",
   },
   md: {
-    box: "h-10 text-sm",
-    growBox: "min-h-10 text-sm",
+    box: "h-10 text-base",
+    growBox: "min-h-10 text-base",
     input: "h-full min-w-0",
     growInput: "h-[38px] min-w-16",
   },

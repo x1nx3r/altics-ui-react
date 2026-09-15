@@ -29,6 +29,20 @@ describe("Input", () => {
     }
   });
 
+  it("sets the sheet's text size per size", () => {
+    // Sheet cap heights: 10.1px at sm against 11.5px at md and lg, so md and lg
+    // share a size and sm is one step down.
+    const cases = [
+      ["sm", "text-sm"],
+      ["md", "text-base"],
+      ["lg", "text-base"],
+    ] as const;
+    for (const [size, expected] of cases) {
+      const { container } = render(<Input size={size} />);
+      expect(container.firstElementChild?.className, size).toContain(expected);
+    }
+  });
+
   it("marks the field invalid and paints the sheet error border when error is set", () => {
     const { container } = render(<Input error placeholder="Email" />);
     expect(container.querySelector("input")?.getAttribute("aria-invalid")).toBe("true");
