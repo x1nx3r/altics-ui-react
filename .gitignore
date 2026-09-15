@@ -9,3 +9,6 @@ scratchpad
 # src/components/input/ and silently ignored new component files.
 /input/
 /❖ Design System Altics 2.0(3)/
+
+# Shallow clones of other design systems, read for reference only.
+/refs/
