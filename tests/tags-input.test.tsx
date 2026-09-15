@@ -150,6 +150,50 @@ describe("TagsInput", () => {
     expect(belowBox.className).not.toContain("min-h-10");
   });
 
+  it("paints a chip to the sheet's numbers", () => {
+    // Figma md: 24px tall at every size, 6px radius, 1px neutral-300 border,
+    // 10px left padding, and a 2px gap before the close glyph.
+    const { container } = render(<TagsInput defaultValue={["a"]} />);
+    const chip = chips(container)[0];
+    expect(chip.className).toContain("h-6");
+    expect(chip.className).toContain("rounded-sm");
+    expect(chip.className).toContain("border-neutral-300");
+    expect(chip.className).toContain("pl-2.5");
+    expect(chip.className).toContain("gap-0.5");
+    expect(chip.className).toContain("pr-1");
+    // The close glyph is 16px at md and steps down to 12px on sm, as the sheet
+    // draws it (7px of ink at md against 5.8px at sm).
+    const glyph = (size: "sm" | "md" | "lg") =>
+      render(<TagsInput size={size} defaultValue={["a"]} />).container.querySelector("svg")!;
+    expect(glyph("sm").getAttribute("width")).toBe("12");
+    expect(glyph("md").getAttribute("width")).toBe("16");
+    expect(glyph("lg").getAttribute("width")).toBe("16");
+  });
+
+  it("steps the chip label down on sm", () => {
+    const label = (size: "sm" | "md" | "lg") =>
+      render(<TagsInput size={size} defaultValue={["a"]} />).container.querySelector(
+        '[data-slot="tag"] span',
+      )!.className;
+    expect(label("sm")).toContain("text-xs");
+    expect(label("md")).toContain("text-sm");
+    expect(label("lg")).toContain("text-sm");
+  });
+
+  it("uses the sheet's insets when the field grows", () => {
+    // The sheets inset a chip 4px less than the text, and leave 8px between the
+    // last chip and the text against a 6px chip gap.
+    const { container } = render(<TagsInput defaultValue={["a"]} />);
+    const region = container.querySelector('[data-slot="value"]')!;
+    expect(region.className).toContain("has-[[data-slot=tag]]:pl-2");
+    expect(field(container).className).toContain("ml-0.5");
+  });
+
+  it("keeps the sheet's chip gap in the row below", () => {
+    const { container } = render(<TagsInput chips="below" defaultValue={["a"]} />);
+    expect(chips(container)[0].parentElement!.className).toContain("gap-1.5");
+  });
+
   it("keeps the sheet border and size on the field", () => {
     const { container } = render(<TagsInput size="lg" error />);
     const region = container.querySelector('[data-slot="value"]')!;

@@ -18,22 +18,29 @@ export type TagsInputProps = Omit<
   maxTags?: number;
 };
 
-/** One tag: 24px tall, 6px radius, the same border as the field. */
+/**
+ * One tag. Figma at md: 78px wide for "Design", 24px tall at every size, 6px
+ * radius, 1px neutral-300 border, 10px left padding, 2px between the label and
+ * the close glyph, and the glyph's centre 12px from the right edge. The label
+ * and the glyph step down one size on sm.
+ */
 function Chip({
   label,
+  size,
   disabled,
   onRemove,
 }: {
   label: string;
+  size: "sm" | "md" | "lg";
   disabled?: boolean;
   onRemove: () => void;
 }) {
   return (
     <span
       data-slot="tag"
-      className="flex h-6 shrink-0 items-center gap-1.5 rounded-sm border border-neutral-300 bg-background pr-1.5 pl-2.5"
+      className="flex h-6 shrink-0 items-center gap-0.5 rounded-sm border border-neutral-300 bg-background pr-1 pl-2.5"
     >
-      <span className="text-sm text-neutral-700">{label}</span>
+      <span className={cn("text-neutral-700", size === "sm" ? "text-xs" : "text-sm")}>{label}</span>
       <button
         type="button"
         aria-label={`Remove ${label}`}
@@ -41,7 +48,7 @@ function Chip({
         onClick={onRemove}
         className="flex items-center text-neutral-600 transition-colors hover:text-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <XIcon size={12} />
+        <XIcon size={size === "sm" ? 12 : 16} />
       </button>
     </span>
   );
@@ -60,6 +67,7 @@ export function TagsInput({
   onValueChange,
   chips = "inside",
   maxTags,
+  size = "md",
   disabled,
   placeholder,
   className,
@@ -110,12 +118,13 @@ export function TagsInput({
   }
 
   const chipNodes = tags.map((tag) => (
-    <Chip key={tag} label={tag} disabled={disabled} onRemove={() => remove(tag)} />
+    <Chip key={tag} label={tag} size={size} disabled={disabled} onRemove={() => remove(tag)} />
   ));
 
   const field = (
     <Input
       disabled={disabled}
+      size={size}
       // Chips inside can wrap, so the box grows past its size height.
       grow={chips === "inside"}
       placeholder={tags.length === 0 ? placeholder : undefined}
@@ -132,7 +141,8 @@ export function TagsInput({
     return (
       <div className={cn("flex flex-col gap-2", className)}>
         {field}
-        {tags.length > 0 && <div className="flex flex-wrap items-center gap-2">{chipNodes}</div>}
+        {/* Sheet: the chips start flush with the field's border, 6px apart. */}
+        {tags.length > 0 && <div className="flex flex-wrap items-center gap-1.5">{chipNodes}</div>}
       </div>
     );
   }

@@ -70,7 +70,7 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
    * Show the trailing help marker. The sheets draw a question mark for a
    * normal field and the same circle with an exclamation mark in red-600 when
    * the field is in error. Types whose trailing slot is taken (password,
-   * steppers, tags) leave it out.
+   * steppers) leave it out; the tags sheet draws one.
    */
   helpIcon?: boolean;
   /** Runs when the help marker is pressed. Without this the marker is only a
@@ -185,7 +185,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           data-slot="value"
           className={cn(
             "flex min-w-0 flex-1 items-center self-stretch border",
-            grow && "flex-wrap gap-x-2 gap-y-1.5",
+            // Sheet, in px from the field's edge: a chip sits 8 in, the text
+            // 12, chips are 6 apart and 8 from the text. Chips and text share
+            // one wrapping row, so the chips switch the region to their own
+            // inset and the text's extra 2px rides on the input below.
+            grow && "flex-wrap gap-x-1.5 gap-y-1.5 has-[[data-slot=tag]]:pl-2",
             borderColour,
             regionRounding,
             regionPaddingLeft,
@@ -221,6 +225,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               "flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
               grow ? sizes[size].growInput : sizes[size].input,
+              // Sheet: 8px from the last chip to the text, against a 6px chip
+              // gap, so the text carries the extra 2px.
+              grow && "ml-0.5",
               inputPaddingLeft,
               inputPaddingRight,
               textAlign === "center" && "text-center",
