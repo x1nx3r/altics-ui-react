@@ -5,5 +5,7 @@ coverage
 scratchpad
 
 # Local design reference exports, not part of the package.
-input/
-❖ Design System Altics 2.0(3)/
+# Anchored to the repo root: an unanchored `input/` also matched
+# src/components/input/ and silently ignored new component files.
+/input/
+/❖ Design System Altics 2.0(3)/
