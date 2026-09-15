@@ -286,6 +286,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div
+        data-slot="box"
         // State for consumers to style on, in the shape React Aria and Mantine
         // use: the attribute appears only while the state holds. aria-invalid
         // stays on the input, where assistive technology reads it.

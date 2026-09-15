@@ -12,6 +12,7 @@ export function InputDivider({ className, ...props }: HTMLAttributes<HTMLSpanEle
   return (
     <span
       aria-hidden="true"
+      data-slot="divider"
       className={cn("mx-3 h-full w-px shrink-0 bg-neutral-300", className)}
       {...props}
     />
