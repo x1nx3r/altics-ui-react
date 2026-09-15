@@ -141,6 +141,6 @@ describe("NumberInput", () => {
   it("keeps the rest of the Input contract", () => {
     const { container } = render(<NumberInput size="lg" error />);
     expect(box(container).className).toContain("h-11");
-    expect(box(container).className).toContain("border-red-300");
+    expect(region(container).className).toContain("border-red-300");
   });
 });

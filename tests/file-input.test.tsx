@@ -94,7 +94,10 @@ describe("FileInput", () => {
     // the box itself carries no focus decoration any more
     expect(box(container).className).not.toContain("focus-within:outline");
     // the divider sits on the value region so the outline paints over it
-    expect(value.className).toContain("border-r");
+    // the region owns all four borders, so its inner edge is the divider the
+    // outline paints over; the panel only draws its outer sides
+    expect(value.className).toContain("border");
+    expect(panel.className).toContain("border-r");
     expect(panel.className).not.toContain("border-l");
     // and the focused control is inside that region
     expect(value.contains(picker(container))).toBe(true);
@@ -103,6 +106,6 @@ describe("FileInput", () => {
   it("keeps the rest of the Input contract", () => {
     const { container } = render(<FileInput size="lg" error />);
     expect(box(container).className).toContain("h-11");
-    expect(box(container).className).toContain("border-red-300");
+    expect(region(container).className).toContain("border-red-300");
   });
 });

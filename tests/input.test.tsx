@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
 import { Field, Input, InputDivider } from "../src";
 
+const valueRegion = (container: HTMLElement) =>
+  container.querySelector('[data-slot="value"]') as HTMLElement;
+
 describe("Input", () => {
   it("renders a textbox with the md size by default", () => {
     const { container } = render(<Input placeholder="Email" />);
@@ -25,14 +28,14 @@ describe("Input", () => {
   it("marks the field invalid and paints the sheet error border when error is set", () => {
     const { container } = render(<Input error placeholder="Email" />);
     expect(container.querySelector("input")?.getAttribute("aria-invalid")).toBe("true");
-    // sheet: error rest border is red-300
-    expect(container.firstElementChild?.className).toContain("border-red-300");
+    // sheet: error rest border is red-300, drawn by the value region
+    expect(valueRegion(container).className).toContain("border-red-300");
   });
 
   it("keeps the sheet rest border when error is absent", () => {
     const { container } = render(<Input />);
-    // sheet: rest border is neutral-300
-    expect(container.firstElementChild?.className).toContain("border-neutral-300");
+    // sheet: rest border is neutral-300, drawn by the value region
+    expect(valueRegion(container).className).toContain("border-neutral-300");
   });
 
   it("renders the affixes around the text field", () => {

@@ -65,7 +65,7 @@ describe("PasswordInput", () => {
     const box = container.firstElementChild!;
     expect(box.className).toContain("h-11");
     // sheet: error rest border is red-300
-    expect(box.className).toContain("border-red-300");
+    expect(container.querySelector('[data-slot="value"]')!.className).toContain("border-red-300");
     expect(container.querySelector("input")?.getAttribute("aria-invalid")).toBe("true");
   });
 });

@@ -97,17 +97,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       : trailing && !showTrailingDivider
         ? "pr-2"
         : undefined;
-    // The divider belongs to the value region, not the panel: the focus
-    // outline paints over it, which is how the sheets drop the divider on
-    // focus without a second rule.
-    const regionDivider =
-      attachedLeading && attachedTrailing
-        ? "border-x border-neutral-300"
-        : attachedLeading
-          ? "border-l border-neutral-300"
-          : attachedTrailing
-            ? "border-r border-neutral-300"
-            : undefined;
+    // Borders belong to the regions, not the box. The value region then owns
+    // the border its focus outline paints over, which is how the sheets make
+    // focus replace the border instead of sitting beside it. With a panel, the
+    // region's inner edge is the divider.
+    const borderColour = error ? "border-red-300" : "border-neutral-300";
     // The focus outline follows the rounding of whichever corner the value
     // region owns. With a panel on a side, that side stays square.
     const regionRounding =
@@ -122,16 +116,22 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div
         className={cn(
-          "flex w-full items-center rounded-md border bg-background transition-colors",
+          // No border here: each region draws its own, so focus can paint over
+          // the one it owns.
+          "flex w-full items-center rounded-md bg-background transition-colors",
           sizes[size].box,
-          // Sheets: rest border is neutral-300, error border red-300.
-          error ? "border-red-300" : "border-neutral-300",
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}
       >
         {attachedLeading && (
-          <span data-slot="panel" className="flex shrink-0 self-stretch rounded-l-md">
+          <span
+            data-slot="panel"
+            className={cn(
+              "flex shrink-0 self-stretch rounded-l-md border-y border-l",
+              borderColour,
+            )}
+          >
             {attachedLeading}
           </span>
         )}
@@ -143,9 +143,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <span
           data-slot="value"
           className={cn(
-            "flex min-w-0 flex-1 items-center self-stretch",
+            "flex min-w-0 flex-1 items-center self-stretch border",
+            borderColour,
             regionRounding,
-            regionDivider,
             regionPaddingLeft,
             regionPaddingRight,
             "focus-within:outline focus-within:outline-2 focus-within:outline-offset-[-2px]",
@@ -192,7 +192,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </span>
         {attachedTrailing && (
-          <span data-slot="panel" className="flex shrink-0 self-stretch rounded-r-md">
+          <span
+            data-slot="panel"
+            className={cn(
+              "flex shrink-0 self-stretch rounded-r-md border-y border-r",
+              borderColour,
+            )}
+          >
             {attachedTrailing}
           </span>
         )}
