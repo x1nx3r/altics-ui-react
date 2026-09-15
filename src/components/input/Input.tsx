@@ -21,6 +21,13 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   leading?: ReactNode;
   /** Content after the text (icon, affix, dropdown, or stepper). */
   trailing?: ReactNode;
+  /**
+   * Control attached to an edge. It spans the full height and sits flush with
+   * the border, so it carries its own divider. Used by steppers and by the
+   * file upload action region.
+   */
+  attachedLeading?: ReactNode;
+  attachedTrailing?: ReactNode;
   /** Dividers between affixes and the text. `true` draws both sides,
    * an object controls each side (e.g. money `"Rp"` without divider vs
    * website `"https://"` with one). Defaults to none. */
@@ -42,6 +49,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       disabled,
       leading,
       trailing,
+      attachedLeading,
+      attachedTrailing,
       divider = false,
       "aria-invalid": invalid,
       ...props
@@ -77,12 +86,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               ? "pr-3"
               : "pr-2.5"
             : "pr-3",
+          // An attached panel owns its edge, so the box drops its inset there
+          // and the input keeps the text inset instead.
+          Boolean(attachedLeading) && "pl-0",
+          Boolean(attachedTrailing) && "pr-0",
           // Sheets: rest border is neutral-300, error border red-300.
           error ? "border-red-300" : "border-neutral-300",
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}
       >
+        {attachedLeading && (
+          <span className="flex shrink-0 self-stretch border-r border-neutral-300">
+            {attachedLeading}
+          </span>
+        )}
         {leading && (
           <span className="ml-1 flex shrink-0 items-center text-neutral-600">{leading}</span>
         )}
@@ -96,12 +114,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             sizes[size].input,
             Boolean(leading) && !showLeadingDivider && "pl-2",
             Boolean(trailing) && !showTrailingDivider && "pr-2",
+            Boolean(attachedLeading) && "pl-3",
+            Boolean(attachedTrailing) && "pr-3",
           )}
           {...props}
         />
         {trailing && showTrailingDivider && <InputDivider />}
         {trailing && (
           <span className="mr-1 flex shrink-0 items-center text-neutral-400">{trailing}</span>
+        )}
+        {attachedTrailing && (
+          <span className="flex shrink-0 self-stretch border-l border-neutral-300">
+            {attachedTrailing}
+          </span>
         )}
       </div>
     );
