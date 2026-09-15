@@ -72,14 +72,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     // Exactly one class per side. cn is a plain join and Tailwind decides by
     // source order, so emitting both `pr-3` and `pr-0` silently kept `pr-3`.
-    const boxPaddingLeft = attachedLeading
+    const regionPaddingLeft = attachedLeading
       ? "pl-0"
       : leading
         ? showLeadingDivider
           ? "pl-3"
           : "pl-2.5"
         : "pl-3";
-    const boxPaddingRight = attachedTrailing
+    const regionPaddingRight = attachedTrailing
       ? "pr-0"
       : trailing
         ? showTrailingDivider
@@ -97,19 +97,33 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       : trailing && !showTrailingDivider
         ? "pr-2"
         : undefined;
+    // The divider belongs to the value region, not the panel: the focus
+    // outline paints over it, which is how the sheets drop the divider on
+    // focus without a second rule.
+    const regionDivider =
+      attachedLeading && attachedTrailing
+        ? "border-x border-neutral-300"
+        : attachedLeading
+          ? "border-l border-neutral-300"
+          : attachedTrailing
+            ? "border-r border-neutral-300"
+            : undefined;
+    // The focus outline follows the rounding of whichever corner the value
+    // region owns. With a panel on a side, that side stays square.
+    const regionRounding =
+      attachedLeading && attachedTrailing
+        ? "rounded-none"
+        : attachedLeading
+          ? "rounded-r-md"
+          : attachedTrailing
+            ? "rounded-l-md"
+            : "rounded-md";
 
     return (
       <div
         className={cn(
           "flex w-full items-center rounded-md border bg-background transition-colors",
-          // Sheets: focus is the border edge thickening to 2px in place, not a
-          // ring around the box. An outline with a negative offset paints over
-          // the 1px border without participating in layout, so nothing shifts.
-          "focus-within:outline focus-within:outline-2 focus-within:outline-offset-[-2px]",
-          error ? "focus-within:outline-focus-error" : "focus-within:outline-focus",
           sizes[size].box,
-          boxPaddingLeft,
-          boxPaddingRight,
           // Sheets: rest border is neutral-300, error border red-300.
           error ? "border-red-300" : "border-neutral-300",
           disabled && "cursor-not-allowed opacity-50",
@@ -117,50 +131,65 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
       >
         {attachedLeading && (
-          <span className="flex shrink-0 self-stretch border-r border-neutral-300">
+          <span data-slot="panel" className="flex shrink-0 self-stretch rounded-l-md">
             {attachedLeading}
           </span>
         )}
-        {leading && (
-          <span
-            className={cn(
-              "flex shrink-0 items-center gap-2 text-neutral-600",
-              // The sheets put 12px between a panel and the content beside it,
-              // and 4px between a slot and the text.
-              attachedLeading ? "ml-3" : "ml-1",
-            )}
-          >
-            {leading}
-          </span>
-        )}
-        {leading && showLeadingDivider && <InputDivider />}
-        <input
-          ref={ref}
-          disabled={disabled}
-          aria-invalid={invalidState}
+        {/* The value region carries the focus decoration, not the box: the
+            sheets ring only the value area and drop the divider on focus. */}
+        <span
+          data-slot="value"
           className={cn(
-            "h-full min-w-0 flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
-            sizes[size].input,
-            inputPaddingLeft,
-            inputPaddingRight,
-            textAlign === "center" && "text-center",
-            textAlign === "right" && "text-right",
+            "flex min-w-0 flex-1 items-center",
+            regionRounding,
+            regionDivider,
+            regionPaddingLeft,
+            regionPaddingRight,
+            "focus-within:outline focus-within:outline-2 focus-within:outline-offset-[-2px]",
+            error ? "focus-within:outline-focus-error" : "focus-within:outline-focus",
           )}
-          {...props}
-        />
-        {trailing && showTrailingDivider && <InputDivider />}
-        {trailing && (
-          <span
+        >
+          {leading && (
+            <span
+              className={cn(
+                "flex shrink-0 items-center gap-2 text-neutral-600",
+                // The sheets put 12px between a panel and the content beside it,
+                // and 4px between a slot and the text.
+                attachedLeading ? "ml-3" : "ml-1",
+              )}
+            >
+              {leading}
+            </span>
+          )}
+          {leading && showLeadingDivider && <InputDivider />}
+          <input
+            ref={ref}
+            disabled={disabled}
+            aria-invalid={invalidState}
             className={cn(
-              "flex shrink-0 items-center gap-2 text-neutral-400",
-              attachedTrailing ? "mr-3" : "mr-1",
+              "h-full min-w-0 flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
+              sizes[size].input,
+              inputPaddingLeft,
+              inputPaddingRight,
+              textAlign === "center" && "text-center",
+              textAlign === "right" && "text-right",
             )}
-          >
-            {trailing}
-          </span>
-        )}
+            {...props}
+          />
+          {trailing && showTrailingDivider && <InputDivider />}
+          {trailing && (
+            <span
+              className={cn(
+                "flex shrink-0 items-center gap-2 text-neutral-400",
+                attachedTrailing ? "mr-3" : "mr-1",
+              )}
+            >
+              {trailing}
+            </span>
+          )}
+        </span>
         {attachedTrailing && (
-          <span className="flex shrink-0 self-stretch border-l border-neutral-300">
+          <span data-slot="panel" className="flex shrink-0 self-stretch rounded-r-md">
             {attachedTrailing}
           </span>
         )}

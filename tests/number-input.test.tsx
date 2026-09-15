@@ -4,6 +4,8 @@ import { NumberInput } from "../src";
 
 const box = (container: HTMLElement) => container.firstElementChild as HTMLElement;
 const field = (container: HTMLElement) => container.querySelector("input") as HTMLInputElement;
+const region = (container: HTMLElement) =>
+  container.querySelector('[data-slot="value"]') as HTMLElement;
 
 describe("NumberInput", () => {
   it("renders a spinbutton with the value", () => {
@@ -31,11 +33,11 @@ describe("NumberInput", () => {
 
   it("renders a stacked stepper column in the vertical orientation", () => {
     const { container } = render(<NumberInput orientation="vertical" defaultValue={5} />);
-    const panel = box(container).querySelector("span[class*='border-l']");
+    const panel = box(container).querySelector('[data-slot="panel"]');
     expect(panel).not.toBeNull();
     expect(panel?.querySelectorAll("button")).toHaveLength(2);
-    // the box gives up its trailing inset so the panel can sit flush
-    expect(box(container).className).toContain("pr-0");
+    // the value region gives up its trailing inset so the panel sits flush
+    expect(region(container).className).toContain("pr-0");
   });
 
   it("uses the custom step and avoids float drift", () => {
@@ -67,14 +69,15 @@ describe("NumberInput", () => {
 
   it("keeps exactly one padding class per side so the panel sits flush", () => {
     const vertical = render(<NumberInput orientation="vertical" />);
-    const vBox = box(vertical.container);
-    const rightClasses = vBox.className.split(" ").filter((c) => c.startsWith("pr-"));
-    expect(rightClasses).toEqual(["pr-0"]);
+    const vRight = region(vertical.container).className
+      .split(" ")
+      .filter((c) => c.startsWith("pr-"));
+    expect(vRight).toEqual(["pr-0"]);
     // the field itself keeps the text inset from the panel
     expect(field(vertical.container).className).toContain("pr-3");
 
     const horizontal = render(<NumberInput />);
-    const hRight = box(horizontal.container).className
+    const hRight = region(horizontal.container).className
       .split(" ")
       .filter((c) => c.startsWith("pr-"));
     expect(hRight).toEqual(["pr-2.5"]);

@@ -5,6 +5,8 @@ import { FileInput } from "../src";
 const box = (container: HTMLElement) => container.firstElementChild as HTMLElement;
 const display = (container: HTMLElement) => container.querySelector("input[readonly]") as HTMLInputElement;
 const picker = (container: HTMLElement) => container.querySelector("input[type='file']") as HTMLInputElement;
+const region = (container: HTMLElement) =>
+  container.querySelector('[data-slot="value"]') as HTMLElement;
 
 function choose(container: HTMLElement, files: File[]) {
   fireEvent.change(picker(container), { target: { files } });
@@ -40,9 +42,9 @@ describe("FileInput", () => {
 
   it("renders the action region attached to the edge, divided from the rest", () => {
     const { container } = render(<FileInput />);
-    const panel = box(container).querySelector("span[class*='border-l']");
+    const panel = box(container).querySelector('[data-slot="panel"]');
     expect(panel).not.toBeNull();
-    expect(box(container).className).toContain("pr-0");
+    expect(region(container).className).toContain("pr-0");
     expect(screen.getByText("Browse")).toBeTruthy();
   });
 
@@ -82,6 +84,20 @@ describe("FileInput", () => {
     fireEvent.click(screen.getByLabelText("Help"));
     expect(onHelpClick).toHaveBeenCalled();
     expect(withHelp.container.querySelector("input[type='file']")).not.toBeNull();
+  });
+
+  it("rings only the value region on focus, and the divider belongs to it", () => {
+    const { container } = render(<FileInput />);
+    const value = region(container);
+    const panel = box(container).querySelector('[data-slot="panel"]') as HTMLElement;
+    expect(value.className).toContain("focus-within:outline-2");
+    // the box itself carries no focus decoration any more
+    expect(box(container).className).not.toContain("focus-within:outline");
+    // the divider sits on the value region so the outline paints over it
+    expect(value.className).toContain("border-r");
+    expect(panel.className).not.toContain("border-l");
+    // and the focused control is inside that region
+    expect(value.contains(picker(container))).toBe(true);
   });
 
   it("keeps the rest of the Input contract", () => {

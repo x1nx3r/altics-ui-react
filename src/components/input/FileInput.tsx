@@ -63,6 +63,18 @@ export function FileInput({
       placeholder={placeholder}
       trailing={
         <>
+          {/* Lives in the value region, not the panel: the focus outline is
+              drawn by the value region, so the focused control must be inside
+              it. The label in the panel points here by id. */}
+          <input
+            id={id}
+            type="file"
+            accept={accept}
+            multiple={multiple}
+            disabled={blocked}
+            onChange={handleChange}
+            className="sr-only"
+          />
           {/* The sheet shows the spinner beside the file icon while uploading,
               not instead of it. */}
           {loading && <Spinner size={16} className="text-focus" />}
@@ -83,15 +95,6 @@ export function FileInput({
       }
       attachedTrailing={
         <>
-          <input
-            id={id}
-            type="file"
-            accept={accept}
-            multiple={multiple}
-            disabled={blocked}
-            onChange={handleChange}
-            className="sr-only"
-          />
           <label
             htmlFor={id}
             className={cn(

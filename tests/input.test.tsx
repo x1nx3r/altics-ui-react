@@ -37,7 +37,8 @@ describe("Input", () => {
 
   it("renders the affixes around the text field", () => {
     const { container } = render(<Input leading="Rp" trailing="kg" />);
-    const parts = [...container.firstElementChild!.children].map((el) => el.tagName.toLowerCase());
+    const region = container.querySelector('[data-slot="value"]')!;
+    const parts = [...region.children].map((el) => el.tagName.toLowerCase());
     expect(parts).toEqual(["span", "input", "span"]);
   });
 
@@ -52,7 +53,7 @@ describe("Input", () => {
 
   it("insets both edges when only one affix is present", () => {
     const { container } = render(<Input trailing={<span>pick</span>} />);
-    const cls = container.firstElementChild!.className;
+    const cls = container.querySelector('[data-slot="value"]')!.className;
     expect(cls).toContain("pl-3");
     expect(cls).toContain("pr-2.5");
   });
