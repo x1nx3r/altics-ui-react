@@ -32,6 +32,12 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
    * an object controls each side (e.g. money `"Rp"` without divider vs
    * website `"https://"` with one). Defaults to none. */
   divider?: boolean | { leading?: boolean; trailing?: boolean };
+  /**
+   * Alignment of the value and the placeholder inside the box.
+   * The sheets centre the horizontal number counter and leave every other
+   * type left-aligned.
+   */
+  textAlign?: "left" | "center" | "right";
 };
 
 /**
@@ -51,6 +57,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       trailing,
       attachedLeading,
       attachedTrailing,
+      textAlign = "left",
       divider = false,
       "aria-invalid": invalid,
       ...props
@@ -116,6 +123,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             Boolean(trailing) && !showTrailingDivider && "pr-2",
             Boolean(attachedLeading) && "pl-3",
             Boolean(attachedTrailing) && "pr-3",
+            textAlign === "center" && "text-center",
+            textAlign === "right" && "text-right",
           )}
           {...props}
         />
