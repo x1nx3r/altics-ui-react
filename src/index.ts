@@ -5,11 +5,13 @@ export {
   Input,
   InputDivider,
   NumberInput,
+  OtpInput,
   PasswordInput,
   Textarea,
   type FileInputProps,
   type InputProps,
   type NumberInputProps,
+  type OtpInputProps,
   type PasswordInputProps,
   type TextareaProps,
 } from "./components/input";
