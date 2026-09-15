@@ -1,11 +1,13 @@
 import "./styles/index.css";
 export { Button, IconButton, LinkButton, type ButtonProps, type IconButtonProps, type LinkButtonProps } from "./components/button";
 export {
+  FileInput,
   Input,
   InputDivider,
   NumberInput,
   PasswordInput,
   Textarea,
+  type FileInputProps,
   type InputProps,
   type NumberInputProps,
   type PasswordInputProps,
