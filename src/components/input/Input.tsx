@@ -3,11 +3,33 @@ import { cn } from "../../lib/cn";
 import { AlertCircleIcon, HelpCircleIcon } from "../icon/icons";
 import { InputDivider } from "./InputDivider";
 
-/** Horizontal rhythm per size, Figma: text 14px sm/md, 16px lg. */
+/**
+ * Horizontal rhythm per size, Figma: text 14px sm/md, 16px lg.
+ * `grow*` swaps the fixed height for a minimum, so content can wrap onto more
+ * lines and the box grows. The field keeps its own height in that mode and
+ * needs a floor, or it would squeeze to nothing on a full line. That height is
+ * the size minus the region's two 1px borders, so a single row still measures
+ * exactly the size height.
+ */
 const sizes = {
-  sm: { box: "h-9 text-sm", input: "text-sm" },
-  md: { box: "h-10 text-sm", input: "text-sm" },
-  lg: { box: "h-11 text-base", input: "text-base" },
+  sm: {
+    box: "h-9 text-sm",
+    growBox: "min-h-9 text-sm",
+    input: "h-full min-w-0",
+    growInput: "h-[34px] min-w-16",
+  },
+  md: {
+    box: "h-10 text-sm",
+    growBox: "min-h-10 text-sm",
+    input: "h-full min-w-0",
+    growInput: "h-[38px] min-w-16",
+  },
+  lg: {
+    box: "h-11 text-base",
+    growBox: "min-h-11 text-base",
+    input: "h-full min-w-0",
+    growInput: "h-[42px] min-w-16",
+  },
 };
 
 export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
@@ -40,6 +62,11 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
    */
   textAlign?: "left" | "center" | "right";
   /**
+   * Let the box grow past its size height when content wraps onto more lines.
+   * Fields are fixed height by the sheets; tag lists are the exception.
+   */
+  grow?: boolean;
+  /**
    * Show the trailing help marker. The sheets draw a question mark for a
    * normal field and the same circle with an exclamation mark in red-600 when
    * the field is in error. Types whose trailing slot is taken (password,
@@ -69,6 +96,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       attachedLeading,
       attachedTrailing,
       textAlign = "left",
+      grow = false,
       helpIcon = true,
       onHelpClick,
       divider = false,
@@ -132,7 +160,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           // No border here: each region draws its own, so focus can paint over
           // the one it owns.
           "flex w-full items-center rounded-md bg-background transition-colors",
-          sizes[size].box,
+          grow ? sizes[size].growBox : sizes[size].box,
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}
@@ -157,6 +185,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           data-slot="value"
           className={cn(
             "flex min-w-0 flex-1 items-center self-stretch border",
+            grow && "flex-wrap gap-x-2 gap-y-1.5",
             borderColour,
             regionRounding,
             regionPaddingLeft,
@@ -168,10 +197,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {leading && (
             <span
               className={cn(
-                "flex shrink-0 items-center gap-2 text-neutral-600",
-                // The sheets put 12px between a panel and the content beside it,
-                // and 4px between a slot and the text.
-                attachedLeading ? "ml-3" : "ml-1",
+                // A slot is one un-wrappable box, so when the region wraps it
+                // would overflow whole. In grow mode it dissolves and its
+                // children wrap with the text instead.
+                grow
+                  ? "contents"
+                  : cn(
+                      "flex shrink-0 items-center gap-2 text-neutral-600",
+                      // The sheets put 12px between a panel and the content
+                      // beside it, and 4px between a slot and the text.
+                      attachedLeading ? "ml-3" : "ml-1",
+                    ),
               )}
             >
               {leading}
@@ -183,8 +219,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             disabled={disabled}
             aria-invalid={invalidState}
             className={cn(
-              "h-full min-w-0 flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
-              sizes[size].input,
+              "flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
+              grow ? sizes[size].growInput : sizes[size].input,
               inputPaddingLeft,
               inputPaddingRight,
               textAlign === "center" && "text-center",
@@ -196,10 +232,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {(trailing || helpIcon) && (
             <span
               className={cn(
-                "flex shrink-0 items-center gap-2",
-                // The marker is neutral at rest and red when the field is invalid.
-                error ? "text-red-600" : "text-neutral-400",
-                attachedTrailing ? "mr-3" : "mr-1",
+                grow
+                  ? "contents"
+                  : cn(
+                      "flex shrink-0 items-center gap-2",
+                      error ? "text-red-600" : "text-neutral-400",
+                      attachedTrailing ? "mr-3" : "mr-1",
+                    ),
               )}
             >
               {trailing}
@@ -239,8 +278,9 @@ function HelpMarker({
   onClick?: () => void;
 }) {
   const Glyph = error ? AlertCircleIcon : HelpCircleIcon;
+  const colour = error ? "text-red-600" : "text-neutral-400";
 
-  if (!onClick) return <Glyph size={16} />;
+  if (!onClick) return <Glyph size={16} className={cn("shrink-0", colour)} />;
 
   return (
     <button
@@ -248,7 +288,10 @@ function HelpMarker({
       aria-label="Help"
       disabled={disabled}
       onClick={onClick}
-      className="rounded-sm transition-colors hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+      className={cn(
+        "rounded-sm transition-colors hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50",
+        colour,
+      )}
     >
       <Glyph size={16} />
     </button>

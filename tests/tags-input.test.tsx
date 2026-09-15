@@ -69,9 +69,7 @@ describe("TagsInput", () => {
 
   it("does not remove anything on Backspace while typing", () => {
     const onValueChange = vi.fn();
-    const { container } = render(
-      <TagsInput defaultValue={["a"]} onValueChange={onValueChange} />,
-    );
+    const { container } = render(<TagsInput defaultValue={["a"]} onValueChange={onValueChange} />);
     const input = field(container);
     fireEvent.change(input, { target: { value: "b" } });
     fireEvent.keyDown(input, { key: "Backspace" });
@@ -125,9 +123,7 @@ describe("TagsInput", () => {
 
   it("does not move its own state in controlled use", () => {
     const onValueChange = vi.fn();
-    const { container } = render(
-      <TagsInput value={["a"]} onValueChange={onValueChange} />,
-    );
+    const { container } = render(<TagsInput value={["a"]} onValueChange={onValueChange} />);
     const input = field(container);
     fireEvent.change(input, { target: { value: "b" } });
     fireEvent.keyDown(input, { key: "Enter" });
@@ -139,6 +135,19 @@ describe("TagsInput", () => {
     const { container } = render(<TagsInput disabled defaultValue={["a"]} />);
     expect(field(container).disabled).toBe(true);
     expect((screen.getByLabelText("Remove a") as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("grows the field when the chips are inside", () => {
+    const inside = render(<TagsInput defaultValue={["a"]} />);
+    const box = inside.container.querySelector("div.flex.w-full")!;
+    expect(box.className).toContain("min-h-10");
+    expect(inside.container.querySelector('[data-slot="value"]')!.className).toContain("flex-wrap");
+
+    // chips below sit outside the field, so it keeps its fixed height
+    const below = render(<TagsInput chips="below" defaultValue={["a"]} />);
+    const belowBox = below.container.querySelector("div.flex.w-full")!;
+    expect(belowBox.className).toContain("h-10");
+    expect(belowBox.className).not.toContain("min-h-10");
   });
 
   it("keeps the sheet border and size on the field", () => {

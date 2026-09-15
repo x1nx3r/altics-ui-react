@@ -116,6 +116,8 @@ export function TagsInput({
   const field = (
     <Input
       disabled={disabled}
+      // Chips inside can wrap, so the box grows past its size height.
+      grow={chips === "inside"}
       placeholder={tags.length === 0 ? placeholder : undefined}
       value={draft}
       onChange={(event) => setDraft(event.target.value)}

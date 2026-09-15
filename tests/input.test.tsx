@@ -4,6 +4,10 @@ import { Field, Input, InputDivider } from "../src";
 
 const valueRegion = (container: HTMLElement) =>
   container.querySelector('[data-slot="value"]') as HTMLElement;
+const container = (rendered: { container: HTMLElement }) =>
+  rendered.container.firstElementChild as HTMLElement;
+const fieldOf = (rendered: { container: HTMLElement }) =>
+  rendered.container.querySelector("input") as HTMLInputElement;
 
 describe("Input", () => {
   it("renders a textbox with the md size by default", () => {
@@ -95,6 +99,28 @@ describe("Input", () => {
     expect(kids).toEqual(["span", "svg"]);
   });
 
+  it("keeps the size height by default and trades it for a minimum when growing", () => {
+    const fixed = render(<Input />);
+    expect(container(fixed).className).toContain("h-10");
+    expect(container(fixed).className).not.toContain("min-h-10");
+
+    const growing = render(<Input grow />);
+    expect(container(growing).className).toContain("min-h-10");
+    expect(container(growing).className).not.toMatch(/(^|\s)h-10(\s|$)/);
+    // the field itself accounts for the region's two 1px borders
+    expect(fieldOf(growing).className).toContain("h-[38px]");
+  });
+
+  it("wraps and dissolves its slots when growing", () => {
+    const { container } = render(<Input grow leading="Rp" trailing="kg" />);
+    const region = valueRegion(container);
+    expect(region.className).toContain("flex-wrap");
+    // a slot is one un-wrappable box; in grow mode its children join the wrap
+    for (const slot of [...region.querySelectorAll(":scope > span")]) {
+      expect(slot.className).toContain("contents");
+    }
+  });
+
   it("renders the affixes around the text field", () => {
     const { container } = render(<Input leading="Rp" trailing="kg" />);
     const region = container.querySelector('[data-slot="value"]')!;
@@ -105,7 +131,9 @@ describe("Input", () => {
   it("draws one divider per side only when the divider prop asks for it", () => {
     const box = (ui: React.ReactElement) => render(ui).container;
     expect(box(<Input leading="Rp" trailing="kg" />).querySelectorAll("span.w-px")).toHaveLength(0);
-    expect(box(<Input leading="Rp" trailing="kg" divider />).querySelectorAll("span.w-px")).toHaveLength(2);
+    expect(
+      box(<Input leading="Rp" trailing="kg" divider />).querySelectorAll("span.w-px"),
+    ).toHaveLength(2);
     expect(
       box(<Input leading="https://" divider={{ leading: true }} />).querySelectorAll("span.w-px"),
     ).toHaveLength(1);
