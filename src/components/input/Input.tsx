@@ -70,6 +70,34 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const showTrailingDivider =
       divider === true || (typeof divider === "object" && !!divider.trailing);
 
+    // Exactly one class per side. cn is a plain join and Tailwind decides by
+    // source order, so emitting both `pr-3` and `pr-0` silently kept `pr-3`.
+    const boxPaddingLeft = attachedLeading
+      ? "pl-0"
+      : leading
+        ? showLeadingDivider
+          ? "pl-3"
+          : "pl-2.5"
+        : "pl-3";
+    const boxPaddingRight = attachedTrailing
+      ? "pr-0"
+      : trailing
+        ? showTrailingDivider
+          ? "pr-3"
+          : "pr-2.5"
+        : "pr-3";
+    // With a panel on an edge the field keeps the text inset from the panel.
+    const inputPaddingLeft = attachedLeading
+      ? "pl-3"
+      : leading && !showLeadingDivider
+        ? "pl-2"
+        : undefined;
+    const inputPaddingRight = attachedTrailing
+      ? "pr-3"
+      : trailing && !showTrailingDivider
+        ? "pr-2"
+        : undefined;
+
     return (
       <div
         className={cn(
@@ -80,23 +108,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           "focus-within:outline focus-within:outline-2 focus-within:outline-offset-[-2px]",
           error ? "focus-within:outline-focus-error" : "focus-within:outline-focus",
           sizes[size].box,
-          // Each side is independent: an affix insets its own edge, and the
-          // opposite edge keeps the plain text inset. Without this, a
-          // trailing-only input loses its left padding entirely.
-          leading
-            ? showLeadingDivider
-              ? "pl-3"
-              : "pl-2.5"
-            : "pl-3",
-          trailing
-            ? showTrailingDivider
-              ? "pr-3"
-              : "pr-2.5"
-            : "pr-3",
-          // An attached panel owns its edge, so the box drops its inset there
-          // and the input keeps the text inset instead.
-          Boolean(attachedLeading) && "pl-0",
-          Boolean(attachedTrailing) && "pr-0",
+          boxPaddingLeft,
+          boxPaddingRight,
           // Sheets: rest border is neutral-300, error border red-300.
           error ? "border-red-300" : "border-neutral-300",
           disabled && "cursor-not-allowed opacity-50",
@@ -119,10 +132,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           className={cn(
             "h-full min-w-0 flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
             sizes[size].input,
-            Boolean(leading) && !showLeadingDivider && "pl-2",
-            Boolean(trailing) && !showTrailingDivider && "pr-2",
-            Boolean(attachedLeading) && "pl-3",
-            Boolean(attachedTrailing) && "pr-3",
+            inputPaddingLeft,
+            inputPaddingRight,
             textAlign === "center" && "text-center",
             textAlign === "right" && "text-right",
           )}
