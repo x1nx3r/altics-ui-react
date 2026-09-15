@@ -47,58 +47,134 @@ const sizes = {
 };
 
 export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
-  /** Box height and padding. */
-  size?: "sm" | "md" | "lg";
   /**
-   * If the value is true, the box shows the error border.
-   * If the value is a string, Field shows the string as the error message.
+   * Box height, and the text size that goes with it
+   * @default "md"
+   * @option "sm" - 36px tall, 14px text
+   * @option "md" - 40px tall, 16px text
+   * @option "lg" - 44px tall, 16px text
+   */
+  size?: "sm" | "md" | "lg";
+
+  /**
+   * Error state. `true` paints the sheet's red border, red-300 at rest and
+   * red-500 once focused. A string does the same and `Field` prints the string
+   * below the box
+   * @default undefined
    */
   error?: string | boolean;
-  /** Content before the text (icon, affix, dropdown, or stepper). */
-  leading?: ReactNode;
-  /** Content after the text (icon, affix, dropdown, or stepper). */
-  trailing?: ReactNode;
+
   /**
-   * Control attached to an edge. It spans the full height and sits flush with
-   * the border, so it carries its own divider. Used by steppers and by the
-   * file upload action region.
+   * Content before the text: an icon, an affix, a dropdown or a stepper. Sits
+   * on the region's 12px inset, or 8px when the content is chips
+   * @default undefined
+   */
+  leading?: ReactNode;
+
+  /**
+   * Content after the text, on the same inset as `leading`. Its width is
+   * reserved rather than taken from the line, so it cannot wrap or add height
+   * @default undefined
+   */
+  trailing?: ReactNode;
+
+  /**
+   * Control attached to an edge. It spans the full height, sits flush with the
+   * border and carries its own divider, so the region drops its padding and
+   * leaves the content 12px from the panel. Used by the vertical number
+   * counter and by the file upload action
+   * @default undefined
    */
   attachedLeading?: ReactNode;
-  attachedTrailing?: ReactNode;
-  /** Dividers between affixes and the text. `true` draws both sides,
-   * an object controls each side (e.g. money `"Rp"` without divider vs
-   * website `"https://"` with one). Defaults to none. */
-  divider?: boolean | { leading?: boolean; trailing?: boolean };
+
   /**
-   * Alignment of the value and the placeholder inside the box.
-   * The sheets centre the horizontal number counter and leave every other
-   * type left-aligned.
+   * Attached control on the trailing edge. See `attachedLeading`
+   * @default undefined
+   */
+  attachedTrailing?: ReactNode;
+
+  /**
+   * A 1px rule between an affix and the text. `true` draws both sides, an
+   * object picks a side. The divider carries the 12px the sheet puts either
+   * side of it
+   * @default false
+   * @option "true" - a separate part, such as the `https://` of a website field
+   * @option "false" - part of the value, such as the `Rp` of a money field
+   */
+  divider?: boolean | { leading?: boolean; trailing?: boolean };
+
+  /**
+   * Alignment of the value and the placeholder
+   * @default "left"
+   * @option "left" - every type in the sheets but one
+   * @option "center" - the horizontal number counter
+   * @option "right" - no sheet asks for it; the class is there for consumers
    */
   textAlign?: "left" | "center" | "right";
+
   /**
-   * What the box does when its content outgrows one line. `"wrap"` trades the
-   * fixed height for a minimum and flows the content onto more lines;
-   * `"scroll"` keeps the height and scrolls the line sideways. A plain field
-   * holds one line of text, so it leaves this out.
+   * What the box does when its content outgrows one line. A plain field holds
+   * one line of text, so it leaves this out
+   * @default undefined
+   * @option "wrap" - trades the fixed height for a minimum and flows the
+   * content onto more lines, growing a row at a time (24px plus the 6px gap)
+   * @option "scroll" - keeps the sheet height and scrolls the content
+   * sideways, leaving the text and the marker where they are
    */
   overflow?: "wrap" | "scroll";
+
   /**
-   * Show the trailing help marker. The sheets draw a question mark for a
-   * normal field and the same circle with an exclamation mark in red-600 when
-   * the field is in error. Types whose trailing slot is taken (password,
-   * steppers) leave it out; the tags sheet draws one.
+   * Show the trailing help marker
+   * @default true
+   * @option "true" - a question mark, or the same circle with an exclamation
+   * mark in red-600 when the field is in error
+   * @option "false" - for types whose trailing slot is taken, such as password
+   * and the steppers. The tags sheet draws one, so TagsInput keeps it
    */
   helpIcon?: boolean;
-  /** Runs when the help marker is pressed. Without this the marker is only a
-   * visual affordance and is hidden from assistive technology. */
+
+  /**
+   * Runs when the help marker is pressed
+   * @default undefined
+   */
   onHelpClick?: () => void;
 };
 
 /**
- * Text box with optional affix slots.
- * The empty state and the filled state come from the value.
- * The focus ring comes from :focus-within.
- * Use Field for the label, the hint, and the error message.
+ * Text field with optional slots.
+ *
+ * The box draws no border of its own: the value region owns it, so focus can
+ * paint over the border it belongs to, which is how the sheets draw focus.
+ * `Field` supplies the label, the hint and the error message. Every other type
+ * in this family builds on this one: Password, Number, File, OTP and Tags.
+ *
+ * The region also reports its state as `data-disabled`, `data-invalid` and
+ * `data-overflow`, and a press anywhere inside it puts the caret in the text.
+ *
+ * @example
+ * // Plain field, md by default
+ * <Input placeholder="Email" />
+ *
+ * @example
+ * // Affixes: a divider when the affix is a separate part, none when it
+ * // belongs to the value
+ * <Input leading="https://" divider={{ leading: true }} />
+ * <Input leading="Rp" />
+ *
+ * @example
+ * // A control that owns an edge, and brings its own divider
+ * <Input attachedTrailing={<button>Browse</button>} />
+ *
+ * @example
+ * // Error state; Field prints the message for you
+ * <Field label="Email" error="Required">
+ *   <Input />
+ * </Field>
+ *
+ * @example
+ * // Content that outgrows one line
+ * <Input overflow="wrap" leading={chips} />
+ * <Input overflow="scroll" leading={chips} />
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
@@ -354,9 +430,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 /**
- * Trailing marker: a question mark at rest, the same circle with an
- * exclamation mark when the field is in error. Decorative unless a handler is
- * given, in which case it becomes a button.
+ * Trailing help marker: a question mark at rest, and the same circle with an
+ * exclamation mark in red-600 once the field is in error. The sheet draws it
+ * 16px with a 12px inset, which the region reserves.
+ *
+ * Decorative while it has no handler, so assistive technology skips it. Give
+ * it `onHelpClick` and it becomes a real button instead.
  */
 function HelpMarker({
   error,
