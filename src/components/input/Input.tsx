@@ -146,20 +146,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     // Exactly one class per side. cn is a plain join and Tailwind decides by
     // source order, so emitting both `pr-3` and `pr-0` silently kept `pr-3`.
-    const regionPaddingLeft = attachedLeading
-      ? "pl-0"
-      : leading
-        ? showLeadingDivider
-          ? "pl-3"
-          : "pl-2.5"
-        : "pl-3";
-    const regionPaddingRight = attachedTrailing
-      ? "pr-0"
-      : trailing
-        ? showTrailingDivider
-          ? "pr-3"
-          : "pr-2.5"
-        : "pr-3";
+    // The region carries the sheet's inset, so a slot adds none of its own and
+    // a panel on an edge takes the padding over. Overflow content is the
+    // exception: its chips, and its placeholder while empty, sit on a smaller
+    // inset, and the placeholder's extra 2px rides on the input below.
+    const regionPaddingLeft = attachedLeading ? "pl-0" : wraps || scrolls ? "pl-2.5" : "pl-3";
+    const regionPaddingRight = attachedTrailing ? "pr-0" : "pr-3";
     // With a panel on an edge the field keeps the text inset from the panel.
     const inputPaddingLeft = attachedLeading
       ? "pl-3"
@@ -261,9 +253,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                         : cn(
                             "shrink-0 gap-2",
                             // The sheets put 12px between a panel and the
-                            // content beside it, and 4px between a slot and the
-                            // text.
-                            attachedLeading ? "ml-3" : "ml-1",
+                            // content beside it. Without a panel the region's
+                            // padding is the inset, so the slot adds nothing.
+                            // A ternary, because ReactNode in an && can yield
+                            // 0, which is not a class name.
+                            attachedLeading ? "ml-3" : null,
                           ),
                     ),
               )}
@@ -301,7 +295,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                   : cn(
                       "flex shrink-0 items-center gap-2",
                       error ? "text-red-600" : "text-neutral-400",
-                      attachedTrailing ? "mr-3" : "mr-1",
+                      // A panel sits 12px from the content; without one the
+                      // region's padding is the inset.
+                      attachedTrailing ? "mr-3" : null,
                     ),
               )}
             >

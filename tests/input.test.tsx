@@ -219,8 +219,9 @@ describe("Input", () => {
   it("insets both edges when only one affix is present", () => {
     const { container } = render(<Input trailing={<span>pick</span>} />);
     const cls = container.querySelector('[data-slot="value"]')!.className;
+    // The region carries the sheet inset on both sides; a slot adds none.
     expect(cls).toContain("pl-3");
-    expect(cls).toContain("pr-2.5");
+    expect(cls).toContain("pr-3");
   });
 });
 

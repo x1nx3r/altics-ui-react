@@ -78,18 +78,19 @@ describe("NumberInput", () => {
 
   it("keeps exactly one padding class per side so the panel sits flush", () => {
     const vertical = render(<NumberInput orientation="vertical" />);
-    const vRight = region(vertical.container).className
-      .split(" ")
+    const vRight = region(vertical.container)
+      .className.split(" ")
       .filter((c) => c.startsWith("pr-"));
     expect(vRight).toEqual(["pr-0"]);
     // the field itself keeps the text inset from the panel
     expect(field(vertical.container).className).toContain("pr-3");
 
     const horizontal = render(<NumberInput />);
-    const hRight = region(horizontal.container).className
-      .split(" ")
+    const hRight = region(horizontal.container)
+      .className.split(" ")
       .filter((c) => c.startsWith("pr-"));
-    expect(hRight).toEqual(["pr-2.5"]);
+    // the counter's buttons sit on the same inset as every other trailing slot
+    expect(hRight).toEqual(["pr-3"]);
   });
 
   it("centres the value in the horizontal orientation only", () => {
