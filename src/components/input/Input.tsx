@@ -193,6 +193,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div
+        // State for consumers to style on, in the shape React Aria and Mantine
+        // use: the attribute appears only while the state holds. aria-invalid
+        // stays on the input, where assistive technology reads it.
+        data-disabled={disabled || undefined}
+        data-invalid={invalidState || undefined}
+        data-overflow={overflow}
         className={cn(
           // No border here: each region draws its own, so focus can paint over
           // the one it owns.

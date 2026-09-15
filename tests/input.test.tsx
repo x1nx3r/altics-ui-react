@@ -206,6 +206,25 @@ describe("Input", () => {
     expect(fireEvent.mouseDown(input)).toBe(true); // not prevented
   });
 
+  it("exposes its state as data attributes for consumers to style", () => {
+    // The attribute appears only while the state holds, so a consumer can write
+    // [data-invalid] instead of tracking classes.
+    const plain = container(render(<Input />));
+    for (const attr of ["data-disabled", "data-invalid", "data-overflow"]) {
+      expect(plain.hasAttribute(attr), attr).toBe(false);
+    }
+
+    const errored = container(render(<Input error />));
+    expect(errored.getAttribute("data-invalid")).toBe("true");
+    expect(errored.hasAttribute("data-disabled")).toBe(false);
+
+    expect(container(render(<Input disabled />)).getAttribute("data-disabled")).toBe("true");
+    expect(container(render(<Input overflow="wrap" />)).getAttribute("data-overflow")).toBe("wrap");
+    expect(container(render(<Input overflow="scroll" />)).getAttribute("data-overflow")).toBe(
+      "scroll",
+    );
+  });
+
   it("does not focus a disabled field", () => {
     const rendered = render(<Input disabled />);
     fireEvent.mouseDown(valueRegion(rendered.container));

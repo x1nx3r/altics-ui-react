@@ -155,6 +155,8 @@ describe("TagsInput", () => {
     const box = container.querySelector("div.flex.w-full")!;
     expect(box.className).toContain("h-10");
     expect(box.className).not.toContain("min-h-10");
+    // the mode is visible to a consumer styling the field
+    expect(box.getAttribute("data-overflow")).toBe("scroll");
     const region = container.querySelector('[data-slot="value"]')!;
     expect(region.className).not.toContain("flex-wrap");
     // The chips scroll in their own strip, not the whole field, so the text
