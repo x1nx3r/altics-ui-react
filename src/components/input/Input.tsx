@@ -136,11 +136,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </span>
         )}
         {/* The value region carries the focus decoration, not the box: the
-            sheets ring only the value area and drop the divider on focus. */}
+            sheets ring only the value area and drop the divider on focus.
+            self-stretch is what makes the region fill the box: without it the
+            region is only as tall as its text, and the outline becomes a thin
+            band around the line instead of the whole input block. */}
         <span
           data-slot="value"
           className={cn(
-            "flex min-w-0 flex-1 items-center",
+            "flex min-w-0 flex-1 items-center self-stretch",
             regionRounding,
             regionDivider,
             regionPaddingLeft,
