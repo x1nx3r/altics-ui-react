@@ -81,6 +81,40 @@ describe("TagsInput", () => {
     expect(onValueChange).not.toHaveBeenCalled();
   });
 
+  it("cleans each tag with sanitizeValue, before the duplicate check", () => {
+    const onValueChange = vi.fn();
+    const { container } = render(
+      <TagsInput sanitizeValue={(value) => value.toLowerCase()} onValueChange={onValueChange} />,
+    );
+    const input = inputOf(container);
+    fireEvent.change(input, { target: { value: "  Design  " } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onValueChange).toHaveBeenLastCalledWith(["design"]);
+
+    // the same tag in another case collides once it has been cleaned
+    fireEvent.change(input, { target: { value: "DESIGN" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onValueChange).toHaveBeenCalledTimes(1);
+  });
+
+  it("bounds a tag a list paste would otherwise carry in whole", () => {
+    // A comma-separated paste goes straight through commit, so the browser's
+    // maxLength never sees it. sanitizeValue is where it gets bounded.
+    const onValueChange = vi.fn();
+    const { container } = render(
+      <TagsInput sanitizeValue={(value) => value.slice(0, 10)} onValueChange={onValueChange} />,
+    );
+    fireEvent.paste(inputOf(container), {
+      clipboardData: { getData: () => "https://example.com/really/long, ok" },
+    });
+    expect(onValueChange).toHaveBeenCalledWith(["https://ex", "ok"]);
+  });
+
+  it("passes maxLength to the input, which caps typing", () => {
+    const { container } = render(<TagsInput maxLength={5} />);
+    expect(inputOf(container).maxLength).toBe(5);
+  });
+
   it("leaves a plain paste to the field", () => {
     const onValueChange = vi.fn();
     const { container } = render(<TagsInput onValueChange={onValueChange} />);

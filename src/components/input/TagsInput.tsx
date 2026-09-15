@@ -57,6 +57,15 @@ export type TagsInputProps = Omit<
   maxTags?: number;
 
   /**
+   * Cleans each tag as it is committed, before the empty and duplicate checks,
+   * so a sanitised value that collides with an existing tag is still caught.
+   * Use it to normalise a tag, or to bound a length a paste can carry in whole:
+   * `maxLength` only caps what is typed into the field
+   * @default undefined
+   */
+  sanitizeValue?: (value: string) => string;
+
+  /**
    * Commit the half-typed tag when the field loses focus instead of dropping
    * it. Focus moving inside the field does not count, so pressing a chip's
    * remove button leaves the draft to finish
@@ -143,6 +152,7 @@ export function TagsInput({
   chips = "inside",
   overflow = "wrap",
   maxTags,
+  sanitizeValue,
   size = "md",
   disabled,
   placeholder,
@@ -166,7 +176,7 @@ export function TagsInput({
   function commit(candidates: string[]) {
     const next = [...tags];
     for (const candidate of candidates) {
-      const tag = candidate.trim();
+      const tag = (sanitizeValue ? sanitizeValue(candidate) : candidate).trim();
       if (!tag || next.includes(tag)) continue;
       if (maxTags !== undefined && next.length >= maxTags) break;
       next.push(tag);
