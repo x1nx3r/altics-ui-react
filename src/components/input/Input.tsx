@@ -122,7 +122,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </span>
         )}
         {leading && (
-          <span className="ml-1 flex shrink-0 items-center text-neutral-600">{leading}</span>
+          <span
+            className={cn(
+              "flex shrink-0 items-center gap-2 text-neutral-600",
+              // The sheets put 12px between a panel and the content beside it,
+              // and 4px between a slot and the text.
+              attachedLeading ? "ml-3" : "ml-1",
+            )}
+          >
+            {leading}
+          </span>
         )}
         {leading && showLeadingDivider && <InputDivider />}
         <input
@@ -141,7 +150,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         />
         {trailing && showTrailingDivider && <InputDivider />}
         {trailing && (
-          <span className="mr-1 flex shrink-0 items-center text-neutral-400">{trailing}</span>
+          <span
+            className={cn(
+              "flex shrink-0 items-center gap-2 text-neutral-400",
+              attachedTrailing ? "mr-3" : "mr-1",
+            )}
+          >
+            {trailing}
+          </span>
         )}
         {attachedTrailing && (
           <span className="flex shrink-0 self-stretch border-l border-neutral-300">
