@@ -51,9 +51,10 @@ export type FileInputProps = Omit<
  * The file input itself is visually hidden but stays in the tab order, so the
  * label opens the picker and the field shows the focus outline.
  *
- * Focus covers the whole field. The sheet rings only the value area and drops
- * the divider, which would leave the action with no focus indicator of its
- * own; one visible outline for the control is the safer reading.
+ * Focus rings the value area, not the whole field. That is what the sheet
+ * draws: the hidden input lives inside the region so `focus-within` lands on
+ * it, the action panel keeps its own border on the outside, and the divider's
+ * line is the region's edge, which is the edge focus paints over.
  *
  * @example
  * <FileInput />
