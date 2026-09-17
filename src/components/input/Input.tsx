@@ -34,10 +34,10 @@ const sizes = {
     // field's corner: that is where the sheet draws the resize grip. A min-height
     // on a resizable element also bounds the drag, so the handle can never be
     // pulled inside the sheet's height.
-    multilineInput: "min-h-[108px] px-3.5 py-3",
-    multilineRows: "px-3.5 py-3",
+    multilineInput: "h-full min-h-[108px] px-3.5 py-3",
+    multilineRows: "h-full px-3.5 py-3",
     multilineInlineBox: "text-base min-h-[110px]",
-    multilineInline: "min-h-[84px]",
+    multilineInline: "h-full min-h-[84px]",
     // With chips sharing the line the region holds the inset and the floor, so
     // the textarea carries neither and stays as short as its content.
     trailingPad: "pr-9",
@@ -50,10 +50,10 @@ const sizes = {
     wrapBox: "min-h-10 text-base",
     wrapPad: "py-[7px]",
     multilineBox: "text-base",
-    multilineInput: "min-h-[126px] px-4 py-3",
-    multilineRows: "px-4 py-3",
+    multilineInput: "h-full min-h-[126px] px-4 py-3",
+    multilineRows: "h-full px-4 py-3",
     multilineInlineBox: "text-base min-h-[128px]",
-    multilineInline: "min-h-[102px]",
+    multilineInline: "h-full min-h-[102px]",
     trailingPad: "pr-10",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",

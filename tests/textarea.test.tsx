@@ -16,6 +16,9 @@ describe("Textarea", () => {
     // textarea, so it is that less the region's two 1px borders — and because a
     // resizable element honours it, the drag cannot go below the sheet's height.
     expect(area(render(<Textarea size="sm" />).container).className).toContain("min-h-[108px]");
+    // and it fills whatever height the field ends up with, so the resize grip
+    // stays at the field's corner when a layout stretches it
+    expect(area(render(<Textarea size="sm" />).container).className).toContain("h-full");
     expect(area(render(<Textarea />).container).className).toContain("min-h-[126px]");
   });
 
