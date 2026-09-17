@@ -496,7 +496,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                       // however many chips there are. The bar itself is hidden:
                       // it would eat half of a 40px field.
                       scrolls
-                        ? "min-w-0 gap-x-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                        ? cn(
+                            "min-w-0 gap-x-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+                            // The line dissolves toward the field's edge instead
+                            // of stopping at a hard cut.
+                            "[mask-image:linear-gradient(to_right,black_calc(100%-28px),transparent)]",
+                          )
                         : cn(
                             "shrink-0 gap-2",
                             // The sheets put 12px between a panel and the
