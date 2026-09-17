@@ -12,3 +12,9 @@ scratchpad
 
 # Shallow clones of other design systems, read for reference only.
 /refs/
+
+# Storybook docs trial, gitignored until it graduates to its own home.
+/docs/
+
+*storybook.log
+storybook-static
