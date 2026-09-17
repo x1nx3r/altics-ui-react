@@ -9,8 +9,11 @@ import {
 import { cn } from "../../lib/cn";
 import { Input, type InputProps } from "./Input";
 
-/** Cells are square, one step per size, on the usual 8px gap. */
-const cellWidth = { sm: "w-9", md: "w-10", lg: "w-11" };
+/** The verification sheet draws square cells, one step per size (64, 80 and
+ * 96) on gaps of 8 and 12; the display-sized digit itself lives in the base's
+ * cell mode. The span sizes the field and the box fills it. */
+const cellBox = { sm: "w-16 h-16", md: "w-20 h-20", lg: "w-24 h-24" };
+const cellGap = { sm: "gap-2", md: "gap-3", lg: "gap-3" };
 
 export type OtpInputProps = {
   /**
@@ -108,8 +111,10 @@ export type OtpInputProps = {
  * paste and SMS autofill are all the browser's job. Managing N inputs by hand
  * is what makes these fields feel flaky.
  *
- * The active cell draws the focus outline, taken from the same Input chrome as
- * every other field, so the sheets' focused look is unchanged.
+ * The cells are the verification sheet's: square, one step per size, holding a
+ * display-sized digit, and the active one draws the focus outline — taken from
+ * the same Input chrome as every other field, so the sheets' looks are
+ * unchanged.
  *
  * @example
  * <OtpInput />
@@ -199,7 +204,7 @@ export function OtpInput({
     <div
       data-slot="otp"
       data-focused={focused || undefined}
-      className={cn("relative flex items-center gap-2", className)}
+      className={cn("relative flex items-center", cellGap[size], className)}
     >
       {Array.from({ length }, (_, index) => {
         const char = code[index] ?? "";
@@ -213,10 +218,11 @@ export function OtpInput({
             aria-hidden="true"
             data-slot="otp-cell"
             data-active={active || undefined}
-            className={cn("block", cellWidth[size ?? "md"])}
+            className={cn("block", cellBox[size])}
           >
             <Input
               size={size}
+              cell
               error={error}
               disabled={disabled}
               readOnly

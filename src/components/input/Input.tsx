@@ -22,6 +22,10 @@ import { AlertCircleIcon, HelpCircleIcon } from "../icon/icons";
  * region's own border accounts for 1px of it, hence 5, 7 and 9.
  * `scroll*` keeps the plain height and reserves a field wide enough to type in
  * while the rest of the line scrolls.
+ * `cellBox` is for the verification sheet's display cell: the span that holds
+ * it does the sizing, so the box fills rather than fixes its height, and the
+ * digit is display-sized — 48px at sm and md, 60 at lg — rather than the
+ * field's text size.
  */
 const sizes = {
   sm: {
@@ -38,6 +42,8 @@ const sizes = {
     multilineRows: "h-full px-3.5 py-3",
     multilineInlineBox: "text-base min-h-[110px]",
     multilineInline: "h-full min-h-[84px]",
+    // One display digit fills a 64px cell; the font, not the box, carries it.
+    cellBox: "h-full text-5xl",
     // With chips sharing the line the region holds the inset and the floor, so
     // the textarea carries neither and stays as short as its content.
     trailingPad: "pr-9",
@@ -54,6 +60,7 @@ const sizes = {
     multilineRows: "h-full px-4 py-3",
     multilineInlineBox: "text-base min-h-[128px]",
     multilineInline: "h-full min-h-[102px]",
+    cellBox: "h-full text-5xl",
     trailingPad: "pr-10",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -68,6 +75,7 @@ const sizes = {
     multilineRows: "px-4 py-3",
     multilineInlineBox: "text-base min-h-[128px]",
     multilineInline: "min-h-[102px]",
+    cellBox: "h-full text-6xl",
     trailingPad: "pr-11",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -188,6 +196,17 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   resize?: "none" | "both" | "horizontal" | "vertical";
 
   /**
+   * Render the display cell the verification sheet draws: square, sized by the
+   * parent, holding a display-sized digit. `OtpInput` is the public face of
+   * this. Like `multiline`, it exists so a family member keeps the base's
+   * chrome — border, focus, error, disabled — without pushing the geometry
+   * through `className`, which cannot resolve conflicts. The overflow modes
+   * describe a line of chips, so they do not apply
+   * @default false
+   */
+  cell?: boolean;
+
+  /**
    * Show the trailing help marker
    * @default true
    * @option "true" - a question mark, or the same circle with an exclamation
@@ -256,7 +275,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       multiline = false,
       rows,
       resize = "vertical",
-      helpIcon = !multiline,
+      cell = false,
+      helpIcon = !multiline && !cell,
       onHelpClick,
       divider = false,
       "aria-invalid": invalid,
@@ -323,7 +343,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       // input at both of those sizes. That inset lives on the textarea itself, so
       // it reaches the field's corner, which is where the resize grip is drawn —
       // and the region holds back, or the text would be inset twice.
-      const inset = multiline
+      const inset = cell
+        ? // A cell centers its digit; an inset would push it off centre.
+          side === "leading"
+          ? "pl-0"
+          : "pr-0"
+        : multiline
         ? side === "leading"
           ? inlineMultiline
             ? size === "sm"
@@ -423,16 +448,22 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         className={cn(
           // No border here: each region draws its own, so focus can paint over
           // the one it owns.
-          "flex w-full items-center rounded-md bg-background transition-colors",
-          inlineMultiline
-            ? sizes[size].multilineInlineBox
-            : wraps
-              ? sizes[size].wrapBox
-              : multiline
-                ? rows === undefined
-                  ? sizes[size].multilineBox
-                  : undefined
-                : sizes[size].box,
+          "flex items-center rounded-md bg-background transition-colors",
+          // The cell's span does the sizing, so the box must not also insist on
+          // w-full: cn joins without resolving, and two width classes leave the
+          // outcome to Tailwind's stylesheet order.
+          !cell && "w-full",
+          cell
+            ? sizes[size].cellBox
+            : inlineMultiline
+              ? sizes[size].multilineInlineBox
+              : wraps
+                ? sizes[size].wrapBox
+                : multiline
+                  ? rows === undefined
+                    ? sizes[size].multilineBox
+                    : undefined
+                  : sizes[size].box,
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}
