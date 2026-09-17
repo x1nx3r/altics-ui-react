@@ -28,8 +28,8 @@ export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
  * marker.
  *
  * A minimum height of 110px (sm) or 128px (md) applies by default, so the field
- * matches the sheet and grows with its content. Pass `rows` to drop it and size
- * natively instead, which also frees the resize handle.
+ * matches the sheet, and the text scrolls inside it as a textarea does. Pass
+ * `rows` to drop the minimum and size natively, or drag the resize handle.
  *
  * To set the height from outside, use `style`. A `className` will not reliably
  * win: cn joins without resolving conflicts, so Tailwind source order decides.
