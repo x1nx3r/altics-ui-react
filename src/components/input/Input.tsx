@@ -29,7 +29,7 @@ const sizes = {
     wrapBox: "min-h-9 text-sm",
     wrapPad: "py-[5px]",
     // The sheets give the textarea two sizes and stop there, so lg borrows md's.
-    multilineBox: "min-h-[110px] text-sm",
+    multilineBox: "min-h-[110px] text-base",
     multilinePad: "py-3",
     trailingPad: "pr-9",
     input: "h-full min-w-0",
@@ -281,11 +281,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       const divider = side === "leading" ? showLeadingDivider : showTrailingDivider;
       // The sheet's inset from this edge, the gap the input leaves when a slot
       // has no divider, and the corners this side owns.
-      // The sheets inset a textarea 16px and an input 12px.
+      // The sheets inset a textarea 14px at sm and 16px at md, against 12 for
+      // an input at both of those sizes. Measured from the placeholder glyphs,
+      // which are the same string at both sizes, so the 2px is real.
       const inset = multiline
         ? side === "leading"
-          ? "pl-4"
-          : "pr-4"
+          ? size === "sm"
+            ? "pl-3.5"
+            : "pl-4"
+          : size === "sm"
+            ? "pr-3.5"
+            : "pr-4"
         : side === "leading"
           ? "pl-3"
           : "pr-3";

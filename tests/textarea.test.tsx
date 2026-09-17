@@ -23,10 +23,22 @@ describe("Textarea", () => {
     expect(boxOf(container).className).not.toContain("min-h-[128px]");
   });
 
-  it("insets 16px, where the input insets 12", () => {
-    // The sheets inset the textarea 16px and the input 12px.
-    expect(regionOf(render(<Textarea />).container).className).toContain("pl-4");
-    expect(regionOf(render(<Textarea />).container).className).toContain("pr-4");
+  it("insets 14px at sm and 16px at md, where the input insets 12", () => {
+    // The sheets inset the textarea two more than the input at each size. The
+    // placeholder is the same string at both, so the 2px difference is real.
+    const sm = regionOf(render(<Textarea size="sm" />).container).className;
+    expect(sm).toContain("pl-3.5");
+    expect(sm).toContain("pr-3.5");
+    const md = regionOf(render(<Textarea />).container).className;
+    expect(md).toContain("pl-4");
+    expect(md).toContain("pr-4");
+  });
+
+  it("holds the text at 16px whichever size, as the sheets draw it", () => {
+    // The sheets' placeholder glyph is byte-identical at sm and md, so the
+    // textarea does not scale its text with the box the way the input does.
+    expect(boxOf(render(<Textarea size="sm" />).container).className).toContain("text-base");
+    expect(boxOf(render(<Textarea />).container).className).toContain("text-base");
   });
 
   it("paints the sheet's error border, not the destructive token", () => {

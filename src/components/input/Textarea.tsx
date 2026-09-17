@@ -24,8 +24,8 @@ export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
  *
  * The same chrome as `Input` — border, radius, focus outline, error colours and
  * the `Field` wiring — from the same base, with the sheets' textarea metrics on
- * top: taller, inset 16px rather than 12, text aligned to the top, and no help
- * marker.
+ * top: taller, inset 14px at sm and 16px at md, text aligned to the top and
+ * held at 16px at both sizes, and no help marker.
  *
  * A minimum height of 110px (sm) or 128px (md) applies by default, so the field
  * matches the sheet, and the text scrolls inside it as a textarea does. Pass
