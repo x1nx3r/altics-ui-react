@@ -197,7 +197,7 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
 
   /**
    * Render the display cell the verification sheet draws: square, sized by the
-   * parent, holding a display-sized digit. `OtpInput` is the public face of
+   * parent, holding a display-sized digit. `PinInput` is the public face of
    * this. Like `multiline`, it exists so a family member keeps the base's
    * chrome — border, focus, error, disabled — without pushing the geometry
    * through `className`, which cannot resolve conflicts. The overflow modes

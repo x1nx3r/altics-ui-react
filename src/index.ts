@@ -14,6 +14,7 @@ export {
   NumberInput,
   OtpInput,
   PasswordInput,
+  PinInput,
   TagsInput,
   Textarea,
   type FileInputProps,
@@ -21,6 +22,7 @@ export {
   type NumberInputProps,
   type OtpInputProps,
   type PasswordInputProps,
+  type PinInputProps,
   type TagsInputProps,
   type TextareaProps,
 } from "./components/input";
