@@ -12,26 +12,32 @@ describe("Textarea", () => {
   });
 
   it("takes the sheet's height per size", () => {
-    // The sheets give the textarea two sizes: 110px and 128px.
-    expect(boxOf(render(<Textarea size="sm" />).container).className).toContain("min-h-[110px]");
-    expect(boxOf(render(<Textarea />).container).className).toContain("min-h-[128px]");
+    // The sheets give the textarea 110px and 128px. The minimum sits on the
+    // textarea, so it is that less the region's two 1px borders — and because a
+    // resizable element honours it, the drag cannot go below the sheet's height.
+    expect(area(render(<Textarea size="sm" />).container).className).toContain("min-h-[108px]");
+    expect(area(render(<Textarea />).container).className).toContain("min-h-[126px]");
   });
 
   it("lets rows drop the minimum height so the field sizes natively", () => {
     const { container } = render(<Textarea rows={6} />);
     expect(area(container).rows).toBe(6);
-    expect(boxOf(container).className).not.toContain("min-h-[128px]");
+    // and the minimum goes with it, so native sizing rules
+    expect(area(container).className).not.toContain("min-h");
   });
 
   it("insets 14px at sm and 16px at md, where the input insets 12", () => {
     // The sheets inset the textarea two more than the input at each size. The
     // placeholder is the same string at both, so the 2px difference is real.
-    const sm = regionOf(render(<Textarea size="sm" />).container).className;
-    expect(sm).toContain("pl-3.5");
-    expect(sm).toContain("pr-3.5");
-    const md = regionOf(render(<Textarea />).container).className;
-    expect(md).toContain("pl-4");
-    expect(md).toContain("pr-4");
+    // It lives on the textarea, so the textarea reaches the field's corner and
+    // the resize grip is drawn where the sheet draws it.
+    const sm = render(<Textarea size="sm" />);
+    expect(area(sm.container).className).toContain("px-3.5");
+    expect(area(sm.container).className).toContain("min-h-[108px]");
+    const md = render(<Textarea />);
+    expect(area(md.container).className).toContain("px-4");
+    expect(area(md.container).className).toContain("min-h-[126px]");
+    expect(regionOf(md.container).className).not.toContain("pl-4");
   });
 
   it("holds the text at 16px whichever size, as the sheets draw it", () => {

@@ -29,8 +29,13 @@ const sizes = {
     wrapBox: "min-h-9 text-sm",
     wrapPad: "py-[5px]",
     // The sheets give the textarea two sizes and stop there, so lg borrows md's.
-    multilineBox: "min-h-[110px] text-base",
-    multilinePad: "py-3",
+    multilineBox: "text-base",
+    // Height and padding sit on the textarea, not the box, so its corner is the
+    // field's corner: that is where the sheet draws the resize grip. A min-height
+    // on a resizable element also bounds the drag, so the handle can never be
+    // pulled inside the sheet's height.
+    multilineInput: "min-h-[108px] px-3.5 py-3",
+    multilineRows: "px-3.5 py-3",
     trailingPad: "pr-9",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -40,8 +45,9 @@ const sizes = {
     box: "h-10 text-base",
     wrapBox: "min-h-10 text-base",
     wrapPad: "py-[7px]",
-    multilineBox: "min-h-[128px] text-base",
-    multilinePad: "py-3",
+    multilineBox: "text-base",
+    multilineInput: "min-h-[126px] px-4 py-3",
+    multilineRows: "px-4 py-3",
     trailingPad: "pr-10",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -51,8 +57,9 @@ const sizes = {
     box: "h-11 text-base",
     wrapBox: "min-h-11 text-base",
     wrapPad: "py-[9px]",
-    multilineBox: "min-h-[128px] text-base",
-    multilinePad: "py-3",
+    multilineBox: "text-base",
+    multilineInput: "min-h-[126px] px-4 py-3",
+    multilineRows: "px-4 py-3",
     trailingPad: "pr-11",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -281,17 +288,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       const divider = side === "leading" ? showLeadingDivider : showTrailingDivider;
       // The sheet's inset from this edge, the gap the input leaves when a slot
       // has no divider, and the corners this side owns.
-      // The sheets inset a textarea 14px at sm and 16px at md, against 12 for
-      // an input at both of those sizes. Measured from the placeholder glyphs,
-      // which are the same string at both sizes, so the 2px is real.
+      // The sheets inset a textarea 14px at sm and 16px at md, against 12 for an
+      // input at both of those sizes. That inset lives on the textarea itself, so
+      // it reaches the field's corner, which is where the resize grip is drawn —
+      // and the region holds back, or the text would be inset twice.
       const inset = multiline
         ? side === "leading"
-          ? size === "sm"
-            ? "pl-3.5"
-            : "pl-4"
-          : size === "sm"
-            ? "pr-3.5"
-            : "pr-4"
+          ? "pl-0"
+          : "pr-0"
         : side === "leading"
           ? "pl-3"
           : "pr-3";
@@ -427,7 +431,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             // own inset and the text's extra 2px rides on the input below.
             (wraps || scrolls) && "gap-x-1.5 has-[[data-slot=tag]]:pl-2",
             wraps && cn("flex-wrap gap-y-1.5", sizes[size].wrapPad),
-            multiline && sizes[size].multilinePad,
             borderColour,
             leadingEdge.rounding,
             trailingEdge.rounding,
@@ -475,7 +478,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               aria-invalid={invalidState}
               className={cn(
                 "min-w-0 flex-1 resize-y bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
-                sizes[size].input,
+                rows === undefined ? sizes[size].multilineInput : sizes[size].multilineRows,
                 leadingEdge.input,
                 trailingEdge.input,
                 textAlign === "center" && "text-center",
