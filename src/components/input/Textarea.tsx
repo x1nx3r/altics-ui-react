@@ -11,6 +11,17 @@ export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   size?: "sm" | "md";
 
   /**
+   * Which way the field can be dragged. The grip is the browser's, at the
+   * field's corner where the sheets draw it
+   * @default "vertical"
+   * @option "none" - fixed, no grip
+   * @option "vertical" - taller only, so a form's layout cannot move
+   * @option "horizontal" - wider only
+   * @option "both" - any direction, which can push a layout around
+   */
+  resize?: "none" | "both" | "horizontal" | "vertical";
+
+  /**
    * Error state. `true` paints the border in the error colour, red-300 at rest
    * and red-500 once focused; a string does the same and `Field` prints the
    * string below the box

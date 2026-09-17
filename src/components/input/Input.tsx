@@ -67,6 +67,14 @@ const sizes = {
   },
 };
 
+/** The resize utility for each mode, one class per property. */
+const resizeClass = {
+  none: "resize-none",
+  both: "resize",
+  horizontal: "resize-x",
+  vertical: "resize-y",
+};
+
 export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   /**
    * Box height, and the text size that goes with it
@@ -161,6 +169,17 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   rows?: number;
 
   /**
+   * Which way the textarea can be dragged. The grip is the browser's, drawn at
+   * the field's corner where the sheets draw it. Only applies to multiline
+   * @default "vertical"
+   * @option "none" - fixed, no grip
+   * @option "vertical" - taller only, so a form's layout cannot move
+   * @option "horizontal" - wider only
+   * @option "both" - any direction, which can push a layout around
+   */
+  resize?: "none" | "both" | "horizontal" | "vertical";
+
+  /**
    * Show the trailing help marker
    * @default true
    * @option "true" - a question mark, or the same circle with an exclamation
@@ -228,6 +247,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       overflow,
       multiline = false,
       rows,
+      resize = "vertical",
       helpIcon = !multiline,
       onHelpClick,
       divider = false,
@@ -384,6 +404,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         data-disabled={disabled || undefined}
         data-invalid={invalidState || undefined}
         data-overflow={overflow}
+        data-resize={multiline ? resize : undefined}
         className={cn(
           // No border here: each region draws its own, so focus can paint over
           // the one it owns.
@@ -477,7 +498,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               disabled={disabled}
               aria-invalid={invalidState}
               className={cn(
-                "min-w-0 flex-1 resize-y bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
+                "min-w-0 flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
+                resizeClass[resize],
                 rows === undefined ? sizes[size].multilineInput : sizes[size].multilineRows,
                 leadingEdge.input,
                 trailingEdge.input,

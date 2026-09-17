@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { Field, Textarea } from "../src";
+import { Field, Input, Textarea } from "../src";
 import { boxOf, regionOf } from "./helpers";
 
 const area = (container: HTMLElement) => container.querySelector("textarea") as HTMLTextAreaElement;
@@ -53,6 +53,35 @@ describe("Textarea", () => {
     const { container } = render(<Textarea error />);
     expect(regionOf(container).className).toContain("border-red-300");
     expect(regionOf(container).className).toContain("focus-within:outline-focus-error");
+  });
+
+  it("resizes vertically by default, and says so for consumers", () => {
+    // The sheet draws a grip, and vertical is the direction that cannot move a
+    // form's layout. The grip itself is the browser's, at the field's corner.
+    const { container } = render(<Textarea />);
+    expect(area(container).className).toContain("resize-y");
+    expect(boxOf(container).getAttribute("data-resize")).toBe("vertical");
+  });
+
+  it("takes whichever direction it is given", () => {
+    const cases = [
+      ["none", "resize-none"],
+      ["both", "resize"],
+      ["horizontal", "resize-x"],
+      ["vertical", "resize-y"],
+    ] as const;
+    for (const [resize, expected] of cases) {
+      const { container } = render(<Textarea resize={resize} />);
+      expect(area(container).className, resize).toContain(expected);
+      expect(boxOf(container).getAttribute("data-resize"), resize).toBe(resize);
+    }
+  });
+
+  it("leaves a single-line field alone", () => {
+    // Resizing is a textarea concern, so a one-line field has no grip at all.
+    const { container } = render(<Input />);
+    expect(boxOf(container).className).not.toContain("resize");
+    expect(boxOf(container).hasAttribute("data-resize")).toBe(false);
   });
 
   it("carries no help marker, as the sheet draws none", () => {
