@@ -36,6 +36,10 @@ const sizes = {
     // pulled inside the sheet's height.
     multilineInput: "min-h-[108px] px-3.5 py-3",
     multilineRows: "px-3.5 py-3",
+    multilineInlineBox: "text-base min-h-[110px]",
+    multilineInline: "min-h-[84px]",
+    // With chips sharing the line the region holds the inset and the floor, so
+    // the textarea carries neither and stays as short as its content.
     trailingPad: "pr-9",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -48,6 +52,8 @@ const sizes = {
     multilineBox: "text-base",
     multilineInput: "min-h-[126px] px-4 py-3",
     multilineRows: "px-4 py-3",
+    multilineInlineBox: "text-base min-h-[128px]",
+    multilineInline: "min-h-[102px]",
     trailingPad: "pr-10",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -60,6 +66,8 @@ const sizes = {
     multilineBox: "text-base",
     multilineInput: "min-h-[126px] px-4 py-3",
     multilineRows: "px-4 py-3",
+    multilineInlineBox: "text-base min-h-[128px]",
+    multilineInline: "min-h-[102px]",
     trailingPad: "pr-11",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -278,8 +286,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     // Both overflow modes keep the sheets' rhythm: a chip sits 8px in, the text
     // 12, chips are 6 apart and 8 from the text. They differ at the edge, so
     // they also need different slot handling below.
-    const wraps = overflow === "wrap" && !multiline;
+    const wraps = overflow === "wrap";
     const scrolls = overflow === "scroll" && !multiline;
+    // A textarea with a slot on its line: the sheets draw the same field with
+    // chips inside it, insetting the chips like they inset the text.
+    const inlineMultiline = multiline && Boolean(leading);
     const showLeadingDivider =
       divider === true || (typeof divider === "object" && !!divider.leading);
     const showTrailingDivider =
@@ -314,7 +325,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       // and the region holds back, or the text would be inset twice.
       const inset = multiline
         ? side === "leading"
-          ? "pl-0"
+          ? inlineMultiline
+            ? size === "sm"
+              ? "pl-3.5"
+              : "pl-4"
+            : "pl-0"
           : "pr-0"
         : side === "leading"
           ? "pl-3"
@@ -369,7 +384,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         // Overflow content lines up on the chip inset rather than the text one,
         // and an empty tags field keeps its placeholder 2px further in, on the
         // input below.
-        region: side === "leading" && (wraps || scrolls) ? "pl-2.5" : inset,
+        region: side === "leading" && !multiline && (wraps || scrolls) ? "pl-2.5" : inset,
         // Without a divider the input leaves the gap to the text; with one, the
         // divider owns that gap.
         input: hasSlot && !divider ? slotGap : undefined,
@@ -409,13 +424,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           // No border here: each region draws its own, so focus can paint over
           // the one it owns.
           "flex w-full items-center rounded-md bg-background transition-colors",
-          wraps
-            ? sizes[size].wrapBox
-            : multiline
-              ? rows === undefined
-                ? sizes[size].multilineBox
-                : undefined
-              : sizes[size].box,
+          inlineMultiline
+            ? sizes[size].multilineInlineBox
+            : wraps
+              ? sizes[size].wrapBox
+              : multiline
+                ? rows === undefined
+                  ? sizes[size].multilineBox
+                  : undefined
+                : sizes[size].box,
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}
@@ -451,7 +468,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             // one line in both modes, so the chips switch the region to their
             // own inset and the text's extra 2px rides on the input below.
             (wraps || scrolls) && "gap-x-1.5 has-[[data-slot=tag]]:pl-2",
-            wraps && cn("flex-wrap gap-y-1.5", sizes[size].wrapPad),
+            wraps && cn("flex-wrap gap-y-1.5", inlineMultiline ? "py-3" : sizes[size].wrapPad),
+            inlineMultiline &&
+              (size === "sm" ? "has-[[data-slot=tag]]:pl-2.5" : "has-[[data-slot=tag]]:pl-3"),
             borderColour,
             leadingEdge.rounding,
             trailingEdge.rounding,
@@ -500,7 +519,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               className={cn(
                 "min-w-0 flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
                 resizeClass[resize],
-                rows === undefined ? sizes[size].multilineInput : sizes[size].multilineRows,
+                inlineMultiline
+                  ? sizes[size].multilineInline
+                  : rows === undefined
+                    ? sizes[size].multilineInput
+                    : sizes[size].multilineRows,
                 leadingEdge.input,
                 trailingEdge.input,
                 textAlign === "center" && "text-center",

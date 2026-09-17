@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { TagsInput } from "../src";
-import { boxOf, chipsOf, inputOf } from "./helpers";
+import { boxOf, chipsOf, inputOf, regionOf } from "./helpers";
 
 describe("TagsInput", () => {
   it("commits a tag on Enter and clears the draft", () => {
@@ -305,6 +305,33 @@ describe("TagsInput", () => {
   it("keeps the sheet's chip gap in the row below", () => {
     const { container } = render(<TagsInput chips="below" defaultValue={["a"]} />);
     expect(chipsOf(container)[0].parentElement!.className).toContain("gap-1.5");
+  });
+
+  it("collects tags in a textarea when asked", () => {
+    // The sheets' textarea type for tags: the same 128px field a plain textarea
+    // gets, with the chips wrapping inside it.
+    const { container } = render(<TagsInput multiline defaultValue={["Design", "Marketing"]} />);
+    const area = container.querySelector("textarea")!;
+    expect(area).toBeTruthy();
+    expect(container.querySelector("input")).toBeNull();
+    // the field holds the sheet's floor, and the textarea stays as short as its
+    // content so the chips and the text share the line
+    expect(boxOf(container).className).toContain("min-h-[128px]");
+    expect(area.className).toContain("min-h-[102px]");
+    expect(area.className).not.toContain("min-h-[126px]");
+    // the region insets the text, and the chips sit four pixels in from it
+    expect(regionOf(container).className).toContain("pl-4");
+    expect(regionOf(container).className).toContain("has-[[data-slot=tag]]:pl-3");
+    expect(regionOf(container).className).toContain("flex-wrap");
+  });
+
+  it("keeps the field a plain textarea when the chips sit below", () => {
+    const { container } = render(<TagsInput multiline chips="below" defaultValue={["a"]} />);
+    const area = container.querySelector("textarea")!;
+    expect(area.className).toContain("min-h-[126px]");
+    expect(area.className).toContain("px-4");
+    expect(regionOf(container).className).not.toContain("flex-wrap");
+    expect(regionOf(container).contains(chipsOf(container)[0])).toBe(false);
   });
 
   it("keeps the sheet border and size on the field", () => {

@@ -57,6 +57,14 @@ export type TagsInputProps = Omit<
   maxTags?: number;
 
   /**
+   * Collect the tags in a textarea rather than a one-line field, which is the
+   * sheets' textarea type for tags: taller, with the chips wrapping inside it
+   * when they are inside, or sitting under it as usual when they are below
+   * @default false
+   */
+  multiline?: boolean;
+
+  /**
    * Cleans each tag as it is committed, before the empty and duplicate checks,
    * so a sanitised value that collides with an existing tag is still caught.
    * Use it to normalise a tag, or to bound a length a paste can carry in whole:
@@ -152,6 +160,7 @@ export function TagsInput({
   chips = "inside",
   overflow = "wrap",
   maxTags,
+  multiline = false,
   sanitizeValue,
   size = "md",
   disabled,
@@ -246,6 +255,7 @@ export function TagsInput({
       // Chips inside pick how the line copes at the edge: wrap and the box
       // grows, scroll and the chips move sideways under the sheet height.
       overflow={chips === "inside" ? overflow : undefined}
+      multiline={multiline}
       placeholder={tags.length === 0 ? placeholder : undefined}
       value={draft}
       onChange={(event) => setDraft(event.target.value)}
