@@ -145,6 +145,37 @@ describe("OtpInput", () => {
     expect(slots(lg.container)[0].querySelector("div")!.className).toContain("text-6xl");
   });
 
+  it("shows the placeholder digit in the empty cells", () => {
+    // The sheet's resting cell holds a greyed digit; the mirrors carry it as
+    // the input's placeholder, so the value always wins once typed.
+    const { container } = render(<OtpInput defaultValue="12" />);
+    const mirrors = slots(container).map(
+      (s) => s.querySelector("input") as HTMLInputElement,
+    );
+    expect(mirrors.map((i) => i.value)).toEqual(["1", "2", "", ""]);
+    expect(mirrors.map((i) => i.placeholder)).toEqual(["0", "0", "0", "0"]);
+  });
+
+  it("clears the placeholder on the active cell so the caret has a slot", () => {
+    const { container } = render(<OtpInput defaultValue="12" />);
+    const el = field(container);
+    fireEvent.focus(el);
+    el.setSelectionRange(2, 2);
+    fireEvent.select(el);
+    const mirrors = slots(container).map(
+      (s) => s.querySelector("input") as HTMLInputElement,
+    );
+    expect(mirrors.map((i) => i.placeholder)).toEqual(["0", "0", "", "0"]);
+  });
+
+  it("takes a custom placeholder", () => {
+    const { container } = render(<OtpInput placeholder="·" />);
+    const mirrors = slots(container).map(
+      (s) => s.querySelector("input") as HTMLInputElement,
+    );
+    expect(mirrors.map((i) => i.placeholder)).toEqual(["·", "·", "·", "·"]);
+  });
+
   it("exposes the field to assistive technology and hides the mirrors", () => {
     const { container } = render(<OtpInput name="code" />);
     const el = screen.getByLabelText("One-time code") as HTMLInputElement;

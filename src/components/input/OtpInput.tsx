@@ -85,6 +85,13 @@ export type OtpInputProps = {
   type?: "numeric" | "alphanumeric";
 
   /**
+   * What the empty cells show, in the placeholder grey the sheets draw their
+   * digits in. The active cell stays empty so the caret has a clear slot
+   * @default "0"
+   */
+  placeholder?: string;
+
+  /**
    * Name for native form submission
    * @default undefined
    */
@@ -112,7 +119,8 @@ export type OtpInputProps = {
  * is what makes these fields feel flaky.
  *
  * The cells are the verification sheet's: square, one step per size, holding a
- * display-sized digit, and the active one draws the focus outline — taken from
+ * display-sized digit, and empty ones show the placeholder digit in the grey
+ * the sheet draws it in. The active one draws the focus outline, taken from
  * the same Input chrome as every other field, so the sheets' looks are
  * unchanged.
  *
@@ -135,6 +143,7 @@ export function OtpInput({
   readOnly,
   autoFocus,
   type = "numeric",
+  placeholder = "0",
   name,
   label = "One-time code",
   className,
@@ -230,6 +239,7 @@ export function OtpInput({
               helpIcon={false}
               textAlign="center"
               value={char}
+              placeholder={active ? "" : placeholder}
               onChange={() => {}}
               className={cn(
                 active && "outline outline-2 outline-offset-[-2px]",
