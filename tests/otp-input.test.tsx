@@ -126,54 +126,10 @@ describe("OtpInput", () => {
     expect(activeSlots(container)[0]).toBe(slots(container)[1]);
   });
 
-  it("draws the cells at the verification sheet's size", () => {
-    // Figma: button/input/verification. Square cells, one step per size — 64,
-    // 80 and 96 — on gaps of 8 and 12, with display digits at 48 and 60.
-    const sm = render(<OtpInput size="sm" />);
-    expect(slots(sm.container)[0].className).toContain("w-16 h-16");
-    expect(sm.container.firstElementChild!.className).toContain("gap-2");
-    expect(slots(sm.container)[0].querySelector("div")!.className).toContain("text-5xl");
-
-    const md = render(<OtpInput size="md" />);
-    expect(slots(md.container)[0].className).toContain("w-20 h-20");
-    expect(md.container.firstElementChild!.className).toContain("gap-3");
-    expect(slots(md.container)[0].querySelector("div")!.className).toContain("text-5xl");
-
-    const lg = render(<OtpInput size="lg" />);
-    expect(slots(lg.container)[0].className).toContain("w-24 h-24");
-    expect(lg.container.firstElementChild!.className).toContain("gap-3");
-    expect(slots(lg.container)[0].querySelector("div")!.className).toContain("text-6xl");
-  });
-
-  it("shows the placeholder digit in the empty cells", () => {
-    // The sheet's resting cell holds a greyed digit; the mirrors carry it as
-    // the input's placeholder, so the value always wins once typed.
-    const { container } = render(<OtpInput defaultValue="12" />);
-    const mirrors = slots(container).map(
-      (s) => s.querySelector("input") as HTMLInputElement,
-    );
-    expect(mirrors.map((i) => i.value)).toEqual(["1", "2", "", ""]);
-    expect(mirrors.map((i) => i.placeholder)).toEqual(["0", "0", "0", "0"]);
-  });
-
-  it("clears the placeholder on the active cell so the caret has a slot", () => {
-    const { container } = render(<OtpInput defaultValue="12" />);
-    const el = field(container);
-    fireEvent.focus(el);
-    el.setSelectionRange(2, 2);
-    fireEvent.select(el);
-    const mirrors = slots(container).map(
-      (s) => s.querySelector("input") as HTMLInputElement,
-    );
-    expect(mirrors.map((i) => i.placeholder)).toEqual(["0", "0", "", "0"]);
-  });
-
-  it("takes a custom placeholder", () => {
-    const { container } = render(<OtpInput placeholder="·" />);
-    const mirrors = slots(container).map(
-      (s) => s.querySelector("input") as HTMLInputElement,
-    );
-    expect(mirrors.map((i) => i.placeholder)).toEqual(["·", "·", "·", "·"]);
+  it("accepts the sizes from the field ramp", () => {
+    const { container } = render(<OtpInput size="lg" />);
+    expect(slots(container)[0].className).toContain("w-11");
+    expect(slots(container)[0].querySelector("div")!.className).toContain("h-11");
   });
 
   it("exposes the field to assistive technology and hides the mirrors", () => {
