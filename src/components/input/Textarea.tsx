@@ -1,13 +1,19 @@
-import { forwardRef, type TextareaHTMLAttributes } from "react";
-import { cn } from "../../lib/cn";
-
-const field =
-  "flex w-full rounded-md border border-neutral-300 bg-background px-3 py-2 text-sm text-foreground placeholder:text-placeholder focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50";
+import { forwardRef, type Ref, type TextareaHTMLAttributes } from "react";
+import { Input, type InputProps } from "./Input";
 
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   /**
-   * Error state. `true` paints the error border; a string does the same and
-   * `Field` prints the string below the box
+   * Box height, from the sheets. The textarea ships two sizes and stops there
+   * @default "md"
+   * @option "sm" - 110px tall
+   * @option "md" - 128px tall
+   */
+  size?: "sm" | "md";
+
+  /**
+   * Error state. `true` paints the border in the error colour, red-300 at rest
+   * and red-500 once focused; a string does the same and `Field` prints the
+   * string below the box
    * @default undefined
    */
   error?: string | boolean;
@@ -16,12 +22,24 @@ export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
 /**
  * Multi-line text box.
  *
- * The same chrome as `Input` without the slots: a rounded border, 12px of
- * side inset, and the sheets' focus outline drawn in place over the border.
- * `Field` supplies the label, the hint and the error message.
+ * The same chrome as `Input` — border, radius, focus outline, error colours and
+ * the `Field` wiring — from the same base, with the sheets' textarea metrics on
+ * top: taller, inset 16px rather than 12, text aligned to the top, and no help
+ * marker.
+ *
+ * A minimum height of 110px (sm) or 128px (md) applies by default, so the field
+ * matches the sheet and grows with its content. Pass `rows` to drop it and size
+ * natively instead, which also frees the resize handle.
+ *
+ * To set the height from outside, use `style`. A `className` will not reliably
+ * win: cn joins without resolving conflicts, so Tailwind source order decides.
  *
  * @example
  * <Textarea placeholder="Notes" />
+ *
+ * @example
+ * // Native sizing rather than the sheet's minimum
+ * <Textarea rows={6} />
  *
  * @example
  * <Field label="Notes" hint="Markdown is fine">
@@ -29,13 +47,10 @@ export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
  * </Field>
  */
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, error, "aria-invalid": invalid, ...props }, ref) => (
-    <textarea
-      ref={ref}
-      aria-invalid={invalid ?? !!error}
-      className={cn(field, "min-h-24", error && "border-destructive", className)}
-      {...props}
-    />
+  ({ size = "md", ...props }, ref) => (
+    // The base types its ref and props as an input, since that is its other
+    // element. The element fork inside narrows both back for a textarea.
+    <Input multiline size={size} ref={ref as Ref<HTMLInputElement>} {...(props as InputProps)} />
   ),
 );
 Textarea.displayName = "Textarea";

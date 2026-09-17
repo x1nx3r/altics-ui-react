@@ -1,4 +1,12 @@
-import { forwardRef, useCallback, useRef, type InputHTMLAttributes, type ReactNode } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useRef,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type Ref,
+  type TextareaHTMLAttributes,
+} from "react";
 import { cn } from "../../lib/cn";
 import { AlertCircleIcon, HelpCircleIcon } from "../icon/icons";
 
@@ -20,6 +28,9 @@ const sizes = {
     box: "h-9 text-sm",
     wrapBox: "min-h-9 text-sm",
     wrapPad: "py-[5px]",
+    // The sheets give the textarea two sizes and stop there, so lg borrows md's.
+    multilineBox: "min-h-[110px] text-sm",
+    multilinePad: "py-3",
     trailingPad: "pr-9",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -29,6 +40,8 @@ const sizes = {
     box: "h-10 text-base",
     wrapBox: "min-h-10 text-base",
     wrapPad: "py-[7px]",
+    multilineBox: "min-h-[128px] text-base",
+    multilinePad: "py-3",
     trailingPad: "pr-10",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -38,6 +51,8 @@ const sizes = {
     box: "h-11 text-base",
     wrapBox: "min-h-11 text-base",
     wrapPad: "py-[9px]",
+    multilineBox: "min-h-[128px] text-base",
+    multilinePad: "py-3",
     trailingPad: "pr-11",
     input: "h-full min-w-0",
     wrapInput: "h-6 min-w-16",
@@ -123,6 +138,22 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   overflow?: "wrap" | "scroll";
 
   /**
+   * Render a textarea rather than an input, with the sheets' textarea metrics:
+   * taller, inset 16px rather than 12, text aligned to the top, and no help
+   * marker. `Textarea` is the public face of this. The overflow modes describe
+   * a line of chips, so they do not apply
+   * @default false
+   */
+  multiline?: boolean;
+
+  /**
+   * Rows for the textarea. Passing it drops the sheet's minimum height, so the
+   * field sizes natively and the resize handle can be dragged
+   * @default undefined
+   */
+  rows?: number;
+
+  /**
    * Show the trailing help marker
    * @default true
    * @option "true" - a question mark, or the same circle with an exclamation
@@ -188,7 +219,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       attachedTrailing,
       textAlign = "left",
       overflow,
-      helpIcon = true,
+      multiline = false,
+      rows,
+      helpIcon = !multiline,
       onHelpClick,
       divider = false,
       "aria-invalid": invalid,
@@ -200,14 +233,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     // The field keeps its own handle on the input, so a click anywhere in the
     // region can put the caret in the text without the caller having to hand a
     // ref back. Merged with the forwarded ref rather than replacing it.
-    const innerRef = useRef<HTMLInputElement | null>(null);
+    const innerRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
     const setInputRef = useCallback(
-      (node: HTMLInputElement | null) => {
+      (node: HTMLInputElement | HTMLTextAreaElement | null) => {
         innerRef.current = node;
+        // One callback serves both elements; each public component narrows the
+        // ref it exposes, Textarea to a textarea and Input to an input.
+        const asInput = node as HTMLInputElement | null;
         if (typeof ref === "function") {
-          ref(node);
+          ref(asInput);
         } else if (ref) {
-          ref.current = node;
+          ref.current = asInput;
         }
       },
       [ref],
@@ -215,8 +251,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     // Both overflow modes keep the sheets' rhythm: a chip sits 8px in, the text
     // 12, chips are 6 apart and 8 from the text. They differ at the edge, so
     // they also need different slot handling below.
-    const wraps = overflow === "wrap";
-    const scrolls = overflow === "scroll";
+    const wraps = overflow === "wrap" && !multiline;
+    const scrolls = overflow === "scroll" && !multiline;
     const showLeadingDivider =
       divider === true || (typeof divider === "object" && !!divider.leading);
     const showTrailingDivider =
@@ -245,7 +281,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       const divider = side === "leading" ? showLeadingDivider : showTrailingDivider;
       // The sheet's inset from this edge, the gap the input leaves when a slot
       // has no divider, and the corners this side owns.
-      const inset = side === "leading" ? "pl-3" : "pr-3";
+      // The sheets inset a textarea 16px and an input 12px.
+      const inset = multiline
+        ? side === "leading"
+          ? "pl-4"
+          : "pr-4"
+        : side === "leading"
+          ? "pl-3"
+          : "pr-3";
       const slotGap = side === "leading" ? "pl-2" : "pr-2";
       const rounded = side === "leading" ? "rounded-l-md" : "rounded-r-md";
       const square = side === "leading" ? "rounded-l-none" : "rounded-r-none";
@@ -335,7 +378,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           // No border here: each region draws its own, so focus can paint over
           // the one it owns.
           "flex w-full items-center rounded-md bg-background transition-colors",
-          wraps ? sizes[size].wrapBox : sizes[size].box,
+          wraps
+            ? sizes[size].wrapBox
+            : multiline
+              ? rows === undefined
+                ? sizes[size].multilineBox
+                : undefined
+              : sizes[size].box,
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}
@@ -364,13 +413,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <span
           data-slot="value"
           className={cn(
-            "relative flex min-w-0 flex-1 items-center self-stretch border",
+            "relative flex min-w-0 flex-1 self-stretch border",
+            multiline ? "items-start" : "items-center",
             // Sheet, in px from the field's edge: a chip sits 8 in, the text
             // 12, chips are 6 apart and 8 from the text. Chips and text share
             // one line in both modes, so the chips switch the region to their
             // own inset and the text's extra 2px rides on the input below.
             (wraps || scrolls) && "gap-x-1.5 has-[[data-slot=tag]]:pl-2",
             wraps && cn("flex-wrap gap-y-1.5", sizes[size].wrapPad),
+            multiline && sizes[size].multilinePad,
             borderColour,
             leadingEdge.rounding,
             trailingEdge.rounding,
@@ -410,23 +461,45 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               {leading}
             </span>
           )}
-          <input
-            ref={setInputRef}
-            disabled={disabled}
-            aria-invalid={invalidState}
-            className={cn(
-              "flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
-              wraps ? sizes[size].wrapInput : scrolls ? sizes[size].scrollInput : sizes[size].input,
-              // Sheet: 8px from the last chip to the text, against a 6px chip
-              // gap, so the text carries the extra 2px.
-              (wraps || scrolls) && "ml-0.5",
-              leadingEdge.input,
-              trailingEdge.input,
-              textAlign === "center" && "text-center",
-              textAlign === "right" && "text-right",
-            )}
-            {...props}
-          />
+          {multiline ? (
+            <textarea
+              ref={setInputRef as unknown as Ref<HTMLTextAreaElement>}
+              rows={rows}
+              disabled={disabled}
+              aria-invalid={invalidState}
+              className={cn(
+                "min-w-0 flex-1 resize-y bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
+                sizes[size].input,
+                leadingEdge.input,
+                trailingEdge.input,
+                textAlign === "center" && "text-center",
+                textAlign === "right" && "text-right",
+              )}
+              {...(props as TextareaHTMLAttributes<HTMLTextAreaElement>)}
+            />
+          ) : (
+            <input
+              ref={setInputRef as Ref<HTMLInputElement>}
+              disabled={disabled}
+              aria-invalid={invalidState}
+              className={cn(
+                "flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed",
+                wraps
+                  ? sizes[size].wrapInput
+                  : scrolls
+                    ? sizes[size].scrollInput
+                    : sizes[size].input,
+                // Sheet: 8px from the last chip to the text, against a 6px chip
+                // gap, so the text carries the extra 2px.
+                (wraps || scrolls) && "ml-0.5",
+                leadingEdge.input,
+                trailingEdge.input,
+                textAlign === "center" && "text-center",
+                textAlign === "right" && "text-right",
+              )}
+              {...props}
+            />
+          )}
           {((trailing && !trailingEdge.affix) || helpIcon) && (
             <span
               className={cn(
