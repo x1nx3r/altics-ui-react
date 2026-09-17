@@ -34,6 +34,15 @@ export const panelsOf = (container: HTMLElement) => [
   ...container.querySelectorAll<HTMLElement>('[data-slot="panel"]'),
 ];
 
+/**
+ * Slots that took their own edge. A slot behind a divider leaves the region, so
+ * the region's border becomes the rule between them and focus stops at the value
+ * area instead of ringing the affix.
+ */
+export const affixesOf = (container: HTMLElement) => [
+  ...container.querySelectorAll<HTMLElement>('[data-slot="affix"]'),
+];
+
 /** The rules between an affix and the text. */
 export const dividersOf = (container: HTMLElement) => [
   ...container.querySelectorAll<HTMLElement>('[data-slot="divider"]'),

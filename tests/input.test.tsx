@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Field, Input, InputDivider } from "../src";
-import { boxOf, dividersOf, inputOf, markerSlotOf, regionOf } from "./helpers";
+import { affixesOf, boxOf, dividersOf, inputOf, markerSlotOf, regionOf } from "./helpers";
 
 describe("Input", () => {
   it("renders a textbox with the md size by default", () => {
@@ -232,17 +232,36 @@ describe("Input", () => {
     expect(parts).toEqual(["span", "input", "span"]);
   });
 
-  it("draws one divider per side only when the divider prop asks for it", () => {
-    const box = (ui: React.ReactElement) => render(ui).container;
-    expect(dividersOf(boxOf(render(<Input leading="Rp" trailing="kg" />).container))).toHaveLength(
-      0,
+  it("gives a slot its own edge only when the divider prop asks for it", () => {
+    // A divided slot leaves the region and takes the outer border with it, so
+    // the region's own border becomes the rule between them. That is what the
+    // sheets draw and what keeps focus on the value area: it stops at the rule
+    // instead of ringing the affix along with it.
+    const bare = boxOf(render(<Input leading="Rp" trailing="kg" />).container);
+    expect(affixesOf(bare)).toHaveLength(0);
+
+    const both = boxOf(render(<Input leading="Rp" trailing="kg" divider />).container);
+    expect(affixesOf(both)).toHaveLength(2);
+    expect(affixesOf(both)[0].className).toContain("border-l");
+    expect(affixesOf(both)[1].className).toContain("border-r");
+
+    const leading = boxOf(
+      render(<Input leading="https://" divider={{ leading: true }} />).container,
     );
-    expect(
-      dividersOf(boxOf(render(<Input leading="Rp" trailing="kg" divider />).container)),
-    ).toHaveLength(2);
-    expect(
-      dividersOf(boxOf(render(<Input leading="https://" divider={{ leading: true }} />).container)),
-    ).toHaveLength(1);
+    expect(affixesOf(leading)).toHaveLength(1);
+
+    // the region squares off where the affix panel meets it, so the ring the
+    // region draws stops at the rule
+    expect(regionOf(both).className).toContain("rounded-l-none");
+    expect(regionOf(both).className).toContain("rounded-r-none");
+    // The region keeps the sheet's text inset from the rule on both sides. The
+    // marker reserves its own space on the trailing one, so ask for a field
+    // without one to see the inset itself.
+    const noMarker = boxOf(
+      render(<Input leading="Rp" trailing="kg" divider helpIcon={false} />).container,
+    );
+    expect(regionOf(noMarker).className).toContain("pl-3");
+    expect(regionOf(noMarker).className).toContain("pr-3");
   });
 
   it("insets the left edge when only a trailing slot is present", () => {

@@ -1,7 +1,6 @@
 import { forwardRef, useCallback, useRef, type InputHTMLAttributes, type ReactNode } from "react";
 import { cn } from "../../lib/cn";
 import { AlertCircleIcon, HelpCircleIcon } from "../icon/icons";
-import { InputDivider } from "./InputDivider";
 
 /**
  * Horizontal rhythm per size, Figma: text 14px sm, 16px md and lg. The cap
@@ -227,7 +226,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     // reserves it, so the slot can be positioned and the text still has an edge
     // to run to. Scroll mode is the exception, where the slot rides the
     // scrolling line, which is also what keeps it reachable.
-    const reservesTrailing = Boolean(trailing || helpIcon) && !attachedTrailing && !scrolls;
+    // A divided trailing slot leaves the region, so it reserves nothing there;
+    // only what stays inside — the marker — does. Written from the props because
+    // the edge table below reads this value.
+    const reservesTrailing =
+      Boolean((trailing && !showTrailingDivider) || helpIcon) && !attachedTrailing && !scrolls;
 
     // Everything one side of the field contributes, chosen in a single place:
     // the region's padding, the text's padding, the slot's gap to a panel, and
@@ -245,26 +248,51 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       const inset = side === "leading" ? "pl-3" : "pr-3";
       const slotGap = side === "leading" ? "pl-2" : "pr-2";
       const rounded = side === "leading" ? "rounded-l-md" : "rounded-r-md";
+      const square = side === "leading" ? "rounded-l-none" : "rounded-r-none";
+
+      // A slot behind a divider keeps its own edge, the way a panel does. The
+      // region's border is then the rule between them, which is what the sheets
+      // draw: focus takes the value area's edge and leaves the affix's border at
+      // the resting colour instead of ringing the affix along with it. Behind an
+      // attached panel the affix only needs its top and bottom, since the panel
+      // already draws the outer edge.
+      const affix =
+        hasSlot && divider
+          ? cn(
+              "flex shrink-0 items-center gap-2 self-stretch border-y pr-3 pl-3 text-neutral-600",
+              !attached && (side === "leading" ? "rounded-l-md border-l" : "rounded-r-md border-r"),
+            )
+          : null;
 
       // A panel owns the edge: it draws the border there and meets the content
       // 12px in, so the region gives its padding up and its corners square off.
       if (attached) {
         return {
+          affix,
           region: side === "leading" ? "pl-0" : "pr-0",
           input: inset,
           slot: side === "leading" ? "ml-3" : null,
-          rounding: side === "leading" ? "rounded-l-none" : "rounded-r-none",
+          rounding: square,
         };
       }
       if (side === "trailing" && reservesTrailing) {
+        // The reservation is the marker's space, not the corners: an affix
+        // panel on that edge still owns them.
         return {
+          affix,
           region: sizes[size].trailingPad,
           input: undefined,
           slot: null,
-          rounding: rounded,
+          rounding: affix ? square : rounded,
         };
       }
+      // The divided slot sits outside, so the region keeps the sheet's inset for
+      // its own text and squares off where the affix panel meets it.
+      if (affix) {
+        return { affix, region: inset, input: undefined, slot: null, rounding: square };
+      }
       return {
+        affix,
         // Overflow content lines up on the chip inset rather than the text one,
         // and an empty tags field keeps its placeholder 2px further in, on the
         // input below.
@@ -287,6 +315,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div
         data-slot="box"
+        onMouseDown={(event) => {
+          // A press anywhere in the field puts the caret in the text, except on
+          // the text itself — that would take away placing the caret and
+          // dragging to select — and inside an attached panel, which drives
+          // itself. The file picker's label opens the picker, for one.
+          if (disabled || event.target === innerRef.current) return;
+          if ((event.target as Element).closest('[data-slot="panel"]')) return;
+          event.preventDefault();
+          innerRef.current?.focus();
+        }}
         // State for consumers to style on, in the shape React Aria and Mantine
         // use: the attribute appears only while the state holds. aria-invalid
         // stays on the input, where assistive technology reads it.
@@ -313,6 +351,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {attachedLeading}
           </span>
         )}
+        {leadingEdge.affix && (
+          <span data-slot="affix" className={cn(leadingEdge.affix, borderColour)}>
+            {leading}
+          </span>
+        )}
         {/* The value region carries the focus decoration, not the box: the
             sheets ring only the value area and drop the divider on focus.
             self-stretch is what makes the region fill the box: without it the
@@ -320,15 +363,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             band around the line instead of the whole input block. */}
         <span
           data-slot="value"
-          onMouseDown={(event) => {
-            // The region is a plain box, so a press on its padding, on a chip,
-            // or on an affix would otherwise do nothing at all. Leave the text
-            // itself alone: cancelling there would take away placing the caret
-            // and dragging to select.
-            if (disabled || event.target === innerRef.current) return;
-            event.preventDefault();
-            innerRef.current?.focus();
-          }}
           className={cn(
             "relative flex min-w-0 flex-1 items-center self-stretch border",
             // Sheet, in px from the field's edge: a chip sits 8 in, the text
@@ -346,7 +380,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             error ? "focus-within:outline-focus-error" : "focus-within:outline-focus",
           )}
         >
-          {leading && (
+          {leading && !leadingEdge.affix && (
             <span
               className={cn(
                 // Wrap mode dissolves the slot: a slot is one un-wrappable box,
@@ -376,7 +410,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               {leading}
             </span>
           )}
-          {leading && showLeadingDivider && <InputDivider />}
           <input
             ref={setInputRef}
             disabled={disabled}
@@ -394,8 +427,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             )}
             {...props}
           />
-          {trailing && showTrailingDivider && <InputDivider />}
-          {(trailing || helpIcon) && (
+          {((trailing && !trailingEdge.affix) || helpIcon) && (
             <span
               className={cn(
                 // Out of the flow, so a trailing adornment cannot wrap onto a
@@ -408,11 +440,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 error ? "text-red-600" : "text-neutral-400",
               )}
             >
-              {trailing}
+              {!trailingEdge.affix && trailing}
               {helpIcon && <HelpMarker error={!!error} disabled={disabled} onClick={onHelpClick} />}
             </span>
           )}
         </span>
+        {trailingEdge.affix && (
+          <span data-slot="affix" className={cn(trailingEdge.affix, borderColour)}>
+            {trailing}
+          </span>
+        )}
         {attachedTrailing && (
           <span
             data-slot="panel"
