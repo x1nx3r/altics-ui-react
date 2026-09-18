@@ -53,8 +53,10 @@ describe("cn", () => {
 
   it("leaves the named spacing tokens unresolved", () => {
     // tailwind-merge's default scale does not know our token names
-    // (spacing: xxs..11xl). One component uses one of them; if that grows,
-    // add an extendTailwindMerge for the scale and update this test.
+    // (spacing: xxs..11xl). No component uses one any more — Field's gap moved
+    // to the default scale — so overrides resolve everywhere. If token-named
+    // classes return to components, extend the config with fromTheme over the
+    // theme's spacing scale rather than leaving the conflict to source order.
     expect(cn("gap-md", "gap-2")).toBe("gap-md gap-2");
   });
 });
