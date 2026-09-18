@@ -51,12 +51,16 @@ describe("cn", () => {
     expect(cn("!text-[10px]", "text-sm")).toBe("!text-[10px] text-sm");
   });
 
-  it("leaves the named spacing tokens unresolved", () => {
-    // tailwind-merge's default scale does not know our token names
-    // (spacing: xxs..11xl). No component uses one any more — Field's gap moved
-    // to the default scale — so overrides resolve everywhere. If token-named
-    // classes return to components, extend the config with fromTheme over the
-    // theme's spacing scale rather than leaving the conflict to source order.
-    expect(cn("gap-md", "gap-2")).toBe("gap-md gap-2");
+  it("resolves the theme's own token scales", () => {
+    // The merge scales are derived from the theme, so a token class merges
+    // with any other class of the same property. Spacing covers padding,
+    // margin, gap, space, inset and the size families; radius has its own.
+    expect(cn("p-2", "p-md")).toBe("p-md");
+    expect(cn("px-2", "px-lg")).toBe("px-lg");
+    expect(cn("gap-2", "gap-3xl")).toBe("gap-3xl");
+    expect(cn("space-y-2", "space-y-sm")).toBe("space-y-sm");
+    expect(cn("w-full", "w-5xl")).toBe("w-5xl");
+    expect(cn("min-h-10", "min-h-4xl")).toBe("min-h-4xl");
+    expect(cn("rounded-sm", "rounded-xxs")).toBe("rounded-xxs");
   });
 });
