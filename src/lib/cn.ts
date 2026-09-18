@@ -7,6 +7,14 @@ export type { ClassValue };
 /** A scale as a theme writes it: a map of names, or the names alone. */
 export type Scale = Record<string, unknown> | readonly string[];
 
+/** The scales a merge can be taught. */
+export type MergeScales = {
+  spacing?: Scale;
+  borderRadius?: Scale;
+  padding?: Scale;
+  maxWidth?: Scale;
+};
+
 function names(scale: Scale | undefined): string[] {
   if (!scale) return [];
   return Array.isArray(scale) ? [...(scale as readonly string[])] : Object.keys(scale);
@@ -17,10 +25,10 @@ function names(scale: Scale | undefined): string[] {
  * the same property, the last one wins, so a consumer's `className` overrides
  * a component's deterministically. An inline `style` still wins over any class.
  *
- * The merge scales are derived from the theme. tailwind-merge's defaults only
- * know Tailwind's own names, so a token class (`gap-md`, `rounded-xxs`) would
- * never merge with a class of the same property. Spacing covers padding,
- * margin, gap, space, inset and the size families; radius has its own key.
+ * The scales come from the theme, because tailwind-merge only knows Tailwind's
+ * own names. Spacing covers padding, margin, gap, space, inset and the size
+ * families; padding and radius carry keys of their own; maxWidth has no theme
+ * group in tailwind-merge, so it is taught as a class group.
  */
 export const cn = createCn();
 
@@ -38,12 +46,16 @@ export const cn = createCn();
  * const c = createCn({ spacing: myTheme.extend.spacing });
  * c("gap-2", "gap-brand") // "gap-brand"
  */
-export function createCn(extra?: { spacing?: Scale; borderRadius?: Scale }) {
+export function createCn(extra?: MergeScales) {
   const merge = extendTailwindMerge({
     extend: {
       theme: {
         spacing: [...Object.keys(themeExtend.spacing), ...names(extra?.spacing)],
         borderRadius: [...Object.keys(themeExtend.borderRadius), ...names(extra?.borderRadius)],
+        padding: [...Object.keys(themeExtend.padding), ...names(extra?.padding)],
+      },
+      classGroups: {
+        "max-w": [{ "max-w": [...Object.keys(themeExtend.maxWidth), ...names(extra?.maxWidth)] }],
       },
     },
   });

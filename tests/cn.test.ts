@@ -54,7 +54,8 @@ describe("cn", () => {
   it("resolves the theme's own token scales", () => {
     // The merge scales are derived from the theme, so a token class merges
     // with any other class of the same property. Spacing covers padding,
-    // margin, gap, space, inset and the size families; radius has its own.
+    // margin, gap, space, inset and the size families; the padding and radius
+    // namespaces carry keys of their own; maxWidth is taught as a class group.
     expect(cn("p-2", "p-md")).toBe("p-md");
     expect(cn("px-2", "px-lg")).toBe("px-lg");
     expect(cn("gap-2", "gap-3xl")).toBe("gap-3xl");
@@ -62,6 +63,11 @@ describe("cn", () => {
     expect(cn("w-full", "w-5xl")).toBe("w-5xl");
     expect(cn("min-h-10", "min-h-4xl")).toBe("min-h-4xl");
     expect(cn("rounded-sm", "rounded-xxs")).toBe("rounded-xxs");
+    // the container namespaces: real classes, generated from the theme
+    expect(cn("p-2", "p-container-mobile")).toBe("p-container-mobile");
+    expect(cn("px-2", "px-container-desktop")).toBe("px-container-desktop");
+    expect(cn("max-w-full", "max-w-paragraph")).toBe("max-w-paragraph");
+    expect(cn("max-w-full", "max-w-container-desktop")).toBe("max-w-container-desktop");
   });
 
   it("lets a consumer add their own scales through createCn", () => {
@@ -72,6 +78,11 @@ describe("cn", () => {
     // the names alone work too, and the library's scales still merge
     expect(createCn({ spacing: ["brand"] })("gap-2", "gap-brand")).toBe("gap-brand");
     expect(brand("gap-2", "gap-3xl")).toBe("gap-3xl");
+    // every scale the library covers is open to the consumer's names too
+    expect(createCn({ padding: { gutter: "1.5rem" } })("p-2", "p-gutter")).toBe("p-gutter");
+    expect(createCn({ maxWidth: { prose: "65ch" } })("max-w-full", "max-w-prose")).toBe(
+      "max-w-prose",
+    );
 
     // The library's own instance has never seen the consumer's name, which is
     // why an override on a library component should use the default scale or
