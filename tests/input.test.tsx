@@ -321,4 +321,13 @@ describe("Field", () => {
     expect(label.querySelector("[aria-hidden='true']")?.textContent).toBe(" *");
     expect(container.querySelector("input")?.required).toBe(true);
   });
+
+  it("lets a consumer className override the box's own classes", () => {
+    // Dependable only since cn resolves conflicts: before, the box's h-10 and
+    // the consumer's h-16 both landed and the stylesheet order decided.
+    const { container } = render(<Input className="h-16" placeholder="Email" />);
+    const box = boxOf(container);
+    expect(box.className).toContain("h-16");
+    expect(box.className).not.toContain("h-10");
+  });
 });
