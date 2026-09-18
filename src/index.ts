@@ -43,5 +43,5 @@ export { Stack, Container, Grid } from "./components/layout";
 export { Icon, type IconProps } from "./components/icon";
 export * from "./components/icon/icons";
 export { ThemeProvider, type Theme } from "./theme";
-export { cn } from "./lib/cn";
+export { cn, createCn } from "./lib/cn";
 export { Text } from "./components/typography/Text";
