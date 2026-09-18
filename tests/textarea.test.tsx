@@ -29,6 +29,21 @@ describe("Textarea", () => {
     expect(area(container).className).not.toContain("min-h");
   });
 
+  it("takes its height from style, while className lands on the box", () => {
+    // className goes to the box, so the textarea keeps the sheet's minimum and
+    // the field cannot be made shorter than it. style reaches the textarea,
+    // which is why it is the documented way in; rows drops the minimum.
+    const styled = render(<Textarea style={{ minHeight: 200 }} />);
+    expect(area(styled.container).style.minHeight).toBe("200px");
+
+    const classed = render(<Textarea className="h-64" />);
+    expect(boxOf(classed.container).className).toContain("h-64");
+    expect(area(classed.container).className).toContain("min-h-[126px]");
+
+    const rowed = render(<Textarea rows={4} />);
+    expect(area(rowed.container).className).not.toContain("min-h");
+  });
+
   it("insets 14px at sm and 16px at md, where the input insets 12", () => {
     // The sheets inset the textarea two more than the input at each size. The
     // placeholder is the same string at both, so the 2px difference is real.

@@ -113,8 +113,13 @@ describe("OtpInput", () => {
     const active = activeSlots(container);
     expect(active).toHaveLength(1);
     expect(active[0]).toBe(slots(container)[3]);
-    // and the active cell carries the shared focus outline
-    expect(active[0].querySelector("div")!.className).toContain("outline-2");
+    // The active cell carries the shared focus outline: the style class as
+    // well as the width. tailwind-merge v3, built for Tailwind 4, drops
+    // `outline` when `outline-2` follows — the ring would stop rendering.
+    const cellClasses = active[0].querySelector("div")!.className.split(" ");
+    expect(cellClasses).toContain("outline");
+    expect(cellClasses).toContain("outline-2");
+    expect(cellClasses).toContain("outline-focus");
   });
 
   it("moves the marker when the caret moves", () => {

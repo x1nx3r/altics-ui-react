@@ -42,10 +42,9 @@ export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
  * matches the sheet, and the text scrolls inside it as a textarea does. Pass
  * `rows` to drop the minimum and size natively, or drag the resize handle.
  *
- * To set the height from outside, use `style`, which always wins, or a
- * `min-h-*` / `h-*` class in `className` — cn resolves conflicts, keeping the
- * last class of each property. `rows` drops the sheet's minimum, so a height
- * class can then decide the field on its own.
+ * To set the height from outside, use `style`: it reaches the textarea and wins
+ * over any class. A `className` lands on the box, so it cannot lift the
+ * textarea's own minimum — pass `rows` to drop that minimum instead.
  *
  * @example
  * <Textarea placeholder="Notes" />
