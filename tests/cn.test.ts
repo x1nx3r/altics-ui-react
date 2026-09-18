@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cn } from "../src/lib/cn";
+import { cn, createCn } from "../src/lib/cn";
 
 describe("cn", () => {
   it("joins conditional class names and drops the falsy ones", () => {
@@ -62,5 +62,21 @@ describe("cn", () => {
     expect(cn("w-full", "w-5xl")).toBe("w-5xl");
     expect(cn("min-h-10", "min-h-4xl")).toBe("min-h-4xl");
     expect(cn("rounded-sm", "rounded-xxs")).toBe("rounded-xxs");
+  });
+
+  it("lets a consumer add their own scales through createCn", () => {
+    // A theme-shaped map, as a consumer's tailwind config would write it.
+    const brand = createCn({ spacing: { brand: "3.5rem" } });
+    expect(brand("gap-2", "gap-brand")).toBe("gap-brand");
+    expect(brand("p-2", "p-brand")).toBe("p-brand");
+    // the names alone work too, and the library's scales still merge
+    expect(createCn({ spacing: ["brand"] })("gap-2", "gap-brand")).toBe("gap-brand");
+    expect(brand("gap-2", "gap-3xl")).toBe("gap-3xl");
+
+    // The library's own instance has never seen the consumer's name, which is
+    // why an override on a library component should use the default scale or
+    // an arbitrary value instead.
+    expect(cn("gap-2", "gap-brand")).toBe("gap-2 gap-brand");
+    expect(cn("gap-2", "gap-[3.5rem]")).toBe("gap-[3.5rem]");
   });
 });
