@@ -199,8 +199,8 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
    * Render the display cell the verification sheet draws: square, sized by the
    * parent, holding a display-sized digit. `PinInput` is the public face of
    * this. Like `multiline`, it exists so a family member keeps the base's
-   * chrome — border, focus, error, disabled — without pushing the geometry
-   * through `className`, which cannot resolve conflicts. The overflow modes
+   * chrome — border, focus, error, disabled — and states its geometry as a
+   * mode rather than as a stack of `className` overrides. The overflow modes
    * describe a line of chips, so they do not apply
    * @default false
    */
@@ -331,8 +331,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     // the corners on that side. Deriving all four from one state is what keeps
     // them from drifting apart — the slot margin and the region padding once
     // disagreed about who insets the content, and the marker sat 4px in. cn
-    // joins without resolving conflicts, so a side must yield one class per
-    // property: emitting `pr-3` and `pr-0` together silently kept `pr-3`.
+    // resolves conflicts now, but a side still yields one class per property:
+    // emitting `pr-3` and `pr-0` together leaves the outcome to the argument
+    // order, where before it silently kept `pr-3`.
     const edge = (side: "leading" | "trailing") => {
       const attached = side === "leading" ? attachedLeading : attachedTrailing;
       const hasSlot = side === "leading" ? Boolean(leading) : Boolean(trailing);
@@ -449,9 +450,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           // No border here: each region draws its own, so focus can paint over
           // the one it owns.
           "flex items-center rounded-md bg-background transition-colors",
-          // The cell's span does the sizing, so the box must not also insist on
-          // w-full: cn joins without resolving, and two width classes leave the
-          // outcome to Tailwind's stylesheet order.
+          // The cell's span does the sizing, so the box claims no width of its
+          // own: `w-full` would fight the span, and leave a consumer's width
+          // override nothing to replace.
           !cell && "w-full",
           cell
             ? sizes[size].cellBox
