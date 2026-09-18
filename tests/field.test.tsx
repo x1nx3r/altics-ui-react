@@ -7,15 +7,15 @@ const warnings = (spy: { mock: { calls: unknown[][] } }) =>
   spy.mock.calls.filter(([message]) => String(message).includes("Field needs a child it can wire"));
 
 describe("Field", () => {
-  it("keeps its gap on the default scale, so a className can override it", () => {
-    // A token-named gap (gap-md) would not merge, and the override would fall
-    // to stylesheet order. gap-2 is the spacing-md token's 0.5rem.
+  it("keeps its gap on the theme's scale, and a className still overrides it", () => {
+    // The merge scales come from the theme, so the token class resolves like
+    // any other: gap-4 replaces gap-md rather than landing beside it.
     const { container } = render(
       <Field label="Email">
         <Input />
       </Field>,
     );
-    expect(container.firstElementChild!.className.split(" ")).toContain("gap-2");
+    expect(container.firstElementChild!.className.split(" ")).toContain("gap-md");
 
     const overridden = render(
       <Field label="Email" className="gap-4">
@@ -24,7 +24,7 @@ describe("Field", () => {
     );
     const classes = overridden.container.firstElementChild!.className.split(" ");
     expect(classes).toContain("gap-4");
-    expect(classes).not.toContain("gap-2");
+    expect(classes).not.toContain("gap-md");
   });
 
   it("labels the control and points its description at the hint", () => {

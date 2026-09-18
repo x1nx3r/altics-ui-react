@@ -121,9 +121,7 @@ export function Field({ label, required, hint, error, children, className, ...pr
       })
     : children;
   return (
-    // gap-2 is the spacing-md token's 0.5rem, kept on the default scale so a
-    // consumer's className can override it — cn does not resolve token names.
-    <div className={cn("flex flex-col gap-2", className)} {...props}>
+    <div className={cn("flex flex-col gap-md", className)} {...props}>
       {label && (
         <Label htmlFor={id}>
           {label}
