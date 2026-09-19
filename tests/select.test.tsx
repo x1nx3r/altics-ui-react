@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Field, Select, type SelectProps } from "../src";
@@ -342,6 +343,32 @@ describe("Select", () => {
   it("names the trigger with the chosen labels", () => {
     renderSelect({ options: OPTIONS, multiple: true, chips: true, defaultValues: ["id", "sg"] });
     expect(trigger().textContent).toContain("Indonesia, Singapore");
+  });
+
+  it("takes the open state from the caller", () => {
+    const onOpenChange = vi.fn();
+    renderSelect({ options: OPTIONS, open: true, onOpenChange });
+    expect(screen.getByRole("listbox")).toBeDefined();
+
+    press("Escape");
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    // the caller owns it, so the panel stays open
+    expect(screen.getByRole("listbox")).toBeDefined();
+  });
+
+  it("portals the panel into the container it is given", () => {
+    function Contained() {
+      const root = useRef<HTMLDivElement>(null);
+      return (
+        <>
+          <div ref={root} data-testid="root" />
+          <Select platform={testPlatform} options={OPTIONS} defaultOpen portalRoot={root} />
+        </>
+      );
+    }
+    render(<Contained />);
+    const root = screen.getByTestId("root");
+    expect(root.querySelector('[data-slot="popover"]')).not.toBeNull();
   });
 
   it("keeps the value when controlled", async () => {
