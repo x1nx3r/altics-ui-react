@@ -14,6 +14,8 @@ const OPTIONS = [
 const renderSelect = (props: SelectProps) => render(<Select platform={testPlatform} {...props} />);
 
 const trigger = () => screen.getByRole("combobox");
+/** The field itself: the trigger's button sits over it, the chrome is here. */
+const field = () => trigger().parentElement as HTMLElement;
 const options = () => screen.getAllByRole("option");
 const openPanel = () => fireEvent.click(trigger());
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -104,17 +106,18 @@ describe("Select", () => {
 
   it("paints the error border and ring", () => {
     renderSelect({ options: OPTIONS, error: "Required" });
-    const className = trigger().className;
-    expect(className).toContain("border-red-300");
-    expect(className).toContain("focus:outline-focus-error");
+    expect(field().className).toContain("border-red-300");
+    expect(field().className).toContain("focus-within:outline-focus-error");
     expect(trigger().getAttribute("aria-invalid")).toBe("true");
   });
 
   it("follows the field ramp", () => {
+    const ramp = (container: HTMLElement) =>
+      container.querySelector('[role="combobox"]')!.parentElement!.className;
     const sm = renderSelect({ options: OPTIONS, size: "sm" });
-    expect(sm.container.querySelector("button")!.className).toContain("h-9");
+    expect(ramp(sm.container)).toContain("h-9");
     const lg = renderSelect({ options: OPTIONS, size: "lg" });
-    expect(lg.container.querySelector("button")!.className).toContain("h-11");
+    expect(ramp(lg.container)).toContain("h-11");
   });
 
   it("wires Field's label, required flag and error message", () => {
@@ -129,7 +132,7 @@ describe("Select", () => {
     expect(field.getAttribute("aria-required")).toBe("true");
     const message = screen.getByText("Choose one");
     expect(field.getAttribute("aria-describedby")).toBe(message.id);
-    expect(field.className).toContain("border-red-300");
+    expect(field.parentElement!.className).toContain("border-red-300");
   });
 
   it("mirrors the value into a hidden input for forms", () => {
@@ -261,6 +264,48 @@ describe("Select", () => {
     });
     const hidden = [...container.querySelectorAll('input[name="countries"]')] as HTMLInputElement[];
     expect(hidden.map((input) => input.value)).toEqual(["id", "sg"]);
+  });
+
+  it("clears from the trigger when clearable", () => {
+    const onValueChange = vi.fn();
+    renderSelect({ options: OPTIONS, defaultValue: "id", clearable: true, onValueChange });
+    const clearButton = screen.getByLabelText("Clear");
+    fireEvent.click(clearButton);
+
+    expect(onValueChange).toHaveBeenCalledWith("");
+    expect(trigger().textContent).toContain("Select");
+    // nothing left to clear, and no chevron either: the sheet's Search type
+    expect(screen.queryByLabelText("Clear")).toBeNull();
+    expect(field().querySelector("svg")).toBeNull();
+  });
+
+  it("shows no clear while empty", () => {
+    renderSelect({ options: OPTIONS, clearable: true });
+    expect(screen.queryByLabelText("Clear")).toBeNull();
+  });
+
+  it("clears every value when multiple and clearable", () => {
+    const onValuesChange = vi.fn();
+    renderSelect({
+      options: OPTIONS,
+      multiple: true,
+      clearable: true,
+      defaultValues: ["id", "sg"],
+      onValuesChange,
+    });
+    fireEvent.click(screen.getByLabelText("Clear"));
+    expect(onValuesChange).toHaveBeenCalledWith([]);
+  });
+
+  it("renders an option's own adornment beside its label", () => {
+    renderSelect({
+      options: [
+        { value: "id", label: "Indonesia", leading: <span data-testid="dot" /> },
+        ...OPTIONS.slice(1),
+      ],
+    });
+    openPanel();
+    expect(options()[0].querySelector('[data-testid="dot"]')).not.toBeNull();
   });
 
   it("keeps the value when controlled", async () => {
