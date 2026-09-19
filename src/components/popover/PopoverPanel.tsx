@@ -16,6 +16,14 @@ export type PopoverPanelProps = Omit<HTMLAttributes<HTMLDivElement>, "popover"> 
    * @default undefined
    */
   initialFocus?: RefObject<HTMLElement | null>;
+
+  /**
+   * Where the panel is portalled. Left out it goes to the body; a layout that
+   * must keep a panel beside its field — a grid of open fields, a dialog —
+   * passes the container it belongs in
+   * @default undefined
+   */
+  portalRoot?: RefObject<HTMLElement | null>;
 };
 
 /**
@@ -33,6 +41,7 @@ export type PopoverPanelProps = Omit<HTMLAttributes<HTMLDivElement>, "popover"> 
 export function PopoverPanel({
   popover,
   initialFocus,
+  portalRoot,
   className,
   children,
   style,
@@ -74,5 +83,5 @@ export function PopoverPanel({
   // control from announcers and swallows clicks while the panel is open. A
   // select needs neither, so the panel only takes focus, and `usePopover`
   // gives it back to the trigger on close.
-  return <FloatingPortal>{panel}</FloatingPortal>;
+  return <FloatingPortal root={portalRoot}>{panel}</FloatingPortal>;
 }

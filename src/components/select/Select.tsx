@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { Platform } from "@floating-ui/react";
 import { cn } from "../../lib/cn";
 import { CheckIcon, ChevronDownIcon, SearchLgIcon, XCircleIcon, XIcon } from "../icon/icons";
@@ -147,6 +147,31 @@ export type SelectProps = {
   name?: string;
 
   /**
+   * Open state. Give this and `onOpenChange` to control the panel
+   * @default undefined
+   */
+  open?: boolean;
+
+  /**
+   * The initial open state, for uncontrolled use
+   * @default undefined
+   */
+  defaultOpen?: boolean;
+
+  /**
+   * Runs with the next open state
+   * @default undefined
+   */
+  onOpenChange?: (open: boolean) => void;
+
+  /**
+   * Where the panel is portalled. Left out it goes to the body; a layout that
+   * must keep the panel beside its field passes the container it belongs in
+   * @default undefined
+   */
+  portalRoot?: RefObject<HTMLElement | null>;
+
+  /**
    * Show the chosen options as chips in the trigger, which is the sheets' Tags
    * type: chips 24 tall with the option's own adornment, a label, and a remove
    * that takes that option back out. Only applies to `multiple`
@@ -240,6 +265,10 @@ export function Select({
   onValuesChange,
   placeholder = "Select",
   size = "md",
+  open,
+  defaultOpen,
+  onOpenChange,
+  portalRoot,
   disabled,
   error,
   leading,
@@ -285,6 +314,9 @@ export function Select({
     role: "listbox",
     disabled,
     platform,
+    open,
+    defaultOpen,
+    onOpenChange,
     listNavigation: {
       listRef,
       activeIndex,
@@ -457,6 +489,7 @@ export function Select({
 
       <PopoverPanel
         popover={popover}
+        portalRoot={portalRoot}
         initialFocus={withSearch ? searchRef : undefined}
         aria-multiselectable={multiple || undefined}
         className={cn(
