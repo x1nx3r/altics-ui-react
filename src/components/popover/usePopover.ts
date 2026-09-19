@@ -41,8 +41,11 @@ export type UsePopoverOptions = {
   onOpenChange?: (open: boolean) => void;
 
   /**
-   * Where the panel prefers to sit. It flips and shifts to stay in view
-   * @default "bottom-start"
+   * Where the panel prefers to sit. It flips and shifts to stay in view. The
+   * default is centred: a panel that matches its trigger's width looks the same
+   * either way, and an aligned placement is one `flip` pass away from looping
+   * when there is no layout to measure
+   * @default "bottom"
    */
   placement?: Placement;
 
@@ -142,7 +145,7 @@ export function usePopover({
   open: controlledOpen,
   defaultOpen = false,
   onOpenChange,
-  placement = "bottom-start",
+  placement = "bottom",
   offset = 4,
   matchTriggerWidth = true,
   disabled,
