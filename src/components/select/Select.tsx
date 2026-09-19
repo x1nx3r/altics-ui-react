@@ -1,7 +1,7 @@
-import { useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { Platform } from "@floating-ui/react";
 import { cn } from "../../lib/cn";
-import { CheckIcon, ChevronDownIcon } from "../icon/icons";
+import { CheckIcon, ChevronDownIcon, SearchLgIcon } from "../icon/icons";
 import {
   fieldBorder,
   fieldBox,
@@ -91,6 +91,27 @@ export type SelectProps = {
   leading?: ReactNode;
 
   /**
+   * Put a search field at the top of the panel, filtering the options as it is
+   * typed. The field takes focus when the panel opens, and the list keeps its
+   * keyboard behaviour — arrows step, Enter chooses
+   * @default false
+   */
+  searchable?: boolean;
+
+  /**
+   * The search field's placeholder
+   * @default "Search"
+   */
+  searchPlaceholder?: string;
+
+  /**
+   * Replace the built-in empty state, which the sheets draw as a circled mark,
+   * a title, a hint and a way to clear the search
+   * @default undefined
+   */
+  noResults?: ReactNode;
+
+  /**
    * Name for native form submission. The value is mirrored into a hidden input
    * @default undefined
    */
@@ -101,14 +122,6 @@ export type SelectProps = {
    * @default undefined
    */
   className?: string;
-
-  /**
-   * The platform floating-ui measures with. Left out in the browser; a test or
-   * a non-DOM environment passes a deterministic one, because jsdom has no
-   * layout and the DOM platform churns without it
-   * @default undefined
-   */
-  platform?: Platform;
 
   /**
    * The control's id. `Field` supplies one so its label can point at the field
@@ -127,7 +140,27 @@ export type SelectProps = {
    * @default undefined
    */
   required?: boolean;
+
+  /**
+   * The platform floating-ui measures with. Left out in the browser; a test or
+   * a non-DOM environment passes a deterministic one, because jsdom has no
+   * layout and the DOM platform churns without it
+   * @default undefined
+   */
+  platform?: Platform;
 };
+
+/** Rows step down at sm, and hover and chosen rows share one fill. */
+const rowClass = {
+  sm: "h-9 gap-2 pl-1.5 pr-3",
+  md: "h-10 gap-3 pl-2 pr-3",
+  lg: "h-11 gap-3 pl-2 pr-3",
+};
+
+const labelGap = { sm: "gap-1.5", md: "gap-2", lg: "gap-2" };
+
+/** The search row's height, as the sheets draw it: 44, then 48 at lg. */
+const searchRow = { sm: "h-11", md: "h-11", lg: "h-12" };
 
 /**
  * Choose one option from a list.
@@ -140,6 +173,10 @@ export type SelectProps = {
  *
  * @example
  * <Select options={[{ value: "id", label: "Indonesia" }]} placeholder="Country" />
+ *
+ * @example
+ * // Searchable, filtered as it is typed
+ * <Select searchable options={countries} />
  *
  * @example
  * // Inside a Field, which supplies the label, the hint and the error message
@@ -157,6 +194,9 @@ export function Select({
   disabled,
   error,
   leading,
+  searchable = false,
+  searchPlaceholder = "Search",
+  noResults,
   name,
   className,
   platform,
@@ -169,10 +209,19 @@ export function Select({
   const selectedIndex = options.findIndex((option) => option.value === value);
   const selected = selectedIndex === -1 ? undefined : options[selectedIndex];
 
-  const [activeIndex, setActiveIndex] = useState<number | null>(selectedIndex === -1 ? null : selectedIndex);
+  const [query, setQuery] = useState("");
+  const [activeIndex, setActiveIndex] = useState<number | null>(
+    selectedIndex === -1 ? null : selectedIndex,
+  );
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const labelsRef = useRef<Array<string | null>>([]);
+  const searchRef = useRef<HTMLInputElement>(null);
   const triggerId = useId();
+
+  const matches = (option: SelectOption, text: string) =>
+    `${option.label} ${option.description ?? ""}`.toLowerCase().includes(text.toLowerCase());
+  const visible = searchable && query ? options.filter((option) => matches(option, query)) : options;
+  const visibleSelectedIndex = visible.findIndex((option) => option.value === value);
 
   const popover = usePopover({
     role: "listbox",
@@ -183,10 +232,25 @@ export function Select({
       activeIndex,
       onNavigate: setActiveIndex,
       loop: true,
-      selectedIndex: selectedIndex === -1 ? null : selectedIndex,
+      selectedIndex: visibleSelectedIndex === -1 ? null : visibleSelectedIndex,
+      // With a search field the keys come from it, so focus stays there: the
+      // navigation must not take it on open, nor follow the pointer.
+      ...(searchable ? { focusItemOnOpen: false, focusItemOnHover: false } : null),
     },
-    typeahead: { listRef: labelsRef, activeIndex, onMatch: setActiveIndex },
+    // With a search field, the letters belong to it, not to typeahead.
+    typeahead: searchable ? undefined : { listRef: labelsRef, activeIndex, onMatch: setActiveIndex },
   });
+
+  // A fresh panel starts with no query, the way the sheets draw it.
+  useEffect(() => {
+    if (!popover.open) setQuery("");
+  }, [popover.open]);
+
+  function search(next: string) {
+    setQuery(next);
+    const nextVisible = searchable && next ? options.filter((option) => matches(option, next)) : options;
+    setActiveIndex(nextVisible.length ? 0 : null);
+  }
 
   function choose(option: SelectOption) {
     if (option.disabled) return;
@@ -238,57 +302,92 @@ export function Select({
 
       <PopoverPanel
         popover={popover}
+        initialFocus={searchable ? searchRef : undefined}
         className={cn(
-          "max-h-64 overflow-auto rounded-md border bg-background p-1 shadow-md",
+          "flex max-h-64 flex-col overflow-hidden rounded-md border bg-background shadow-md",
           fieldBorder(error),
         )}
         onKeyDown={(event) => {
           if ((event.key === "Enter" || event.key === " ") && activeIndex !== null) {
-            const option = options[activeIndex];
+            const option = visible[activeIndex];
             if (option) choose(option);
           }
         }}
       >
-        {options.length === 0 ? (
-          <p className="px-3 py-2 text-sm text-neutral-500">No options</p>
-        ) : (
-          options.map((option, index) => (
-            <ListboxOption
-              key={option.value}
-              {...popover.getItemProps({ onClick: () => choose(option) })}
-              ref={(node) => {
-                listRef.current[index] = node;
-                labelsRef.current[index] = option.label;
-              }}
-              id={`${fieldId}-option-${index}`}
-              active={activeIndex === index}
-              selected={option.value === value}
-              disabled={option.disabled}
-              className={cn(
-                "flex cursor-default items-center justify-between rounded-sm text-base text-foreground",
-                {
-                  sm: "h-[38px] gap-2 pl-3 pr-3",
-                  md: "h-[42px] gap-3 pl-3.5 pr-3",
-                  lg: "h-[46px] gap-3 pl-3.5 pr-3",
-                }[size],
-                // the sheet fills the chosen row the same grey as a hovered one
-                (activeIndex === index || option.value === value) && "bg-neutral-50",
-                option.disabled && "cursor-not-allowed opacity-50",
-              )}
-            >
-              <span className={cn("flex min-w-0 items-baseline", size === "sm" ? "gap-1.5" : "gap-2")}>
-                <span className="truncate">{option.label}</span>
-                {option.description && (
-                  <span className="truncate text-neutral-600">{option.description}</span>
-                )}
-              </span>
-              {option.value === value && (
-                <CheckIcon size={16} className="shrink-0 text-neutral-600" />
-              )}
-            </ListboxOption>
-          ))
+        {searchable && (
+          <div
+            className={cn(
+              "flex shrink-0 items-center gap-2 border-b border-neutral-200 px-3.5",
+              searchRow[size],
+            )}
+          >
+            <SearchLgIcon size={16} className="shrink-0 text-neutral-400" />
+            <input
+              ref={searchRef}
+              value={query}
+              onChange={(event) => search(event.target.value)}
+              placeholder={searchPlaceholder}
+              className="min-w-0 flex-1 bg-transparent text-base text-foreground placeholder:text-placeholder focus:outline-none"
+            />
+          </div>
         )}
+
+        <div className="min-h-0 flex-1 overflow-auto py-1.5">
+          {visible.length === 0 ? (
+            noResults ?? <NoResults onClear={() => search("")} />
+          ) : (
+            visible.map((option, index) => (
+              <ListboxOption
+                key={option.value}
+                {...popover.getItemProps({ onClick: () => choose(option) })}
+                ref={(node) => {
+                  listRef.current[index] = node;
+                  labelsRef.current[index] = option.label;
+                }}
+                id={`${fieldId}-option-${index}`}
+                active={activeIndex === index}
+                selected={option.value === value}
+                disabled={option.disabled}
+                className={cn(
+                  "mx-1.5 flex cursor-default items-center justify-between rounded-sm text-base text-foreground",
+                  rowClass[size],
+                  // the sheet fills the chosen row the same grey as a hovered one
+                  (activeIndex === index || option.value === value) && "bg-neutral-50",
+                  option.disabled && "cursor-not-allowed opacity-50",
+                )}
+              >
+                <span className={cn("flex min-w-0 items-baseline", labelGap[size])}>
+                  <span className="truncate">{option.label}</span>
+                  {option.description && (
+                    <span className="truncate text-neutral-600">{option.description}</span>
+                  )}
+                </span>
+                {option.value === value && <CheckIcon size={16} className="shrink-0 text-neutral-600" />}
+              </ListboxOption>
+            ))
+          )}
+        </div>
       </PopoverPanel>
+    </div>
+  );
+}
+
+/** The sheet's empty state: a circled mark, a title, a hint, and a way out. */
+function NoResults({ onClear }: { onClear: () => void }) {
+  return (
+    <div className="flex flex-col items-center px-6 py-7 text-center">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300">
+        <SearchLgIcon size={16} className="text-neutral-400" />
+      </span>
+      <p className="mt-4 text-sm text-foreground">No results</p>
+      <p className="mt-1 text-sm text-neutral-600">Try a different search.</p>
+      <button
+        type="button"
+        onClick={onClear}
+        className="mt-3 rounded-sm text-sm text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      >
+        Clear search
+      </button>
     </div>
   );
 }
