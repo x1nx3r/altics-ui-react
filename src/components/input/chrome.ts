@@ -24,15 +24,6 @@ export const fieldFocusColour = (error?: string | boolean) =>
   error ? "focus-within:outline-focus-error" : "focus-within:outline-focus";
 
 /**
- * The same ring, for a field that takes focus itself — a select's trigger is
- * one element, not a box around an input.
- */
-export const fieldFocusSelf = "focus:outline focus:outline-2 focus:outline-offset-[-2px]";
-
-export const fieldFocusSelfColour = (error?: string | boolean) =>
-  error ? "focus:outline-focus-error" : "focus:outline-focus";
-
-/**
  * Horizontal rhythm per size, Figma: text 14px sm, 16px md and lg. The cap
  * height of the sheets' placeholder text settles it: 11.5px at md and lg,
  * 10.1px at sm, so md and lg share a size and sm is one step down.

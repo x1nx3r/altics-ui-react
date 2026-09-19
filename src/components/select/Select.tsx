@@ -1,14 +1,8 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { Platform } from "@floating-ui/react";
 import { cn } from "../../lib/cn";
-import { CheckIcon, ChevronDownIcon, SearchLgIcon } from "../icon/icons";
-import {
-  fieldBorder,
-  fieldBox,
-  fieldFocusSelf,
-  fieldFocusSelfColour,
-  sizes,
-} from "../input/chrome";
+import { CheckIcon, ChevronDownIcon, SearchLgIcon, XCircleIcon } from "../icon/icons";
+import { fieldBorder, fieldBox, fieldFocus, fieldFocusColour, sizes } from "../input/chrome";
 import { ListboxOption } from "../listbox";
 import { PopoverPanel, usePopover } from "../popover";
 
@@ -25,6 +19,14 @@ export type SelectOption = {
    * @default undefined
    */
   description?: string;
+
+  /**
+   * An adornment before the label — the sheets' Avatar, Dot and Icon leading
+   * types. Size it at the call site: 24 for an avatar, 16 for an icon, 8 for a
+   * dot
+   * @default undefined
+   */
+  leading?: ReactNode;
 
   /**
    * Cannot be highlighted or chosen
@@ -145,6 +147,14 @@ export type SelectProps = {
   name?: string;
 
   /**
+   * Clear the field from the trigger. The sheets' Search type is a leading mark
+   * plus this: while a value is set it shows a clear mark; empty, it shows
+   * nothing rather than a chevron
+   * @default false
+   */
+  clearable?: boolean;
+
+  /**
    * Extra classes for the field
    * @default undefined
    */
@@ -227,6 +237,7 @@ export function Select({
   leading,
   searchable,
   searchPlaceholder = "Search",
+  clearable = false,
   noResults,
   name,
   className,
@@ -306,6 +317,19 @@ export function Select({
     popover.setOpen(false);
   }
 
+  const hasValue = multiple ? chosenValues.length > 0 : Boolean(value);
+  const showClear = clearable && hasValue && !disabled;
+
+  function clear() {
+    if (multiple) {
+      if (controlledValues === undefined) setUncontrolledValues([]);
+      onValuesChange?.([]);
+      return;
+    }
+    if (controlledValue === undefined) setUncontrolled("");
+    onValueChange?.("");
+  }
+
   const fieldId = id ?? triggerId;
 
   return (
@@ -317,46 +341,69 @@ export function Select({
             ))
           : <input type="hidden" name={name} value={value ?? ""} readOnly />)}
 
-      <button
-        ref={popover.refs.setReference as never}
-        id={fieldId}
-        type="button"
-        disabled={disabled}
-        aria-required={required || undefined}
-        aria-describedby={describedBy}
-        aria-invalid={error ? true : undefined}
+      <div
+        data-disabled={disabled || undefined}
         className={cn(
           fieldBox,
-          "w-full gap-2 rounded-md border px-3 text-left",
+          "relative w-full rounded-md border",
           sizes[size].box,
           fieldBorder(error),
-          fieldFocusSelf,
-          fieldFocusSelfColour(error),
+          fieldFocus,
+          fieldFocusColour(error),
           disabled && "cursor-not-allowed opacity-50",
         )}
-        {...popover.getReferenceProps()}
       >
-        <span className="flex min-w-0 flex-1 items-center gap-2">
-          {leading}
-          {multiple ? (
-            chosenValues.length > 0 ? (
-              <span className="truncate">{chosenValues.length} selected</span>
+        <button
+          ref={popover.refs.setReference as never}
+          id={fieldId}
+          type="button"
+          disabled={disabled}
+          aria-required={required || undefined}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : undefined}
+          className={cn(
+            "absolute inset-0 flex w-full items-center gap-2 rounded-md text-left",
+            showClear ? "pr-9 pl-3" : "px-3",
+          )}
+          {...popover.getReferenceProps()}
+        >
+          <span className="flex min-w-0 flex-1 items-center gap-2">
+            {leading}
+            {multiple ? (
+              chosenValues.length > 0 ? (
+                <span className="truncate">{chosenValues.length} selected</span>
+              ) : (
+                <span className="truncate text-placeholder">{placeholder}</span>
+              )
+            ) : selected ? (
+              <span className="flex min-w-0 items-baseline gap-2">
+                <span className="truncate">{selected.label}</span>
+                {selected.description && (
+                  <span className="truncate text-neutral-600">{selected.description}</span>
+                )}
+              </span>
             ) : (
               <span className="truncate text-placeholder">{placeholder}</span>
-            )
-          ) : selected ? (
-            <span className="flex min-w-0 items-baseline gap-2">
-              <span className="truncate">{selected.label}</span>
-              {selected.description && (
-                <span className="truncate text-neutral-600">{selected.description}</span>
-              )}
-            </span>
-          ) : (
-            <span className="truncate text-placeholder">{placeholder}</span>
-          )}
-        </span>
-        <ChevronDownIcon size={16} className="shrink-0 text-neutral-600" />
-      </button>
+            )}
+          </span>
+          {!clearable && <ChevronDownIcon size={16} className="shrink-0 text-neutral-600" />}
+        </button>
+
+        {showClear && (
+          <button
+            type="button"
+            aria-label="Clear"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={(event) => {
+              event.stopPropagation();
+              clear();
+            }}
+            className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <XCircleIcon size={16} />
+          </button>
+        )}
+      </div>
 
       <PopoverPanel
         popover={popover}
@@ -431,6 +478,7 @@ export function Select({
                     {isChosen(option) && <CheckIcon size={10} />}
                   </span>
                 )}
+                {option.leading}
                 <span className={cn("flex min-w-0 items-baseline", labelGap[size])}>
                   <span className="truncate">{option.label}</span>
                   {option.description && (
