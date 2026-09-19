@@ -27,6 +27,7 @@ export {
   type TextareaProps,
 } from "./components/input";
 export { Field, Label, type FieldProps } from "./components/field";
+export { Select, type SelectOption, type SelectProps } from "./components/select";
 export { Card } from "./components/card";
 export {
   Badge,
