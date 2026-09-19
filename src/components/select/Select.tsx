@@ -226,7 +226,7 @@ export function Select({
             <span className="flex min-w-0 items-baseline gap-2">
               <span className="truncate">{selected.label}</span>
               {selected.description && (
-                <span className="truncate text-neutral-500">{selected.description}</span>
+                <span className="truncate text-neutral-600">{selected.description}</span>
               )}
             </span>
           ) : (
@@ -265,19 +265,26 @@ export function Select({
               selected={option.value === value}
               disabled={option.disabled}
               className={cn(
-                "flex cursor-default items-center justify-between gap-3 rounded-sm px-3.5 text-base text-foreground",
-                { sm: "h-[38px]", md: "h-[42px]", lg: "h-[46px]" }[size],
-                activeIndex === index && "bg-neutral-50",
+                "flex cursor-default items-center justify-between rounded-sm text-base text-foreground",
+                {
+                  sm: "h-[38px] gap-2 pl-3 pr-3",
+                  md: "h-[42px] gap-3 pl-3.5 pr-3",
+                  lg: "h-[46px] gap-3 pl-3.5 pr-3",
+                }[size],
+                // the sheet fills the chosen row the same grey as a hovered one
+                (activeIndex === index || option.value === value) && "bg-neutral-50",
                 option.disabled && "cursor-not-allowed opacity-50",
               )}
             >
-              <span className="flex min-w-0 items-baseline gap-2">
+              <span className={cn("flex min-w-0 items-baseline", size === "sm" ? "gap-1.5" : "gap-2")}>
                 <span className="truncate">{option.label}</span>
                 {option.description && (
-                  <span className="truncate text-neutral-500">{option.description}</span>
+                  <span className="truncate text-neutral-600">{option.description}</span>
                 )}
               </span>
-              {option.value === value && <CheckIcon size={16} className="shrink-0" />}
+              {option.value === value && (
+                <CheckIcon size={16} className="shrink-0 text-neutral-600" />
+              )}
             </ListboxOption>
           ))
         )}
