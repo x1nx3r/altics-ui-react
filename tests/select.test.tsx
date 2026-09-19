@@ -27,7 +27,7 @@ const press = (key: string) => {
 describe("Select", () => {
   it("shows the placeholder and announces a closed combobox", () => {
     renderSelect({ options: OPTIONS, placeholder: "Country" });
-    expect(trigger().textContent).toContain("Country");
+    expect(field().textContent).toContain("Country");
     expect(trigger().getAttribute("aria-haspopup")).toBe("listbox");
     expect(trigger().getAttribute("aria-expanded")).toBe("false");
     expect(screen.queryByRole("listbox")).toBeNull();
@@ -35,7 +35,7 @@ describe("Select", () => {
 
   it("opens on click and lists the options, the chosen one marked", () => {
     renderSelect({ options: OPTIONS, defaultValue: "my" });
-    expect(trigger().textContent).toContain("Malaysia");
+    expect(field().textContent).toContain("Malaysia");
 
     openPanel();
     expect(screen.getByRole("listbox")).toBeDefined();
@@ -53,7 +53,7 @@ describe("Select", () => {
     fireEvent.click(options()[2]);
 
     expect(onValueChange).toHaveBeenCalledWith("sg");
-    expect(trigger().textContent).toContain("Singapore");
+    expect(field().textContent).toContain("Singapore");
     expect(screen.queryByRole("listbox")).toBeNull();
   });
 
@@ -69,7 +69,7 @@ describe("Select", () => {
     press("Enter");
 
     expect(onValueChange).toHaveBeenCalledWith("id");
-    expect(trigger().textContent).toContain("Indonesia");
+    expect(field().textContent).toContain("Indonesia");
   });
 
   it("jumps to an option on a letter", async () => {
@@ -78,7 +78,7 @@ describe("Select", () => {
     press("s");
     await settle();
     press("Enter");
-    expect(trigger().textContent).toContain("Singapore");
+    expect(field().textContent).toContain("Singapore");
   });
 
   it("never highlights or chooses a disabled option", async () => {
@@ -190,7 +190,7 @@ describe("Select", () => {
     fireEvent.keyDown(searchField, { key: "Enter" });
 
     expect(onValueChange).toHaveBeenCalledWith("sg");
-    expect(trigger().textContent).toContain("Singapore");
+    expect(field().textContent).toContain("Singapore");
   });
 
   it("starts fresh when the panel reopens", () => {
@@ -213,7 +213,7 @@ describe("Select", () => {
 
     fireEvent.click(options()[2]);
     expect(onValuesChange).toHaveBeenLastCalledWith(["id", "sg"]);
-    expect(trigger().textContent).toContain("2 selected");
+    expect(field().textContent).toContain("2 selected");
     expect(screen.getByRole("listbox")).toBeDefined();
 
     // toggling the same row again takes it back out
@@ -223,10 +223,10 @@ describe("Select", () => {
 
   it("shows the placeholder until something is chosen", () => {
     renderSelect({ options: OPTIONS, multiple: true, placeholder: "Countries" });
-    expect(trigger().textContent).toContain("Countries");
+    expect(field().textContent).toContain("Countries");
     openPanel();
     fireEvent.click(options()[1]);
-    expect(trigger().textContent).toContain("1 selected");
+    expect(field().textContent).toContain("1 selected");
   });
 
   it("marks the chosen rows and carries a checkbox", () => {
@@ -273,7 +273,7 @@ describe("Select", () => {
     fireEvent.click(clearButton);
 
     expect(onValueChange).toHaveBeenCalledWith("");
-    expect(trigger().textContent).toContain("Select");
+    expect(field().textContent).toContain("Select");
     // nothing left to clear, and no chevron either: the sheet's Search type
     expect(screen.queryByLabelText("Clear")).toBeNull();
     expect(field().querySelector("svg")).toBeNull();
@@ -308,6 +308,42 @@ describe("Select", () => {
     expect(options()[0].querySelector('[data-testid="dot"]')).not.toBeNull();
   });
 
+  it("shows the chosen options as chips when asked", () => {
+    renderSelect({ options: OPTIONS, multiple: true, chips: true, defaultValues: ["id", "sg"] });
+    expect(screen.getByText("Indonesia")).toBeDefined();
+    expect(screen.getByText("Singapore")).toBeDefined();
+    expect(screen.getByLabelText("Remove Indonesia")).toBeDefined();
+    // the count is replaced by the chips
+    expect(field().textContent).not.toContain("2 selected");
+  });
+
+  it("removes a chip's option and leaves the panel closed", () => {
+    const onValuesChange = vi.fn();
+    renderSelect({
+      options: OPTIONS,
+      multiple: true,
+      chips: true,
+      defaultValues: ["id", "sg"],
+      onValuesChange,
+    });
+    fireEvent.click(screen.getByLabelText("Remove Indonesia"));
+
+    expect(onValuesChange).toHaveBeenCalledWith(["sg"]);
+    expect(screen.queryByLabelText("Remove Indonesia")).toBeNull();
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("keeps the chips off a single select", () => {
+    renderSelect({ options: OPTIONS, chips: true, defaultValue: "id" });
+    expect(screen.queryByLabelText("Remove Indonesia")).toBeNull();
+    expect(field().textContent).toContain("Indonesia");
+  });
+
+  it("names the trigger with the chosen labels", () => {
+    renderSelect({ options: OPTIONS, multiple: true, chips: true, defaultValues: ["id", "sg"] });
+    expect(trigger().textContent).toContain("Indonesia, Singapore");
+  });
+
   it("keeps the value when controlled", async () => {
     const onValueChange = vi.fn();
     renderSelect({ options: OPTIONS, value: "id", onValueChange });
@@ -315,6 +351,6 @@ describe("Select", () => {
     fireEvent.click(options()[1]);
     expect(onValueChange).toHaveBeenCalledWith("my");
     // the caller owns the value, so the field still shows the old one
-    await waitFor(() => expect(trigger().textContent).toContain("Indonesia"));
+    await waitFor(() => expect(field().textContent).toContain("Indonesia"));
   });
 });
