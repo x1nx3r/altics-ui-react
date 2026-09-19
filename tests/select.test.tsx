@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Field, Select, type SelectProps } from "../src";
 import { testPlatform } from "./floating";
 
@@ -112,13 +112,43 @@ describe("Select", () => {
     expect(trigger().getAttribute("aria-invalid")).toBe("true");
   });
 
-  it("follows the field ramp", () => {
-    const ramp = (container: HTMLElement) =>
-      container.querySelector('[role="combobox"]')!.parentElement!.className;
+  it("follows the field ramp, and steps its marks with it", () => {
+    const fieldOf = (container: HTMLElement) =>
+      container.querySelector('[role="combobox"]')!.parentElement as HTMLElement;
+    const layerOf = (container: HTMLElement) =>
+      fieldOf(container).querySelector<HTMLElement>('[aria-hidden="true"]')!;
+    const chevron = (container: HTMLElement) =>
+      fieldOf(container).querySelector("svg")!.getAttribute("width");
+
     const sm = renderSelect({ options: OPTIONS, size: "sm" });
-    expect(ramp(sm.container)).toContain("h-9");
+    expect(fieldOf(sm.container).className).toContain("h-9");
+    expect(fieldOf(sm.container).className).toContain("text-sm");
+    // The sheet insets the text and the trailing mark alike: 12 at sm and md
+    expect(layerOf(sm.container).className).toContain("px-3");
+    expect(chevron(sm.container)).toBe("16");
+
+    const md = renderSelect({ options: OPTIONS, size: "md" });
+    expect(fieldOf(md.container).className).toContain("h-10");
+    expect(fieldOf(md.container).className).toContain("text-base");
+    expect(chevron(md.container)).toBe("16");
+
     const lg = renderSelect({ options: OPTIONS, size: "lg" });
-    expect(ramp(lg.container)).toContain("h-11");
+    expect(fieldOf(lg.container).className).toContain("h-11");
+    // 14 at lg, and a 20 chevron: the sheet draws 11.67 × 6.67 of ink there
+    expect(layerOf(lg.container).className).toContain("px-3.5");
+    expect(chevron(lg.container)).toBe("20");
+  });
+
+  it("steps the panel's search mark with the field", () => {
+    const mark = (size: SelectProps["size"]) =>
+      renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })
+        .container.ownerDocument.querySelector('[role="listbox"] svg')!
+        .getAttribute("width");
+    expect(mark("sm")).toBe("16");
+    // The first panel would answer for the second render: a portal outlives the
+    // container until cleanup.
+    cleanup();
+    expect(mark("md")).toBe("20");
   });
 
   it("wires Field's label, required flag and error message", () => {
