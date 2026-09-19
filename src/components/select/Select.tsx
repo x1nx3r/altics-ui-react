@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { Platform } from "@floating-ui/react";
 import { cn } from "../../lib/cn";
-import { CheckIcon, ChevronDownIcon, SearchLgIcon, XCircleIcon } from "../icon/icons";
+import { CheckIcon, ChevronDownIcon, SearchLgIcon, XCircleIcon, XIcon } from "../icon/icons";
 import { fieldBorder, fieldBox, fieldFocus, fieldFocusColour, sizes } from "../input/chrome";
 import { ListboxOption } from "../listbox";
 import { PopoverPanel, usePopover } from "../popover";
@@ -147,6 +147,14 @@ export type SelectProps = {
   name?: string;
 
   /**
+   * Show the chosen options as chips in the trigger, which is the sheets' Tags
+   * type: chips 24 tall with the option's own adornment, a label, and a remove
+   * that takes that option back out. Only applies to `multiple`
+   * @default false
+   */
+  chips?: boolean;
+
+  /**
    * Clear the field from the trigger. The sheets' Search type is a leading mark
    * plus this: while a value is set it shows a clear mark; empty, it shows
    * nothing rather than a chevron
@@ -237,6 +245,7 @@ export function Select({
   leading,
   searchable,
   searchPlaceholder = "Search",
+  chips = false,
   clearable = false,
   noResults,
   name,
@@ -317,7 +326,35 @@ export function Select({
     popover.setOpen(false);
   }
 
+  const chosenOptions = options.filter((option) => chosenValues.includes(option.value));
+  const accessibleValue = multiple
+    ? chosenOptions.map((option) => option.label).join(", ") || placeholder
+    : selected?.label ?? placeholder;
   const hasValue = multiple ? chosenValues.length > 0 : Boolean(value);
+
+  /** One chosen option in the trigger: adornment, label, and a remove. */
+  const chipFor = (option: SelectOption) => (
+    <span
+      key={option.value}
+      data-slot="select-chip"
+      className="flex h-6 max-w-full shrink-0 select-none items-center gap-1 rounded-sm border border-neutral-300 bg-background pr-1.5 pl-1"
+    >
+      {option.leading}
+      <span className="min-w-0 truncate text-sm text-neutral-700">{option.label}</span>
+      <button
+        type="button"
+        aria-label={`Remove ${option.label}`}
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={(event) => {
+          event.stopPropagation();
+          choose(option);
+        }}
+        className="pointer-events-auto flex items-center text-neutral-600 transition-colors hover:text-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        <XIcon size={12} />
+      </button>
+    </span>
+  );
   const showClear = clearable && hasValue && !disabled;
 
   function clear() {
@@ -353,6 +390,8 @@ export function Select({
           disabled && "cursor-not-allowed opacity-50",
         )}
       >
+        {/* The button is bare and sits under the layer: the layer cannot hold
+            the trigger's own controls, and a button cannot hold buttons. */}
         <button
           ref={popover.refs.setReference as never}
           id={fieldId}
@@ -361,33 +400,42 @@ export function Select({
           aria-required={required || undefined}
           aria-describedby={describedBy}
           aria-invalid={error ? true : undefined}
-          className={cn(
-            "absolute inset-0 flex w-full items-center gap-2 rounded-md text-left",
-            showClear ? "pr-9 pl-3" : "px-3",
-          )}
+          className="absolute inset-0 w-full rounded-md focus:outline-none"
           {...popover.getReferenceProps()}
         >
-          <span className="flex min-w-0 flex-1 items-center gap-2">
-            {leading}
-            {multiple ? (
-              chosenValues.length > 0 ? (
-                <span className="truncate">{chosenValues.length} selected</span>
-              ) : (
-                <span className="truncate text-placeholder">{placeholder}</span>
-              )
-            ) : selected ? (
-              <span className="flex min-w-0 items-baseline gap-2">
-                <span className="truncate">{selected.label}</span>
-                {selected.description && (
-                  <span className="truncate text-neutral-600">{selected.description}</span>
-                )}
-              </span>
+          <span className="sr-only">{accessibleValue}</span>
+        </button>
+
+        <span
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-0 flex items-center gap-2",
+            showClear ? "pr-9 pl-3" : "px-3",
+          )}
+        >
+          {leading}
+          {chips && chosenOptions.length > 0 ? (
+            <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
+              {chosenOptions.map(chipFor)}
+            </span>
+          ) : multiple ? (
+            chosenValues.length > 0 ? (
+              <span className="truncate">{chosenValues.length} selected</span>
             ) : (
               <span className="truncate text-placeholder">{placeholder}</span>
-            )}
-          </span>
+            )
+          ) : selected ? (
+            <span className="flex min-w-0 items-baseline gap-2">
+              <span className="truncate">{selected.label}</span>
+              {selected.description && (
+                <span className="truncate text-neutral-600">{selected.description}</span>
+              )}
+            </span>
+          ) : (
+            <span className="truncate text-placeholder">{placeholder}</span>
+          )}
           {!clearable && <ChevronDownIcon size={16} className="shrink-0 text-neutral-600" />}
-        </button>
+        </span>
 
         {showClear && (
           <button
