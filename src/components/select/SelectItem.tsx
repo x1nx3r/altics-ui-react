@@ -145,7 +145,11 @@ export const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
         {leading}
         <span className={cn("flex min-w-0 items-baseline", size === "sm" ? "gap-1.5" : "gap-2")}>
           <span className="truncate">{label}</span>
-          {description && <span className="truncate text-neutral-600">{description}</span>}
+          {description && (
+            <span className={cn("truncate text-neutral-600", sizes[size].supportingText)}>
+              {description}
+            </span>
+          )}
         </span>
       </span>
       {!checkbox && selected && (

@@ -446,7 +446,9 @@ export function Select({
             <span className="flex min-w-0 items-baseline gap-2">
               <span className="truncate">{selected.label}</span>
               {selected.description && (
-                <span className="truncate text-neutral-600">{selected.description}</span>
+                <span className={cn("truncate text-neutral-600", sizes[size].supportingText)}>
+                  {selected.description}
+                </span>
               )}
             </span>
           ) : (

@@ -46,6 +46,9 @@ export const sizes = {
     // The ramp on its own, for the parts whose height is not the field's — a
     // menu row, the search field inside a panel.
     text: "text-sm",
+    // The supporting text — a description beside a label, or the line the
+    // sheets draw under a field — sits one step below the field's own text.
+    supportingText: "text-xs",
     wrapBox: "min-h-9 text-sm",
     wrapPad: "py-[5px]",
     // The sheets give the textarea two sizes and stop there, so lg borrows md's.
@@ -70,6 +73,7 @@ export const sizes = {
   md: {
     box: "h-10 text-base",
     text: "text-base",
+    supportingText: "text-sm",
     wrapBox: "min-h-10 text-base",
     wrapPad: "py-[7px]",
     multilineBox: "text-base",
@@ -86,6 +90,7 @@ export const sizes = {
   lg: {
     box: "h-11 text-base",
     text: "text-base",
+    supportingText: "text-sm",
     wrapBox: "min-h-11 text-base",
     wrapPad: "py-[9px]",
     multilineBox: "text-base",
