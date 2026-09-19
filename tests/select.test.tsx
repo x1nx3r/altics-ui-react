@@ -200,6 +200,69 @@ describe("Select", () => {
     expect(options()).toHaveLength(4);
   });
 
+  it("toggles options while multiple and keeps the panel open", () => {
+    const onValuesChange = vi.fn();
+    renderSelect({ options: OPTIONS, multiple: true, onValuesChange });
+    openPanel();
+    fireEvent.click(options()[0]);
+    expect(onValuesChange).toHaveBeenLastCalledWith(["id"]);
+    expect(screen.getByRole("listbox")).toBeDefined();
+
+    fireEvent.click(options()[2]);
+    expect(onValuesChange).toHaveBeenLastCalledWith(["id", "sg"]);
+    expect(trigger().textContent).toContain("2 selected");
+    expect(screen.getByRole("listbox")).toBeDefined();
+
+    // toggling the same row again takes it back out
+    fireEvent.click(options()[0]);
+    expect(onValuesChange).toHaveBeenLastCalledWith(["sg"]);
+  });
+
+  it("shows the placeholder until something is chosen", () => {
+    renderSelect({ options: OPTIONS, multiple: true, placeholder: "Countries" });
+    expect(trigger().textContent).toContain("Countries");
+    openPanel();
+    fireEvent.click(options()[1]);
+    expect(trigger().textContent).toContain("1 selected");
+  });
+
+  it("marks the chosen rows and carries a checkbox", () => {
+    renderSelect({ options: OPTIONS, multiple: true, defaultValues: ["my"] });
+    openPanel();
+    const chosen = options().filter((el) => el.getAttribute("aria-selected") === "true");
+    expect(chosen).toHaveLength(1);
+    expect(chosen[0].textContent).toContain("Malaysia");
+    expect(options()[0].querySelector(".border-neutral-300")).not.toBeNull();
+  });
+
+  it("refuses to toggle a disabled row while multiple", () => {
+    const onValuesChange = vi.fn();
+    renderSelect({ options: OPTIONS, multiple: true, onValuesChange });
+    openPanel();
+    fireEvent.click(options()[3]);
+    expect(onValuesChange).not.toHaveBeenCalled();
+  });
+
+  it("searches by default while multiple", () => {
+    renderSelect({ options: OPTIONS, multiple: true });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "sin" } });
+    expect(options()).toHaveLength(1);
+    expect(options()[0].textContent).toContain("Singapore");
+  });
+
+  it("mirrors every chosen value into a hidden input", () => {
+    const { container } = renderSelect({
+      options: OPTIONS,
+      multiple: true,
+      name: "countries",
+      defaultValues: ["id", "sg"],
+    });
+    const hidden = [...container.querySelectorAll('input[name="countries"]')] as HTMLInputElement[];
+    expect(hidden.map((input) => input.value)).toEqual(["id", "sg"]);
+  });
+
   it("keeps the value when controlled", async () => {
     const onValueChange = vi.fn();
     renderSelect({ options: OPTIONS, value: "id", onValueChange });
