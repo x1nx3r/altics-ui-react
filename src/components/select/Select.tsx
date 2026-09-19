@@ -379,7 +379,9 @@ export function Select({
           : <input type="hidden" name={name} value={value ?? ""} readOnly />)}
 
       <div
+        data-slot="select"
         data-disabled={disabled || undefined}
+        data-invalid={error ? true : undefined}
         className={cn(
           fieldBox,
           "relative w-full rounded-md border",
