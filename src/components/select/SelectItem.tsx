@@ -1,6 +1,7 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import { cn } from "../../lib/cn";
 import { CheckIcon } from "../icon/icons";
+import { sizes } from "../input/chrome";
 import { ListboxOption } from "../listbox";
 
 export type SelectItemSize = "sm" | "md" | "lg";
@@ -20,8 +21,9 @@ export type SelectItemProps = HTMLAttributes<HTMLDivElement> & {
   description?: string;
 
   /**
-   * An adornment before the label. Size it at the call site: the sheets use 24
-   * for an avatar, 16 for an icon and 8 for a dot
+   * An adornment before the label. Size it at the call site, on the sheets'
+   * ramp: an avatar is 20 at sm and 24 above, an icon 16 at sm and md and 20 at
+   * lg, and a dot 8 at sm and 10 above
    * @default undefined
    */
   leading?: ReactNode;
@@ -111,13 +113,15 @@ export const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
       onChoose={onChoose}
       onActivate={onActivate}
       className={cn(
-        "mx-1.5 flex cursor-default items-center rounded-sm text-base text-foreground",
-        checkbox ? "gap-2" : "justify-between",
-        {
-          sm: "h-9 gap-2 pl-1.5 pr-3",
-          md: "h-10 gap-3 pl-2 pr-3",
-          lg: "h-11 gap-3 pl-2 pr-3",
-        }[size],
+        // Measured off the menu-item sheets: the row keeps the field's own ramp
+        // — 36, 40 and 44 with a 14px label at sm and 16 above — and insets 4
+        // at sm and 6 above. The label sits 8 from the row's edge and 8 from an
+        // adornment; the check and the row's right edge are 12 apart.
+        "flex cursor-default items-center gap-2 rounded-sm text-foreground",
+        sizes[size].box,
+        { sm: "mx-1", md: "mx-1.5", lg: "mx-1.5" }[size],
+        "pl-2 pr-3",
+        !checkbox && "justify-between",
         (active || (selected && !checkbox)) && "bg-neutral-50",
         disabled && "cursor-not-allowed opacity-50",
         className,
@@ -127,19 +131,26 @@ export const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
         <span
           aria-hidden="true"
           className={cn(
-            "flex h-[15px] w-[15px] shrink-0 items-center justify-center rounded-xs border",
+            "flex shrink-0 items-center justify-center rounded-xs border",
+            size === "lg" ? "h-[19px] w-[19px]" : "h-[15px] w-[15px]",
             selected ? "border-primary bg-primary text-primary-foreground" : "border-neutral-300",
           )}
         >
-          {selected && <CheckIcon size={10} />}
+          {selected && <CheckIcon size={size === "lg" ? 12 : 10} />}
         </span>
       )}
-      {leading}
-      <span className={cn("flex min-w-0 items-baseline", size === "sm" ? "gap-1.5" : "gap-2")}>
-        <span className="truncate">{label}</span>
-        {description && <span className="truncate text-neutral-600">{description}</span>}
+      {/* The adornment and the label travel together: apart, `justify-between`
+          would push the label to the far end of an unchosen row. */}
+      <span className="flex min-w-0 items-center gap-2">
+        {leading}
+        <span className={cn("flex min-w-0 items-baseline", size === "sm" ? "gap-1.5" : "gap-2")}>
+          <span className="truncate">{label}</span>
+          {description && <span className="truncate text-neutral-600">{description}</span>}
+        </span>
       </span>
-      {!checkbox && selected && <CheckIcon size={16} className="shrink-0 text-neutral-600" />}
+      {!checkbox && selected && (
+        <CheckIcon size={size === "lg" ? 20 : 16} className="shrink-0 text-neutral-600" />
+      )}
     </ListboxOption>
   ),
 );

@@ -369,6 +369,13 @@ export function Select({
 
   const fieldId = id ?? triggerId;
 
+  // The sheet insets the trigger's text and its trailing mark alike: 12 at sm
+  // and md, 14 at lg. Measured off the leading avatar and the chevron's frame,
+  // which the md and lg cells agree on; the sm Default cell draws its chevron
+  // 2 in from that edge and the Search and Tags clears 4 to 5, quirks we do not
+  // encode.
+  const inset = size === "lg" ? "px-3.5" : "px-3";
+
   return (
     <div className={cn("relative", className)}>
       {name &&
@@ -412,7 +419,8 @@ export function Select({
           aria-hidden="true"
           className={cn(
             "pointer-events-none absolute inset-0 flex items-center gap-2",
-            showClear ? "pr-9 pl-3" : "px-3",
+            inset,
+            showClear && sizes[size].trailingPad,
           )}
         >
           {leading}
@@ -444,7 +452,12 @@ export function Select({
           ) : (
             <span className="truncate text-placeholder">{placeholder}</span>
           )}
-          {!clearable && <ChevronDownIcon size={16} className="shrink-0 text-neutral-600" />}
+          {!clearable && (
+            <ChevronDownIcon
+              size={size === "lg" ? 20 : 16}
+              className="shrink-0 text-neutral-600"
+            />
+          )}
         </span>
 
         {showClear && (
@@ -456,9 +469,12 @@ export function Select({
               event.stopPropagation();
               clear();
             }}
-            className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            className={cn(
+              "absolute inset-y-0 flex items-center text-neutral-400 hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+              size === "lg" ? "right-3.5" : "right-3",
+            )}
           >
-            <XCircleIcon size={16} />
+            <XCircleIcon size={size === "sm" ? 10 : 12} />
           </button>
         )}
       </div>
@@ -483,17 +499,24 @@ export function Select({
         {withSearch && (
           <div
             className={cn(
-              "flex shrink-0 items-center gap-2 border-b border-neutral-200 px-3.5",
+              "flex shrink-0 items-center gap-2 border-b border-neutral-200",
+              size === "lg" ? "px-3.5" : "px-3",
               searchRow[size],
             )}
           >
-            <SearchLgIcon size={16} className="shrink-0 text-neutral-400" />
+            <SearchLgIcon
+              size={size === "sm" ? 16 : 20}
+              className="shrink-0 text-neutral-400"
+            />
             <input
               ref={searchRef}
               value={query}
               onChange={(event) => search(event.target.value)}
               placeholder={searchPlaceholder}
-              className="min-w-0 flex-1 bg-transparent text-base text-foreground placeholder:text-placeholder focus:outline-none"
+              className={cn(
+                "min-w-0 flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none",
+                sizes[size].text,
+              )}
             />
           </div>
         )}

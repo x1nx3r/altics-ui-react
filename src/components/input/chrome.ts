@@ -43,6 +43,9 @@ export const fieldFocusColour = (error?: string | boolean) =>
 export const sizes = {
   sm: {
     box: "h-9 text-sm",
+    // The ramp on its own, for the parts whose height is not the field's — a
+    // menu row, the search field inside a panel.
+    text: "text-sm",
     wrapBox: "min-h-9 text-sm",
     wrapPad: "py-[5px]",
     // The sheets give the textarea two sizes and stop there, so lg borrows md's.
@@ -66,6 +69,7 @@ export const sizes = {
   },
   md: {
     box: "h-10 text-base",
+    text: "text-base",
     wrapBox: "min-h-10 text-base",
     wrapPad: "py-[7px]",
     multilineBox: "text-base",
@@ -81,6 +85,7 @@ export const sizes = {
   },
   lg: {
     box: "h-11 text-base",
+    text: "text-base",
     wrapBox: "min-h-11 text-base",
     wrapPad: "py-[9px]",
     multilineBox: "text-base",
