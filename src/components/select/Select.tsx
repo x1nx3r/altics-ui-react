@@ -59,6 +59,33 @@ export type SelectProps = {
   onValueChange?: (value: string) => void;
 
   /**
+   * Choose several options. The value props change with it: `values` and
+   * `onValuesChange`. The panel keeps a search field, stays open while rows are
+   * toggled, and every row carries a checkbox
+   * @default false
+   */
+  multiple?: boolean;
+
+  /**
+   * The chosen values, for a multiple select. Give this and `onValuesChange` to
+   * control the field
+   * @default undefined
+   */
+  values?: string[];
+
+  /**
+   * The values to start with, for an uncontrolled multiple select
+   * @default undefined
+   */
+  defaultValues?: string[];
+
+  /**
+   * Runs with the next set of values whenever one is toggled
+   * @default undefined
+   */
+  onValuesChange?: (values: string[]) => void;
+
+  /**
    * What the field shows while nothing is chosen, in the placeholder grey
    * @default "Select"
    */
@@ -94,7 +121,7 @@ export type SelectProps = {
    * Put a search field at the top of the panel, filtering the options as it is
    * typed. The field takes focus when the panel opens, and the list keeps its
    * keyboard behaviour — arrows step, Enter chooses
-   * @default false
+   * @default false, and true with `multiple`, as the sheets draw it
    */
   searchable?: boolean;
 
@@ -189,12 +216,16 @@ export function Select({
   value: controlledValue,
   defaultValue,
   onValueChange,
+  multiple = false,
+  values: controlledValues,
+  defaultValues,
+  onValuesChange,
   placeholder = "Select",
   size = "md",
   disabled,
   error,
   leading,
-  searchable = false,
+  searchable,
   searchPlaceholder = "Search",
   noResults,
   name,
@@ -206,8 +237,14 @@ export function Select({
 }: SelectProps) {
   const [uncontrolled, setUncontrolled] = useState(defaultValue);
   const value = controlledValue ?? uncontrolled;
+  const [uncontrolledValues, setUncontrolledValues] = useState<string[]>(defaultValues ?? []);
+  const chosenValues = controlledValues ?? uncontrolledValues;
+  const isChosen = (option: SelectOption) =>
+    multiple ? chosenValues.includes(option.value) : option.value === value;
+  const withSearch = searchable ?? multiple;
+
   const selectedIndex = options.findIndex((option) => option.value === value);
-  const selected = selectedIndex === -1 ? undefined : options[selectedIndex];
+  const selected = multiple || selectedIndex === -1 ? undefined : options[selectedIndex];
 
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number | null>(
@@ -220,8 +257,9 @@ export function Select({
 
   const matches = (option: SelectOption, text: string) =>
     `${option.label} ${option.description ?? ""}`.toLowerCase().includes(text.toLowerCase());
-  const visible = searchable && query ? options.filter((option) => matches(option, query)) : options;
-  const visibleSelectedIndex = visible.findIndex((option) => option.value === value);
+  const visible = withSearch && query ? options.filter((option) => matches(option, query)) : options;
+  // A multiple select starts with no highlight; a single one starts on its value.
+  const highlightedIndex = multiple ? -1 : visible.findIndex((option) => option.value === value);
 
   const popover = usePopover({
     role: "listbox",
@@ -232,13 +270,13 @@ export function Select({
       activeIndex,
       onNavigate: setActiveIndex,
       loop: true,
-      selectedIndex: visibleSelectedIndex === -1 ? null : visibleSelectedIndex,
+      selectedIndex: highlightedIndex === -1 ? null : highlightedIndex,
       // With a search field the keys come from it, so focus stays there: the
       // navigation must not take it on open, nor follow the pointer.
-      ...(searchable ? { focusItemOnOpen: false, focusItemOnHover: false } : null),
+      ...(withSearch ? { focusItemOnOpen: false, focusItemOnHover: false } : null),
     },
     // With a search field, the letters belong to it, not to typeahead.
-    typeahead: searchable ? undefined : { listRef: labelsRef, activeIndex, onMatch: setActiveIndex },
+    typeahead: withSearch ? undefined : { listRef: labelsRef, activeIndex, onMatch: setActiveIndex },
   });
 
   // A fresh panel starts with no query, the way the sheets draw it.
@@ -248,12 +286,21 @@ export function Select({
 
   function search(next: string) {
     setQuery(next);
-    const nextVisible = searchable && next ? options.filter((option) => matches(option, next)) : options;
+    const nextVisible = withSearch && next ? options.filter((option) => matches(option, next)) : options;
     setActiveIndex(nextVisible.length ? 0 : null);
   }
 
   function choose(option: SelectOption) {
     if (option.disabled) return;
+    if (multiple) {
+      // Toggling leaves the panel open, as the sheets draw it.
+      const next = chosenValues.includes(option.value)
+        ? chosenValues.filter((chosen) => chosen !== option.value)
+        : [...chosenValues, option.value];
+      if (controlledValues === undefined) setUncontrolledValues(next);
+      onValuesChange?.(next);
+      return;
+    }
     if (controlledValue === undefined) setUncontrolled(option.value);
     onValueChange?.(option.value);
     popover.setOpen(false);
@@ -263,7 +310,12 @@ export function Select({
 
   return (
     <div className={cn("relative", className)}>
-      {name && <input type="hidden" name={name} value={value ?? ""} readOnly />}
+      {name &&
+        (multiple
+          ? chosenValues.map((chosen) => (
+              <input key={chosen} type="hidden" name={name} value={chosen} readOnly />
+            ))
+          : <input type="hidden" name={name} value={value ?? ""} readOnly />)}
 
       <button
         ref={popover.refs.setReference as never}
@@ -286,7 +338,13 @@ export function Select({
       >
         <span className="flex min-w-0 flex-1 items-center gap-2">
           {leading}
-          {selected ? (
+          {multiple ? (
+            chosenValues.length > 0 ? (
+              <span className="truncate">{chosenValues.length} selected</span>
+            ) : (
+              <span className="truncate text-placeholder">{placeholder}</span>
+            )
+          ) : selected ? (
             <span className="flex min-w-0 items-baseline gap-2">
               <span className="truncate">{selected.label}</span>
               {selected.description && (
@@ -302,9 +360,11 @@ export function Select({
 
       <PopoverPanel
         popover={popover}
-        initialFocus={searchable ? searchRef : undefined}
+        initialFocus={withSearch ? searchRef : undefined}
+        aria-multiselectable={multiple || undefined}
         className={cn(
-          "flex max-h-64 flex-col overflow-hidden rounded-md border bg-background shadow-md",
+          "flex flex-col overflow-hidden rounded-md border bg-background shadow-md",
+          multiple ? "max-h-[408px]" : "max-h-64",
           fieldBorder(error),
         )}
         onKeyDown={(event) => {
@@ -314,7 +374,7 @@ export function Select({
           }
         }}
       >
-        {searchable && (
+        {withSearch && (
           <div
             className={cn(
               "flex shrink-0 items-center gap-2 border-b border-neutral-200 px-3.5",
@@ -346,23 +406,40 @@ export function Select({
                 }}
                 id={`${fieldId}-option-${index}`}
                 active={activeIndex === index}
-                selected={option.value === value}
+                selected={isChosen(option)}
                 disabled={option.disabled}
                 className={cn(
-                  "mx-1.5 flex cursor-default items-center justify-between rounded-sm text-base text-foreground",
+                  "mx-1.5 flex cursor-default items-center rounded-sm text-base text-foreground",
+                  multiple ? "gap-2" : "justify-between",
                   rowClass[size],
                   // the sheet fills the chosen row the same grey as a hovered one
-                  (activeIndex === index || option.value === value) && "bg-neutral-50",
+                  ((!multiple && option.value === value) || (multiple && activeIndex === index)) &&
+                    "bg-neutral-50",
                   option.disabled && "cursor-not-allowed opacity-50",
                 )}
               >
+                {multiple && (
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "flex h-[15px] w-[15px] shrink-0 items-center justify-center rounded-xs border",
+                      isChosen(option)
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-neutral-300",
+                    )}
+                  >
+                    {isChosen(option) && <CheckIcon size={10} />}
+                  </span>
+                )}
                 <span className={cn("flex min-w-0 items-baseline", labelGap[size])}>
                   <span className="truncate">{option.label}</span>
                   {option.description && (
                     <span className="truncate text-neutral-600">{option.description}</span>
                   )}
                 </span>
-                {option.value === value && <CheckIcon size={16} className="shrink-0 text-neutral-600" />}
+                {!multiple && option.value === value && (
+                  <CheckIcon size={16} className="shrink-0 text-neutral-600" />
+                )}
               </ListboxOption>
             ))
           )}
