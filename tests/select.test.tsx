@@ -140,6 +140,66 @@ describe("Select", () => {
     expect(hidden.type).toBe("hidden");
   });
 
+  it("opens searchable with the search field focused", () => {
+    renderSelect({ options: OPTIONS, searchable: true });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    expect(document.activeElement).toBe(searchField);
+    expect(options()).toHaveLength(4);
+  });
+
+  it("filters the options as the search is typed", () => {
+    renderSelect({ options: OPTIONS, searchable: true });
+    openPanel();
+    fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "sin" } });
+    expect(options()).toHaveLength(1);
+    expect(options()[0].textContent).toContain("Singapore");
+  });
+
+  it("filters on the description too", () => {
+    renderSelect({ options: OPTIONS, searchable: true });
+    openPanel();
+    fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "my" } });
+    expect(options()).toHaveLength(1);
+    expect(options()[0].textContent).toContain("Malaysia");
+  });
+
+  it("shows the empty state and clears the search from it", () => {
+    renderSelect({ options: OPTIONS, searchable: true });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "zzz" } });
+
+    expect(screen.queryAllByRole("option")).toHaveLength(0);
+    expect(screen.getByText("No results")).toBeDefined();
+
+    fireEvent.click(screen.getByText("Clear search"));
+    expect(screen.getAllByRole("option")).toHaveLength(4);
+    expect((screen.getByPlaceholderText("Search") as HTMLInputElement).value).toBe("");
+  });
+
+  it("chooses the first match with Enter while searching", () => {
+    const onValueChange = vi.fn();
+    renderSelect({ options: OPTIONS, searchable: true, onValueChange });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "sin" } });
+    fireEvent.keyDown(searchField, { key: "Enter" });
+
+    expect(onValueChange).toHaveBeenCalledWith("sg");
+    expect(trigger().textContent).toContain("Singapore");
+  });
+
+  it("starts fresh when the panel reopens", () => {
+    renderSelect({ options: OPTIONS, searchable: true });
+    openPanel();
+    fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "sin" } });
+    press("Escape");
+    openPanel();
+    expect((screen.getByPlaceholderText("Search") as HTMLInputElement).value).toBe("");
+    expect(options()).toHaveLength(4);
+  });
+
   it("keeps the value when controlled", async () => {
     const onValueChange = vi.fn();
     renderSelect({ options: OPTIONS, value: "id", onValueChange });
