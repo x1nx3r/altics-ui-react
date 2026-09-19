@@ -3,8 +3,8 @@ import type { Platform } from "@floating-ui/react";
 import { cn } from "../../lib/cn";
 import { CheckIcon, ChevronDownIcon, SearchLgIcon, XCircleIcon, XIcon } from "../icon/icons";
 import { fieldBorder, fieldBox, fieldFocus, fieldFocusColour, sizes } from "../input/chrome";
-import { ListboxOption } from "../listbox";
 import { PopoverPanel, usePopover } from "../popover";
+import { SelectItem } from "./SelectItem";
 
 export type SelectOption = {
   /** What a form receives, and what `value` matches against */
@@ -219,15 +219,6 @@ export type SelectProps = {
    */
   platform?: Platform;
 };
-
-/** Rows step down at sm, and hover and chosen rows share one fill. */
-const rowClass = {
-  sm: "h-9 gap-2 pl-1.5 pr-3",
-  md: "h-10 gap-3 pl-2 pr-3",
-  lg: "h-11 gap-3 pl-2 pr-3",
-};
-
-const labelGap = { sm: "gap-1.5", md: "gap-2", lg: "gap-2" };
 
 /** The search row's height, as the sheets draw it: 44, then 48 at lg. */
 const searchRow = { sm: "h-11", md: "h-11", lg: "h-12" };
@@ -527,51 +518,24 @@ export function Select({
             noResults ?? <NoResults onClear={() => search("")} />
           ) : (
             visible.map((option, index) => (
-              <ListboxOption
+              <SelectItem
                 key={option.value}
-                {...popover.getItemProps({ onClick: () => choose(option) })}
+                {...popover.getItemProps()}
                 ref={(node) => {
                   listRef.current[index] = node;
                   labelsRef.current[index] = option.label;
                 }}
                 id={`${fieldId}-option-${index}`}
-                active={activeIndex === index}
+                label={option.label}
+                description={option.description}
+                leading={option.leading}
+                size={size}
+                checkbox={multiple}
                 selected={isChosen(option)}
+                active={activeIndex === index}
                 disabled={option.disabled}
-                className={cn(
-                  "mx-1.5 flex cursor-default items-center rounded-sm text-base text-foreground",
-                  multiple ? "gap-2" : "justify-between",
-                  rowClass[size],
-                  // the sheet fills the chosen row the same grey as a hovered one
-                  ((!multiple && option.value === value) || (multiple && activeIndex === index)) &&
-                    "bg-neutral-50",
-                  option.disabled && "cursor-not-allowed opacity-50",
-                )}
-              >
-                {multiple && (
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "flex h-[15px] w-[15px] shrink-0 items-center justify-center rounded-xs border",
-                      isChosen(option)
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-neutral-300",
-                    )}
-                  >
-                    {isChosen(option) && <CheckIcon size={10} />}
-                  </span>
-                )}
-                {option.leading}
-                <span className={cn("flex min-w-0 items-baseline", labelGap[size])}>
-                  <span className="truncate">{option.label}</span>
-                  {option.description && (
-                    <span className="truncate text-neutral-600">{option.description}</span>
-                  )}
-                </span>
-                {!multiple && option.value === value && (
-                  <CheckIcon size={16} className="shrink-0 text-neutral-600" />
-                )}
-              </ListboxOption>
+                onChoose={() => choose(option)}
+              />
             ))
           )}
         </div>
