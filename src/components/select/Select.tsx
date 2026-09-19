@@ -1,9 +1,10 @@
 import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { Platform } from "@floating-ui/react";
 import { cn } from "../../lib/cn";
-import { CheckIcon, ChevronDownIcon, SearchLgIcon, XCircleIcon, XIcon } from "../icon/icons";
+import { CheckIcon, ChevronDownIcon, SearchLgIcon, XCircleIcon } from "../icon/icons";
 import { fieldBorder, fieldBox, fieldFocus, fieldFocusColour, sizes } from "../input/chrome";
 import { PopoverPanel, usePopover } from "../popover";
+import { Chip } from "../chip";
 import { SelectItem } from "./SelectItem";
 
 export type SelectOption = {
@@ -354,30 +355,6 @@ export function Select({
     ? chosenOptions.map((option) => option.label).join(", ") || placeholder
     : selected?.label ?? placeholder;
   const hasValue = multiple ? chosenValues.length > 0 : Boolean(value);
-
-  /** One chosen option in the trigger: adornment, label, and a remove. */
-  const chipFor = (option: SelectOption) => (
-    <span
-      key={option.value}
-      data-slot="select-chip"
-      className="flex h-6 max-w-full shrink-0 select-none items-center gap-1 rounded-sm border border-neutral-300 bg-background pr-1.5 pl-1"
-    >
-      {option.leading}
-      <span className="min-w-0 truncate text-sm text-neutral-700">{option.label}</span>
-      <button
-        type="button"
-        aria-label={`Remove ${option.label}`}
-        onMouseDown={(event) => event.preventDefault()}
-        onClick={(event) => {
-          event.stopPropagation();
-          choose(option);
-        }}
-        className="pointer-events-auto flex items-center text-neutral-600 transition-colors hover:text-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-      >
-        <XIcon size={12} />
-      </button>
-    </span>
-  );
   const showClear = clearable && hasValue && !disabled;
 
   function clear() {
@@ -441,7 +418,15 @@ export function Select({
           {leading}
           {chips && chosenOptions.length > 0 ? (
             <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
-              {chosenOptions.map(chipFor)}
+              {chosenOptions.map((option) => (
+                <Chip
+                  key={option.value}
+                  label={option.label}
+                  leading={option.leading}
+                  size={size}
+                  onRemove={() => choose(option)}
+                />
+              ))}
             </span>
           ) : multiple ? (
             chosenValues.length > 0 ? (

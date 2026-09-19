@@ -7,7 +7,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { cn } from "../../lib/cn";
-import { XIcon } from "../icon/icons";
+import { Chip } from "../chip";
 import { Input, type InputProps } from "./Input";
 
 export type TagsInputProps = Omit<
@@ -95,40 +95,6 @@ export type TagsInputProps = Omit<
  * selection, which pairs with the field focusing on any press: Mantine marks
  * its pills the same way for the same reason.
  */
-function Chip({
-  label,
-  size,
-  disabled,
-  onRemove,
-}: {
-  label: string;
-  size: "sm" | "md" | "lg";
-  disabled?: boolean;
-  onRemove: () => void;
-}) {
-  return (
-    <span
-      data-slot="tag"
-      className="flex h-6 max-w-full shrink-0 items-center gap-0.5 rounded-sm border border-neutral-300 bg-background pr-1 pl-2.5 select-none"
-    >
-      <span
-        title={label}
-        className={cn("min-w-0 truncate text-neutral-700", size === "sm" ? "text-xs" : "text-sm")}
-      >
-        {label}
-      </span>
-      <button
-        type="button"
-        aria-label={`Remove ${label}`}
-        disabled={disabled}
-        onClick={onRemove}
-        className="flex items-center text-neutral-600 transition-colors hover:text-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <XIcon size={size === "sm" ? 12 : 16} />
-      </button>
-    </span>
-  );
-}
 
 /**
  * Field that collects tags.

@@ -26,6 +26,7 @@ export {
   type TagsInputProps,
   type TextareaProps,
 } from "./components/input";
+export { Chip, type ChipProps, type ChipSize } from "./components/chip";
 export { Field, Label, type FieldProps } from "./components/field";
 export {
   Select,
