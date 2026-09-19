@@ -1,4 +1,4 @@
-import { FloatingFocusManager, FloatingPortal } from "@floating-ui/react";
+import { FloatingPortal } from "@floating-ui/react";
 import { useCallback, type HTMLAttributes, type ReactNode, type RefObject } from "react";
 import type { Popover } from "./usePopover";
 
@@ -9,14 +9,6 @@ export type PopoverPanelProps = Omit<HTMLAttributes<HTMLDivElement>, "popover"> 
    * panel does not use — it positions with floating-ui instead.
    */
   popover: Popover;
-
-  /**
-   * Take focus on open, and give it back to the trigger on close. A listbox
-   * needs this: floating-ui keeps its key handling on the panel, so the keys
-   * only reach it when focus is inside
-   * @default true
-   */
-  focus?: boolean;
 
   /**
    * What to focus instead of the panel — the search input a searchable select
@@ -35,17 +27,18 @@ export type PopoverPanelProps = Omit<HTMLAttributes<HTMLDivElement>, "popover"> 
  * The caller's `style` is merged under the position floating-ui computes:
  * passing it straight through would replace `top`/`left` and leave the panel
  * wherever it lands in the document.
+ *
+ * @see usePopover — it returns focus to the trigger when the panel closes.
  */
 export function PopoverPanel({
   popover,
-  focus = true,
   initialFocus,
   className,
   children,
   style,
   ...props
 }: PopoverPanelProps) {
-  const { open, refs, context, floatingStyles, getFloatingProps } = popover;
+  const { open, refs, floatingStyles, getFloatingProps, focus } = popover;
 
   // A stable callback: the position ref, then focus. floating-ui's
   // `initialFocus={-1}` means "leave focus alone", which is not what a listbox
@@ -76,15 +69,10 @@ export function PopoverPanel({
     </div>
   );
 
-  return (
-    <FloatingPortal>
-      {focus ? (
-        <FloatingFocusManager context={context} modal={false}>
-          {panel}
-        </FloatingFocusManager>
-      ) : (
-        panel
-      )}
-    </FloatingPortal>
-  );
+  // A FloatingFocusManager would be the obvious way to do this, but it marks
+  // everything outside the panel inert — the trigger included — which hides the
+  // control from announcers and swallows clicks while the panel is open. A
+  // select needs neither, so the panel only takes focus, and `usePopover`
+  // gives it back to the trigger on close.
+  return <FloatingPortal>{panel}</FloatingPortal>;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   autoUpdate,
   flip,
@@ -66,6 +66,14 @@ export type UsePopoverOptions = {
   disabled?: boolean;
 
   /**
+   * Take focus on open and give it back on close, and let the listbox follow:
+   * floating-ui focuses the selected option on open unless told otherwise. Left
+   * out, the panel is pointer-only and nothing moves focus
+   * @default true
+   */
+  focus?: boolean;
+
+  /**
    * Announce the panel as this role. `useRole` then sets `aria-haspopup`,
    * `aria-expanded` and `aria-controls` on the trigger
    * @default undefined
@@ -110,6 +118,8 @@ export type Popover = {
    * option, follow the pointer, and return focus to the trigger on leave
    */
   getItemProps: UseInteractionsReturn["getItemProps"];
+  /** Whether the panel takes focus, which the navigation follows */
+  focus: boolean;
 };
 
 /**
@@ -138,6 +148,7 @@ export function usePopover({
   disabled,
   role,
   platform,
+  focus = true,
   listNavigation,
   typeahead,
 }: UsePopoverOptions = {}): Popover {
@@ -183,6 +194,20 @@ export function usePopover({
     ),
   });
 
+  // Focus goes back to the trigger when the panel closes, so the caret does
+  // not fall to the document — the panel took it on open (see PopoverPanel).
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (open) {
+      wasOpen.current = true;
+      return;
+    }
+    if (!wasOpen.current) return;
+    wasOpen.current = false;
+    const reference = refs.reference.current as HTMLElement | null;
+    reference?.focus?.({ preventScroll: true });
+  }, [open, refs]);
+
   const click = useClick(context, { enabled: !disabled });
   const dismiss = useDismiss(context);
   const floatingRole = useRole(context, role ? { role } : {});
@@ -193,6 +218,9 @@ export function usePopover({
     enabled: listNavigation != null,
     listRef: listNavigation?.listRef ?? emptyElementList,
     activeIndex: listNavigation?.activeIndex ?? null,
+    // With focus off, the navigation must not focus the selected option either.
+    focusItemOnOpen: focus,
+    focusItemOnHover: focus,
     ...listNavigation,
   });
   const typeaheadNav = useTypeahead(context, {
@@ -219,6 +247,7 @@ export function usePopover({
       getReferenceProps,
       getFloatingProps,
       getItemProps,
+      focus,
     }),
     [
       open,
@@ -229,6 +258,7 @@ export function usePopover({
       getReferenceProps,
       getFloatingProps,
       getItemProps,
+      focus,
     ],
   );
 }
