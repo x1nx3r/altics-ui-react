@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   autoUpdate,
   flip,
@@ -9,7 +9,9 @@ import {
   useDismiss,
   useFloating,
   useInteractions,
+  useListNavigation,
   useRole,
+  useTypeahead,
   type Placement,
   type Platform,
   type UseFloatingReturn,
@@ -77,6 +79,20 @@ export type UsePopoverOptions = {
    * @default undefined
    */
   platform?: Platform;
+
+  /**
+   * Keyboard navigation over the options, wired on the trigger: arrow keys,
+   * Home and End, and `aria-activedescendant`. The listbox supplies its
+   * `listRef` and active index. Left out, the panel takes clicks only
+   * @default undefined
+   */
+  listNavigation?: Parameters<typeof useListNavigation>[1];
+
+  /**
+   * Letter keys jump to the option whose text starts with them
+   * @default undefined
+   */
+  typeahead?: Parameters<typeof useTypeahead>[1];
 };
 
 /** Everything the trigger and the panel need from `usePopover`. */
@@ -88,6 +104,12 @@ export type Popover = {
   floatingStyles: CSSProperties;
   getReferenceProps: UseInteractionsReturn["getReferenceProps"];
   getFloatingProps: UseInteractionsReturn["getFloatingProps"];
+  /**
+   * Props for each option. floating-ui keeps navigation on the panel and moves
+   * real focus between items, so every option needs these: they sync the active
+   * option, follow the pointer, and return focus to the trigger on leave
+   */
+  getItemProps: UseInteractionsReturn["getItemProps"];
 };
 
 /**
@@ -116,7 +138,12 @@ export function usePopover({
   disabled,
   role,
   platform,
+  listNavigation,
+  typeahead,
 }: UsePopoverOptions = {}): Popover {
+  // Stable empties for the hooks' required refs.
+  const emptyElementList = useRef<Array<HTMLElement | null>>([]);
+  const emptyLabelList = useRef<Array<string | null>>([]);
   const [uncontrolled, setUncontrolled] = useState(defaultOpen);
   const open = controlledOpen ?? uncontrolled;
 
@@ -159,10 +186,27 @@ export function usePopover({
   const click = useClick(context, { enabled: !disabled });
   const dismiss = useDismiss(context);
   const floatingRole = useRole(context, role ? { role } : {});
-  const { getReferenceProps, getFloatingProps } = useInteractions([
+  // Both stay inert until a listbox passes its options. Passing the options
+  // turns them on; `enabled` in those options still wins over that. The empty
+  // lists satisfy floating-ui's required refs when there are no options yet.
+  const listNav = useListNavigation(context, {
+    enabled: listNavigation != null,
+    listRef: listNavigation?.listRef ?? emptyElementList,
+    activeIndex: listNavigation?.activeIndex ?? null,
+    ...listNavigation,
+  });
+  const typeaheadNav = useTypeahead(context, {
+    enabled: typeahead != null,
+    listRef: typeahead?.listRef ?? emptyLabelList,
+    activeIndex: typeahead?.activeIndex ?? null,
+    ...typeahead,
+  });
+  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
     click,
     dismiss,
     floatingRole,
+    listNav,
+    typeaheadNav,
   ]);
 
   return useMemo(
@@ -174,7 +218,17 @@ export function usePopover({
       floatingStyles,
       getReferenceProps,
       getFloatingProps,
+      getItemProps,
     }),
-    [open, setOpen, refs, context, floatingStyles, getReferenceProps, getFloatingProps],
+    [
+      open,
+      setOpen,
+      refs,
+      context,
+      floatingStyles,
+      getReferenceProps,
+      getFloatingProps,
+      getItemProps,
+    ],
   );
 }
