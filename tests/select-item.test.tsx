@@ -86,6 +86,19 @@ describe("SelectItem", () => {
     );
   });
 
+  it("sets the supporting text a step below the label", () => {
+    // Figma's Supporting text: 12 at sm and 14 at md and lg, against the
+    // label's 14 and 16.
+    const supporting = (size: SelectItemProps["size"]) => {
+      const { container } = renderItem({ size, description: "id", id: `row-${size}` });
+      const span = [...container.querySelectorAll("span")].find((s) => s.textContent === "id")!;
+      return span.className;
+    };
+    expect(supporting("sm")).toContain("text-xs");
+    expect(supporting("md")).toContain("text-sm");
+    expect(supporting("lg")).toContain("text-sm");
+  });
+
   it("keeps the label beside its adornment, not at the far edge", () => {
     // `justify-between` alone pushes the label of an unchosen row to the end,
     // so the adornment and the label travel in one group.

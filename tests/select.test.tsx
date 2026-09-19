@@ -139,6 +139,18 @@ describe("Select", () => {
     expect(chevron(lg.container)).toBe("20");
   });
 
+  it("sets the trigger's supporting text a step below the value", () => {
+    const supporting = (size: SelectProps["size"]) => {
+      const { container } = renderSelect({ options: OPTIONS, size, defaultValue: "id" });
+      const fieldEl = container.querySelector('[role="combobox"]')!.parentElement as HTMLElement;
+      const span = [...fieldEl.querySelectorAll("span")].find((s) => s.textContent === "id")!;
+      return span.className;
+    };
+    expect(supporting("sm")).toContain("text-xs");
+    expect(supporting("md")).toContain("text-sm");
+    expect(supporting("lg")).toContain("text-sm");
+  });
+
   it("steps the panel's search mark with the field", () => {
     const mark = (size: SelectProps["size"]) =>
       renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })
