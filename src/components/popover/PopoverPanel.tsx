@@ -20,7 +20,13 @@ export type PopoverPanelProps = Omit<HTMLAttributes<HTMLDivElement>, "popover"> 
   /**
    * Where the panel is portalled. Left out it goes to the body; a layout that
    * must keep a panel beside its field — a grid of open fields, a dialog —
-   * passes the container it belongs in
+   * passes the container it belongs in.
+   *
+   * That container should be positioned (`relative`) when it sits inside a
+   * scrolled or zoomed surface: an absolutely positioned panel takes its
+   * containing block from the nearest positioned ancestor, and a static one
+   * leaves the panel anchored to the document — it neither follows the surface's
+   * scroll nor its zoom
    * @default undefined
    */
   portalRoot?: RefObject<HTMLElement | null>;
