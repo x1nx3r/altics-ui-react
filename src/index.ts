@@ -35,6 +35,15 @@ export {
   type SelectOption,
   type SelectProps,
 } from "./components/select";
+export { ListboxOption, type ListboxOptionProps } from "./components/listbox";
+export {
+  PopoverPanel,
+  usePopover,
+  type Popover,
+  type PopoverPanelProps,
+  type PopoverRole,
+  type UsePopoverOptions,
+} from "./components/popover";
 export { Card } from "./components/card";
 export {
   Badge,
