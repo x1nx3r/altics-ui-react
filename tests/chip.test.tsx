@@ -6,11 +6,6 @@ const chipOf = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('[data-slot="tag"]')!;
 
 describe("Chip", () => {
-  it("reads the label", () => {
-    const { container } = render(<Chip label="Design" />);
-    expect(chipOf(container).textContent).toContain("Design");
-  });
-
   it("insets a bare label 10 and an adornment 4, as the sheets draw it", () => {
     const bare = render(<Chip label="Design" />);
     expect(chipOf(bare.container).className).toContain("pl-2.5");

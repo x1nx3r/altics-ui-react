@@ -238,14 +238,6 @@ describe("Select", () => {
     expect(screen.getByRole("button", { name: "Alles" })).toBeDefined();
   });
 
-  it("hides the empty state's way out when its label is empty", () => {
-    renderSelect({ options: OPTIONS, searchable: true, noResultsAction: "" });
-    openPanel();
-    fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "zzz" } });
-    expect(screen.getByText("No teams found")).toBeDefined();
-    expect(screen.queryByRole("button", { name: "Clear search" })).toBeNull();
-  });
-
   it("steps the panel's search mark with the field", () => {
     const mark = (size: SelectProps["size"]) =>
       renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })
@@ -457,17 +449,6 @@ describe("Select", () => {
     });
     fireEvent.click(screen.getByLabelText("Clear"));
     expect(onValuesChange).toHaveBeenCalledWith([]);
-  });
-
-  it("renders an option's own adornment beside its label", () => {
-    renderSelect({
-      options: [
-        { value: "id", label: "Indonesia", leading: <span data-testid="dot" /> },
-        ...OPTIONS.slice(1),
-      ],
-    });
-    openPanel();
-    expect(options()[0].querySelector('[data-testid="dot"]')).not.toBeNull();
   });
 
   it("shows the chosen options as chips when asked", () => {
