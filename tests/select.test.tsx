@@ -265,6 +265,31 @@ describe("Select", () => {
     expect(screen.getByRole("combobox").parentElement!.textContent).toContain("Siti Rahma");
   });
 
+  it("shows a loading row while the options are on their way", () => {
+    renderSelect({ options: OPTIONS, searchable: true, loading: true });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "zzz" } });
+
+    // loading outranks the empty state, and the field stays live
+    expect(screen.getByText("Loading…")).toBeDefined();
+    expect(screen.queryByText("No teams found")).toBeNull();
+    expect(screen.queryAllByRole("option")).toHaveLength(0);
+    expect(document.activeElement).toBe(searchField);
+
+    cleanup();
+    const renamed = renderSelect({
+      options: OPTIONS,
+      searchable: true,
+      loading: true,
+      loadingLabel: "Fetching teams…",
+    });
+    openPanel();
+    expect(document.querySelector('[data-slot="loading"]')!.textContent).toContain(
+      "Fetching teams…",
+    );
+  });
+
   it("steps the panel's search mark with the field", () => {
     const mark = (size: SelectProps["size"]) =>
       renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })

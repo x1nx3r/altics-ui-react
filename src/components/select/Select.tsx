@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { Platform } from "@floating-ui/react";
 import { cn } from "../../lib/cn";
+import { Spinner } from "../display";
 import { CheckIcon, ChevronDownIcon, SearchLgIcon, XCircleIcon } from "../icon/icons";
 import { fieldBorder, fieldBox, fieldFocus, fieldFocusColour, sizes } from "../input/chrome";
 import { PopoverPanel, usePopover } from "../popover";
@@ -178,6 +179,19 @@ export type SelectProps<T = SelectOption> = {
   selectAllLabel?: string;
 
   /**
+   * The options are on their way — the panel shows a loading row instead of
+   * the list or the empty state
+   * @default false
+   */
+  loading?: boolean;
+
+  /**
+   * The loading row's text
+   * @default "Loading…"
+   */
+  loadingLabel?: string;
+
+  /**
    * Replaces the footer the sheets draw — Reset at the left, Select all at the
    * right. `null` renders no footer at all
    * @default undefined
@@ -321,6 +335,8 @@ export function Select<T = SelectOption>({
   noResultsAction = "Clear search",
   resetLabel = "Reset",
   selectAllLabel = "Select all",
+  loading = false,
+  loadingLabel = "Loading…",
   footer,
   getOptionValue,
   getOptionLabel,
@@ -629,7 +645,16 @@ export function Select<T = SelectOption>({
         )}
 
         <div data-slot="options" className="min-h-0 flex-1 overflow-auto py-1.5">
-          {visible.length === 0
+          {loading ? (
+            // The sheets never draw this state — a designed row: centred, quiet.
+            <div
+              data-slot="loading"
+              className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-neutral-600"
+            >
+              <Spinner size={16} />
+              {loadingLabel}
+            </div>
+          ) : visible.length === 0
             ? (noResults ?? (
                 <NoResults
                   onClear={() => search("")}
