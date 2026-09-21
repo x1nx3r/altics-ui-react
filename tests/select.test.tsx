@@ -216,6 +216,36 @@ describe("Select", () => {
     expect(onValueChange).toHaveBeenCalledWith("sg");
   });
 
+  it("lets the empty state's copy and the footer's labels be renamed", () => {
+    renderSelect({
+      options: OPTIONS,
+      searchable: true,
+      multiple: true,
+      noResultsTitle: "Nothing here",
+      noResultsHint: "Loosen the filters.",
+      noResultsAction: "Start over",
+      resetLabel: "Leeren",
+      selectAllLabel: "Alles",
+    });
+    openPanel();
+    fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "zzz" } });
+    expect(screen.getByText("Nothing here")).toBeDefined();
+    expect(screen.getByText("Loosen the filters.")).toBeDefined();
+
+    fireEvent.click(screen.getByText("Start over"));
+    expect(screen.getAllByRole("option")).toHaveLength(4);
+    expect(screen.getByRole("button", { name: "Leeren" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Alles" })).toBeDefined();
+  });
+
+  it("hides the empty state's way out when its label is empty", () => {
+    renderSelect({ options: OPTIONS, searchable: true, noResultsAction: "" });
+    openPanel();
+    fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "zzz" } });
+    expect(screen.getByText("No teams found")).toBeDefined();
+    expect(screen.queryByRole("button", { name: "Clear search" })).toBeNull();
+  });
+
   it("steps the panel's search mark with the field", () => {
     const mark = (size: SelectProps["size"]) =>
       renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })

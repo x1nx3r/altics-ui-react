@@ -135,6 +135,36 @@ export type SelectProps = {
   searchPlaceholder?: string;
 
   /**
+   * The empty state's title, shown when a search matches nothing
+   * @default "No teams found"
+   */
+  noResultsTitle?: string;
+
+  /**
+   * The empty state's hint, under the title
+   * @default "Please try a different search term."
+   */
+  noResultsHint?: string;
+
+  /**
+   * The empty state's way out, which clears the search. An empty string hides it
+   * @default "Clear search"
+   */
+  noResultsAction?: string;
+
+  /**
+   * The multiple panel's footer button that empties the selection
+   * @default "Reset"
+   */
+  resetLabel?: string;
+
+  /**
+   * The multiple panel's footer button that adds every option in the list
+   * @default "Select all"
+   */
+  selectAllLabel?: string;
+
+  /**
    * Replace the built-in empty state, which the sheets draw as a circled mark,
    * a title, a hint and a way to clear the search
    * @default undefined
@@ -266,6 +296,11 @@ export function Select({
   leading,
   searchable,
   searchPlaceholder = "Search",
+  noResultsTitle = "No teams found",
+  noResultsHint = "Please try a different search term.",
+  noResultsAction = "Clear search",
+  resetLabel = "Reset",
+  selectAllLabel = "Select all",
   chips = false,
   clearable = false,
   noResults,
@@ -301,7 +336,8 @@ export function Select({
 
   const matches = (option: SelectOption, text: string) =>
     `${option.label} ${option.description ?? ""}`.toLowerCase().includes(text.toLowerCase());
-  const visible = withSearch && query ? options.filter((option) => matches(option, query)) : options;
+  const visible =
+    withSearch && query ? options.filter((option) => matches(option, query)) : options;
   // A multiple select starts with no highlight; a single one starts on its value.
   const highlightedIndex = multiple ? -1 : visible.findIndex((option) => option.value === value);
 
@@ -332,7 +368,9 @@ export function Select({
         : null),
     },
     // With a search field, the letters belong to it, not to typeahead.
-    typeahead: withSearch ? undefined : { listRef: labelsRef, activeIndex, onMatch: setActiveIndex },
+    typeahead: withSearch
+      ? undefined
+      : { listRef: labelsRef, activeIndex, onMatch: setActiveIndex },
   });
 
   // A fresh panel starts with no query, the way the sheets draw it.
@@ -342,7 +380,8 @@ export function Select({
 
   function search(next: string) {
     setQuery(next);
-    const nextVisible = withSearch && next ? options.filter((option) => matches(option, next)) : options;
+    const nextVisible =
+      withSearch && next ? options.filter((option) => matches(option, next)) : options;
     setActiveIndex(nextVisible.length ? 0 : null);
   }
 
@@ -365,7 +404,7 @@ export function Select({
   const chosenOptions = options.filter((option) => chosenValues.includes(option.value));
   const accessibleValue = multiple
     ? chosenOptions.map((option) => option.label).join(", ") || placeholder
-    : selected?.label ?? placeholder;
+    : (selected?.label ?? placeholder);
   const hasValue = multiple ? chosenValues.length > 0 : Boolean(value);
   const showClear = clearable && hasValue && !disabled;
 
@@ -410,11 +449,13 @@ export function Select({
   return (
     <div className={cn("relative", className)}>
       {name &&
-        (multiple
-          ? chosenValues.map((chosen) => (
-              <input key={chosen} type="hidden" name={name} value={chosen} readOnly />
-            ))
-          : <input type="hidden" name={name} value={value ?? ""} readOnly />)}
+        (multiple ? (
+          chosenValues.map((chosen) => (
+            <input key={chosen} type="hidden" name={name} value={chosen} readOnly />
+          ))
+        ) : (
+          <input type="hidden" name={name} value={value ?? ""} readOnly />
+        ))}
 
       <div
         data-slot="select"
@@ -486,10 +527,7 @@ export function Select({
             <span className="min-w-0 flex-1 truncate text-placeholder">{placeholder}</span>
           )}
           {!clearable && (
-            <ChevronDownIcon
-              size={size === "lg" ? 20 : 16}
-              className="shrink-0 text-neutral-600"
-            />
+            <ChevronDownIcon size={size === "lg" ? 20 : 16} className="shrink-0 text-neutral-600" />
           )}
         </span>
 
@@ -543,10 +581,7 @@ export function Select({
               searchRow[size],
             )}
           >
-            <SearchLgIcon
-              size={size === "sm" ? 16 : 20}
-              className="shrink-0 text-neutral-400"
-            />
+            <SearchLgIcon size={size === "sm" ? 16 : 20} className="shrink-0 text-neutral-400" />
             <input
               ref={searchRef}
               value={query}
@@ -561,30 +596,35 @@ export function Select({
         )}
 
         <div className="min-h-0 flex-1 overflow-auto py-1.5">
-          {visible.length === 0 ? (
-            noResults ?? <NoResults onClear={() => search("")} />
-          ) : (
-            visible.map((option, index) => (
-              <SelectItem
-                key={option.value}
-                {...popover.getItemProps()}
-                ref={(node) => {
-                  listRef.current[index] = node;
-                  labelsRef.current[index] = option.label;
-                }}
-                id={`${fieldId}-option-${index}`}
-                label={option.label}
-                description={option.description}
-                leading={option.leading}
-                size={size}
-                checkbox={multiple}
-                selected={isChosen(option)}
-                active={activeIndex === index}
-                disabled={option.disabled}
-                onChoose={() => choose(option)}
-              />
-            ))
-          )}
+          {visible.length === 0
+            ? (noResults ?? (
+                <NoResults
+                  onClear={() => search("")}
+                  title={noResultsTitle}
+                  hint={noResultsHint}
+                  action={noResultsAction}
+                />
+              ))
+            : visible.map((option, index) => (
+                <SelectItem
+                  key={option.value}
+                  {...popover.getItemProps()}
+                  ref={(node) => {
+                    listRef.current[index] = node;
+                    labelsRef.current[index] = option.label;
+                  }}
+                  id={`${fieldId}-option-${index}`}
+                  label={option.label}
+                  description={option.description}
+                  leading={option.leading}
+                  size={size}
+                  checkbox={multiple}
+                  selected={isChosen(option)}
+                  active={activeIndex === index}
+                  disabled={option.disabled}
+                  onChoose={() => choose(option)}
+                />
+              ))}
         </div>
         {multiple && (
           // The sheet's footer: Reset at the panel's left edge, Select all at
@@ -595,11 +635,11 @@ export function Select({
                 type="button"
                 onClick={resetValues}
                 className={cn(
-                  "rounded-md border border-neutral-300 bg-background px-4 text-sm text-neutral-700 transition-colors hover:bg-neutral-50",
+                  "rounded-md border border-neutral-300 bg-background px-4 text-sm-semibold text-neutral-700 transition-colors hover:bg-neutral-50",
                   size === "sm" ? "h-8" : "h-9",
                 )}
               >
-                Reset
+                {resetLabel}
               </button>
               <button
                 type="button"
@@ -609,7 +649,7 @@ export function Select({
                   size === "sm" ? "h-8" : "h-9",
                 )}
               >
-                Select all
+                {selectAllLabel}
               </button>
             </div>
           </div>
@@ -620,7 +660,17 @@ export function Select({
 }
 
 /** The sheet's empty state: a boxed mark, a title, a hint, and a way out. */
-function NoResults({ onClear }: { onClear: () => void }) {
+function NoResults({
+  onClear,
+  title,
+  hint,
+  action,
+}: {
+  onClear: () => void;
+  title: string;
+  hint: string;
+  action?: string;
+}) {
   return (
     // Measured off the Search empty state cell: 18 under the search row, the
     // 32px box with 6px corners, the title 12 after it, the hint 4 after that,
@@ -629,15 +679,17 @@ function NoResults({ onClear }: { onClear: () => void }) {
       <span className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-300">
         <SearchLgIcon size={16} className="text-neutral-400" />
       </span>
-      <p className="mt-3 text-sm font-semibold text-foreground">No teams found</p>
-      <p className="mt-1 text-sm text-neutral-600">Please try a different search term.</p>
-      <button
-        type="button"
-        onClick={onClear}
-        className="mt-2.5 rounded-sm text-sm text-brand-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-      >
-        Clear search
-      </button>
+      <p className="mt-3 text-sm font-semibold text-foreground">{title}</p>
+      <p className="mt-1 text-sm text-neutral-600">{hint}</p>
+      {action && (
+        <button
+          type="button"
+          onClick={onClear}
+          className="mt-2.5 rounded-sm text-sm text-brand-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        >
+          {action}
+        </button>
+      )}
     </div>
   );
 }
