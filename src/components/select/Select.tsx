@@ -369,12 +369,12 @@ export function Select({
 
   const fieldId = id ?? triggerId;
 
-  // The sheet insets the trigger's text and its trailing mark alike: 12 at sm
-  // and md, 14 at lg. Measured off the leading avatar and the chevron's frame,
-  // which the md and lg cells agree on; the sm Default cell draws its chevron
-  // 2 in from that edge and the Search and Tags clears 4 to 5, quirks we do not
-  // encode.
-  const inset = size === "lg" ? "px-3.5" : "px-3";
+  // The sheet insets the trigger's text 12 at sm and md and 14 at lg, and sets
+  // the trailing mark's frame 10, 12 and 14 from the right edge — measured
+  // across every chevron-bearing cell (69, zero variance) and, on the leading
+  // side, off the avatar, which has no bearing to confound it.
+  const leadingInset = size === "lg" ? "pl-3.5" : "pl-3";
+  const trailingInset = { sm: "pr-2.5", md: "pr-3", lg: "pr-3.5" }[size];
 
   return (
     <div className={cn("relative", className)}>
@@ -419,13 +419,13 @@ export function Select({
           aria-hidden="true"
           className={cn(
             "pointer-events-none absolute inset-0 flex items-center gap-2",
-            inset,
-            showClear && sizes[size].trailingPad,
+            leadingInset,
+            showClear ? sizes[size].trailingPad : trailingInset,
           )}
         >
           {leading}
           {chips && chosenOptions.length > 0 ? (
-            <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
+            <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
               {chosenOptions.map((option) => (
                 <Chip
                   key={option.value}
@@ -438,12 +438,12 @@ export function Select({
             </span>
           ) : multiple ? (
             chosenValues.length > 0 ? (
-              <span className="truncate">{chosenValues.length} selected</span>
+              <span className="min-w-0 flex-1 truncate">{chosenValues.length} selected</span>
             ) : (
-              <span className="truncate text-placeholder">{placeholder}</span>
+              <span className="min-w-0 flex-1 truncate text-placeholder">{placeholder}</span>
             )
           ) : selected ? (
-            <span className="flex min-w-0 items-baseline gap-2">
+            <span className="flex min-w-0 flex-1 items-baseline gap-2">
               <span className="truncate">{selected.label}</span>
               {selected.description && (
                 <span className={cn("truncate text-neutral-600", sizes[size].supportingText)}>
@@ -452,7 +452,7 @@ export function Select({
               )}
             </span>
           ) : (
-            <span className="truncate text-placeholder">{placeholder}</span>
+            <span className="min-w-0 flex-1 truncate text-placeholder">{placeholder}</span>
           )}
           {!clearable && (
             <ChevronDownIcon
@@ -473,7 +473,7 @@ export function Select({
             }}
             className={cn(
               "absolute inset-y-0 flex items-center text-neutral-400 hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-              size === "lg" ? "right-3.5" : "right-3",
+              { sm: "right-2.5", md: "right-3", lg: "right-3.5" }[size],
             )}
           >
             <XCircleIcon size={size === "sm" ? 10 : 12} />

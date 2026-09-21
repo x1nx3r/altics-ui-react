@@ -123,19 +123,23 @@ describe("Select", () => {
     const sm = renderSelect({ options: OPTIONS, size: "sm" });
     expect(fieldOf(sm.container).className).toContain("h-9");
     expect(fieldOf(sm.container).className).toContain("text-sm");
-    // The sheet insets the text and the trailing mark alike: 12 at sm and md
-    expect(layerOf(sm.container).className).toContain("px-3");
+    // The sheet insets the text 12 and the chevron's frame 10 from the right
+    expect(layerOf(sm.container).className).toContain("pl-3");
+    expect(layerOf(sm.container).className).toContain("pr-2.5");
     expect(chevron(sm.container)).toBe("16");
 
     const md = renderSelect({ options: OPTIONS, size: "md" });
     expect(fieldOf(md.container).className).toContain("h-10");
     expect(fieldOf(md.container).className).toContain("text-base");
+    expect(layerOf(md.container).className).toContain("pr-3");
     expect(chevron(md.container)).toBe("16");
 
     const lg = renderSelect({ options: OPTIONS, size: "lg" });
     expect(fieldOf(lg.container).className).toContain("h-11");
-    // 14 at lg, and a 20 chevron: the sheet draws 11.67 × 6.67 of ink there
-    expect(layerOf(lg.container).className).toContain("px-3.5");
+    // 14 on both edges at lg, and a 20 chevron: the sheet draws 11.67 × 6.67 of
+    // ink there
+    expect(layerOf(lg.container).className).toContain("pl-3.5");
+    expect(layerOf(lg.container).className).toContain("pr-3.5");
     expect(chevron(lg.container)).toBe("20");
   });
 
@@ -149,6 +153,27 @@ describe("Select", () => {
     expect(supporting("sm")).toContain("text-xs");
     expect(supporting("md")).toContain("text-sm");
     expect(supporting("lg")).toContain("text-sm");
+  });
+
+  it("spans the value across the field so the chevron sits on its edge", () => {
+    // The sheet pins the trailing mark to the field's trailing inset; without
+    // flex-1 on the value the mark would follow the text instead.
+    const valueOf = (props: SelectProps) => {
+      const { container } = renderSelect(props);
+      const layer = container
+        .querySelector('[role="combobox"]')!
+        .parentElement!.querySelector('[aria-hidden="true"]')!;
+      return (layer.children[0] as HTMLElement).className;
+    };
+    expect(valueOf({ options: OPTIONS, placeholder: "Country" })).toContain("flex-1");
+    expect(valueOf({ options: OPTIONS, defaultValue: "id" })).toContain("flex-1");
+    expect(valueOf({ options: OPTIONS, multiple: true, placeholder: "Country" })).toContain("flex-1");
+    expect(valueOf({ options: OPTIONS, multiple: true, defaultValues: ["id", "my"] })).toContain(
+      "flex-1",
+    );
+    expect(
+      valueOf({ options: OPTIONS, multiple: true, chips: true, defaultValues: ["id", "my"] }),
+    ).toContain("flex-1");
   });
 
   it("steps the panel's search mark with the field", () => {
