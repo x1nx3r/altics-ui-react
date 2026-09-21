@@ -324,6 +324,23 @@ describe("Select", () => {
     expect(options()).toHaveLength(3);
   });
 
+  it("focuses the trigger on mount and reports focus changes", () => {
+    const onFocus = vi.fn();
+    const onBlur = vi.fn();
+    const { container } = renderSelect({
+      options: OPTIONS,
+      autoFocus: true,
+      onFocus,
+      onBlur,
+    });
+    expect(document.activeElement).toBe(trigger());
+    expect(onFocus).toHaveBeenCalledTimes(1);
+
+    fireEvent.blur(trigger());
+    expect(onBlur).toHaveBeenCalledTimes(1);
+    expect(container).toBeDefined();
+  });
+
   it("steps the panel's search mark with the field", () => {
     const mark = (size: SelectProps["size"]) =>
       renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })

@@ -1,4 +1,12 @@
-import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type FocusEventHandler,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import type { Platform } from "@floating-ui/react";
 import { cn } from "../../lib/cn";
 import { Spinner } from "../display";
@@ -296,6 +304,24 @@ export type SelectProps<T = SelectOption> = {
   required?: boolean;
 
   /**
+   * Runs when the trigger gains focus
+   * @default undefined
+   */
+  onFocus?: FocusEventHandler<HTMLButtonElement>;
+
+  /**
+   * Runs when the trigger loses focus
+   * @default undefined
+   */
+  onBlur?: FocusEventHandler<HTMLButtonElement>;
+
+  /**
+   * Focuses the trigger on mount
+   * @default false
+   */
+  autoFocus?: boolean;
+
+  /**
    * The platform floating-ui measures with. Left out in the browser; a test or
    * a non-DOM environment passes a deterministic one, because jsdom has no
    * layout and the DOM platform churns without it
@@ -371,6 +397,9 @@ export function Select<T = SelectOption>({
   id,
   "aria-describedby": describedBy,
   required,
+  onFocus,
+  onBlur,
+  autoFocus,
 }: SelectProps<T>) {
   // The identity and label resolvers. With the default SelectOption shape they
   // read the fields; with domain-shaped options the caller supplies them, and
@@ -553,7 +582,11 @@ export function Select<T = SelectOption>({
           aria-describedby={describedBy}
           aria-invalid={error ? true : undefined}
           className="absolute inset-0 w-full rounded-md focus:outline-none"
-          {...popover.getReferenceProps()}
+          {...popover.getReferenceProps({
+            onFocus,
+            onBlur,
+            ...(autoFocus ? { autoFocus: true } : null),
+          })}
         >
           <span className="sr-only">{accessibleValue}</span>
         </button>
