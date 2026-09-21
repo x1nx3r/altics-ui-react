@@ -535,6 +535,7 @@ export function Select({
           <button
             type="button"
             aria-label="Clear"
+            data-slot="clear"
             onMouseDown={(event) => event.preventDefault()}
             onClick={(event) => {
               event.stopPropagation();
@@ -575,6 +576,7 @@ export function Select({
       >
         {withSearch && (
           <div
+            data-slot="search"
             className={cn(
               "flex shrink-0 items-center gap-2 border-b-2 border-neutral-200",
               size === "lg" ? "px-3.5" : "px-3",
@@ -595,7 +597,7 @@ export function Select({
           </div>
         )}
 
-        <div className="min-h-0 flex-1 overflow-auto py-1.5">
+        <div data-slot="options" className="min-h-0 flex-1 overflow-auto py-1.5">
           {visible.length === 0
             ? (noResults ?? (
                 <NoResults
@@ -629,7 +631,7 @@ export function Select({
         {multiple && (
           // The sheet's footer: Reset at the panel's left edge, Select all at
           // its right, under a 2px divider — 44 tall at sm, 48 above.
-          <div className="shrink-0 border-t-2 border-neutral-200 px-3 py-1.5">
+          <div data-slot="footer" className="shrink-0 border-t-2 border-neutral-200 px-3 py-1.5">
             <div className="flex items-center justify-between">
               <button
                 type="button"
@@ -675,7 +677,7 @@ function NoResults({
     // Measured off the Search empty state cell: 18 under the search row, the
     // 32px box with 6px corners, the title 12 after it, the hint 4 after that,
     // the link 10 more, and 18 before the footer.
-    <div className="flex flex-col items-center px-6 pt-3 pb-3 text-center">
+    <div data-slot="no-results" className="flex flex-col items-center px-6 pt-3 pb-3 text-center">
       <span className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-300">
         <SearchLgIcon size={16} className="text-neutral-400" />
       </span>
