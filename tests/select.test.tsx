@@ -238,6 +238,33 @@ describe("Select", () => {
     expect(screen.getByRole("button", { name: "Alles" })).toBeDefined();
   });
 
+  it("takes domain-shaped options through the resolvers", () => {
+    const onValueChange = vi.fn();
+    type User = { id: number; name: string; team: string };
+    const users: User[] = [
+      { id: 1, name: "Irfan Yulianto", team: "Design" },
+      { id: 2, name: "Siti Rahma", team: "Research" },
+      { id: 3, name: "Budi Santoso", team: "Platform" },
+    ];
+    render(
+      <Select
+        options={users}
+        getOptionValue={(user) => String(user.id)}
+        getOptionLabel={(user) => user.name}
+        searchable
+        searchPlaceholder="Pick a teammate"
+        onValueChange={onValueChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole("combobox"));
+    fireEvent.change(screen.getByPlaceholderText("Pick a teammate"), { target: { value: "siti" } });
+    expect(screen.getAllByRole("option")).toHaveLength(1);
+    expect(document.activeElement).toBe(screen.getByPlaceholderText("Pick a teammate"));
+    fireEvent.keyDown(screen.getByPlaceholderText("Pick a teammate"), { key: "Enter" });
+    expect(onValueChange).toHaveBeenCalledWith("2");
+    expect(screen.getByRole("combobox").parentElement!.textContent).toContain("Siti Rahma");
+  });
+
   it("steps the panel's search mark with the field", () => {
     const mark = (size: SelectProps["size"]) =>
       renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })

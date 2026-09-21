@@ -36,12 +36,25 @@ export type SelectOption = {
   disabled?: boolean;
 };
 
-export type SelectProps = {
+export type SelectProps<T = SelectOption> = {
   /**
    * The options, in the order the panel draws them
    * @default undefined
    */
-  options: SelectOption[];
+  options: readonly T[];
+
+  /**
+   * Reads the identity a choice is stored under. Required when the options
+   * aren't SelectOption-shaped
+   * @default (option) => option.value
+   */
+  getOptionValue?: (option: T) => string;
+
+  /**
+   * Reads the text the trigger and the rows render
+   * @default (option) => option.label
+   */
+  getOptionLabel?: (option: T) => string;
 
   /**
    * The chosen value. Give this and `onValueChange` to control the field
@@ -283,7 +296,7 @@ const searchRow = { sm: "h-11", md: "h-11", lg: "h-12" };
  *   <Select options={countries} />
  * </Field>
  */
-export function Select({
+export function Select<T = SelectOption>({
   options,
   value: controlledValue,
   defaultValue,
@@ -309,6 +322,8 @@ export function Select({
   resetLabel = "Reset",
   selectAllLabel = "Select all",
   footer,
+  getOptionValue,
+  getOptionLabel,
   chips = false,
   clearable = false,
   noResults,
@@ -318,16 +333,22 @@ export function Select({
   id,
   "aria-describedby": describedBy,
   required,
-}: SelectProps) {
+}: SelectProps<T>) {
+  // The identity and label resolvers. With the default SelectOption shape they
+  // read the fields; with domain-shaped options the caller supplies them, and
+  // the remaining fields are read through the same shape.
+  const valueOf = getOptionValue ?? ((option: T) => (option as SelectOption).value);
+  const labelOf = getOptionLabel ?? ((option: T) => (option as SelectOption).label);
+  const asOption = (option: T) => option as SelectOption;
   const [uncontrolled, setUncontrolled] = useState(defaultValue);
   const value = controlledValue ?? uncontrolled;
   const [uncontrolledValues, setUncontrolledValues] = useState<string[]>(defaultValues ?? []);
   const chosenValues = controlledValues ?? uncontrolledValues;
-  const isChosen = (option: SelectOption) =>
-    multiple ? chosenValues.includes(option.value) : option.value === value;
+  const isChosen = (option: T) =>
+    multiple ? chosenValues.includes(valueOf(option)) : valueOf(option) === value;
   const withSearch = searchable ?? multiple;
 
-  const selectedIndex = options.findIndex((option) => option.value === value);
+  const selectedIndex = options.findIndex((option) => valueOf(option) === value);
   const selected = multiple || selectedIndex === -1 ? undefined : options[selectedIndex];
 
   const [query, setQuery] = useState("");
@@ -342,12 +363,14 @@ export function Select({
   const virtualItemRef = useRef<HTMLElement | null>(null);
   const triggerId = useId();
 
-  const matches = (option: SelectOption, text: string) =>
-    `${option.label} ${option.description ?? ""}`.toLowerCase().includes(text.toLowerCase());
+  const matches = (option: T, text: string) => {
+    const o = asOption(option);
+    return `${labelOf(option)} ${o.description ?? ""}`.toLowerCase().includes(text.toLowerCase());
+  };
   const visible =
     withSearch && query ? options.filter((option) => matches(option, query)) : options;
   // A multiple select starts with no highlight; a single one starts on its value.
-  const highlightedIndex = multiple ? -1 : visible.findIndex((option) => option.value === value);
+  const highlightedIndex = multiple ? -1 : visible.findIndex((option) => valueOf(option) === value);
 
   const popover = usePopover({
     role: "listbox",
@@ -393,26 +416,26 @@ export function Select({
     setActiveIndex(nextVisible.length ? 0 : null);
   }
 
-  function choose(option: SelectOption) {
-    if (option.disabled) return;
+  function choose(option: T) {
+    if (asOption(option).disabled) return;
     if (multiple) {
       // Toggling leaves the panel open, as the sheets draw it.
-      const next = chosenValues.includes(option.value)
-        ? chosenValues.filter((chosen) => chosen !== option.value)
-        : [...chosenValues, option.value];
+      const next = chosenValues.includes(valueOf(option))
+        ? chosenValues.filter((chosen) => chosen !== valueOf(option))
+        : [...chosenValues, valueOf(option)];
       if (controlledValues === undefined) setUncontrolledValues(next);
       onValuesChange?.(next);
       return;
     }
-    if (controlledValue === undefined) setUncontrolled(option.value);
-    onValueChange?.(option.value);
+    if (controlledValue === undefined) setUncontrolled(valueOf(option));
+    onValueChange?.(valueOf(option));
     popover.setOpen(false);
   }
 
-  const chosenOptions = options.filter((option) => chosenValues.includes(option.value));
+  const chosenOptions = options.filter((option) => chosenValues.includes(valueOf(option)));
   const accessibleValue = multiple
-    ? chosenOptions.map((option) => option.label).join(", ") || placeholder
-    : (selected?.label ?? placeholder);
+    ? chosenOptions.map((option) => labelOf(option)).join(", ") || placeholder
+    : (selected !== undefined ? labelOf(selected) : placeholder);
   const hasValue = multiple ? chosenValues.length > 0 : Boolean(value);
   const showClear = clearable && hasValue && !disabled;
 
@@ -438,7 +461,7 @@ export function Select({
     const next = Array.from(
       new Set([
         ...chosenValues,
-        ...visible.filter((option) => !option.disabled).map((option) => option.value),
+        ...visible.filter((option) => !asOption(option).disabled).map((option) => valueOf(option)),
       ]),
     );
     if (controlledValues === undefined) setUncontrolledValues(next);
@@ -508,9 +531,9 @@ export function Select({
             <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
               {chosenOptions.map((option) => (
                 <Chip
-                  key={option.value}
-                  label={option.label}
-                  leading={option.leading}
+                  key={valueOf(option)}
+                  label={labelOf(option)}
+                  leading={asOption(option).leading}
                   size={size}
                   onRemove={() => choose(option)}
                 />
@@ -524,10 +547,10 @@ export function Select({
             )
           ) : selected ? (
             <span className="flex min-w-0 flex-1 items-baseline gap-2">
-              <span className="truncate">{selected.label}</span>
-              {selected.description && (
+              <span className="truncate">{labelOf(selected)}</span>
+              {asOption(selected).description && (
                 <span className={cn("truncate text-neutral-600", sizes[size].supportingText)}>
-                  {selected.description}
+                  {asOption(selected).description}
                 </span>
               )}
             </span>
@@ -617,21 +640,21 @@ export function Select({
               ))
             : visible.map((option, index) => (
                 <SelectItem
-                  key={option.value}
+                  key={valueOf(option)}
                   {...popover.getItemProps()}
                   ref={(node) => {
                     listRef.current[index] = node;
-                    labelsRef.current[index] = option.label;
+                    labelsRef.current[index] = labelOf(option);
                   }}
                   id={`${fieldId}-option-${index}`}
-                  label={option.label}
-                  description={option.description}
-                  leading={option.leading}
+                  label={labelOf(option)}
+                  description={asOption(option).description}
+                  leading={asOption(option).leading}
                   size={size}
                   checkbox={multiple}
                   selected={isChosen(option)}
                   active={activeIndex === index}
-                  disabled={option.disabled}
+                  disabled={asOption(option).disabled}
                   onChoose={() => choose(option)}
                 />
               ))}
