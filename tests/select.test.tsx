@@ -341,6 +341,26 @@ describe("Select", () => {
     expect(container).toBeDefined();
   });
 
+  it("stays present but locked when readOnly", () => {
+    const { container } = renderSelect({
+      options: OPTIONS,
+      readOnly: true,
+      defaultValue: "id",
+      name: "team",
+    });
+    // the panel never opens
+    openPanel();
+    expect(screen.queryByRole("listbox")).toBeNull();
+
+    // unlike disabled: no fade, no aria-disabled, still focusable and submitted
+    const box = field();
+    expect(box.getAttribute("data-readonly")).toBe("true");
+    expect(box.className).not.toContain("opacity-50");
+    expect(trigger().getAttribute("aria-disabled")).toBeNull();
+    expect(trigger().hasAttribute("disabled")).toBe(false);
+    expect(container.querySelector('input[name="team"]')).not.toBeNull();
+  });
+
   it("steps the panel's search mark with the field", () => {
     const mark = (size: SelectProps["size"]) =>
       renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })

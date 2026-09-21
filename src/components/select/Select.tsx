@@ -136,6 +136,14 @@ export type SelectProps<T = SelectOption> = {
   error?: string | boolean;
 
   /**
+   * Locked but present: the panel never opens and the clear disappears, yet
+   * the field stays focusable and the value still submits — unlike disabled,
+   * which fades the field and blocks submission
+   * @default false
+   */
+  readOnly?: boolean;
+
+  /**
    * Content before the value: the sheets' types lead with an avatar, a dot or
    * an icon
    * @default undefined
@@ -371,6 +379,7 @@ export function Select<T = SelectOption>({
   onOpenChange,
   portalRoot,
   disabled,
+  readOnly,
   error,
   leading,
   searchable,
@@ -442,7 +451,7 @@ export function Select<T = SelectOption>({
 
   const popover = usePopover({
     role: "listbox",
-    disabled,
+    disabled: disabled || readOnly,
     platform,
     open,
     defaultOpen,
@@ -506,7 +515,7 @@ export function Select<T = SelectOption>({
     ? chosenOptions.map((option) => labelOf(option)).join(", ") || placeholder
     : (selected !== undefined ? labelOf(selected) : placeholder);
   const hasValue = multiple ? chosenValues.length > 0 : Boolean(value);
-  const showClear = clearable && hasValue && !disabled;
+  const showClear = clearable && hasValue && !disabled && !readOnly;
 
   function clear() {
     if (multiple) {
@@ -560,6 +569,7 @@ export function Select<T = SelectOption>({
       <div
         data-slot="select"
         data-disabled={disabled || undefined}
+        data-readonly={readOnly || undefined}
         data-invalid={error ? true : undefined}
         className={cn(
           fieldBox,
