@@ -165,6 +165,13 @@ export type SelectProps = {
   selectAllLabel?: string;
 
   /**
+   * Replaces the footer the sheets draw — Reset at the left, Select all at the
+   * right. `null` renders no footer at all
+   * @default undefined
+   */
+  footer?: ReactNode;
+
+  /**
    * Replace the built-in empty state, which the sheets draw as a circled mark,
    * a title, a hint and a way to clear the search
    * @default undefined
@@ -301,6 +308,7 @@ export function Select({
   noResultsAction = "Clear search",
   resetLabel = "Reset",
   selectAllLabel = "Select all",
+  footer,
   chips = false,
   clearable = false,
   noResults,
@@ -628,9 +636,11 @@ export function Select({
                 />
               ))}
         </div>
-        {multiple && (
+        {multiple &&
           // The sheet's footer: Reset at the panel's left edge, Select all at
-          // its right, under a 2px divider — 44 tall at sm, 48 above.
+          // its right, under a 2px divider — 44 tall at sm, 48 above. A
+          // consumer's footer replaces it; null removes it.
+          (footer === undefined ? (
           <div data-slot="footer" className="shrink-0 border-t-2 border-neutral-200 px-3 py-1.5">
             <div className="flex items-center justify-between">
               <button
@@ -655,7 +665,10 @@ export function Select({
               </button>
             </div>
           </div>
-        )}
+          ) : (
+            footer
+          ))}
+
       </PopoverPanel>
     </div>
   );

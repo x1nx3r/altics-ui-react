@@ -328,6 +328,22 @@ describe("Select", () => {
     expect(onValuesChange).toHaveBeenLastCalledWith([]);
   });
 
+  it("lets a consumer replace or remove the footer", () => {
+    const { container } = renderSelect({
+      options: OPTIONS,
+      multiple: true,
+      footer: <div data-testid="custom-footer">Apply and Cancel</div>,
+    });
+    openPanel();
+    expect(screen.queryByRole("button", { name: "Select all" })).toBeNull();
+    expect(screen.getByTestId("custom-footer")).toBeDefined();
+
+    cleanup();
+    const hidden = renderSelect({ options: OPTIONS, multiple: true, footer: null });
+    openPanel();
+    expect(hidden.container.querySelector('[data-slot="footer"]')).toBeNull();
+  });
+
   it("keeps the footer out of the single panel", () => {
     renderSelect({ options: OPTIONS, searchable: true });
     openPanel();
