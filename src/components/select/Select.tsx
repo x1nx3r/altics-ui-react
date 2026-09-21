@@ -635,7 +635,7 @@ export function Select({
                 type="button"
                 onClick={resetValues}
                 className={cn(
-                  "rounded-md border border-neutral-300 bg-background px-4 text-sm-semibold text-neutral-700 transition-colors hover:bg-neutral-50",
+                  "rounded-md border border-neutral-300 bg-background px-4 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50",
                   size === "sm" ? "h-8" : "h-9",
                 )}
               >
@@ -645,7 +645,7 @@ export function Select({
                 type="button"
                 onClick={selectAllVisible}
                 className={cn(
-                  "rounded-md border border-neutral-300 bg-background px-4 text-sm text-neutral-700 transition-colors hover:bg-neutral-50",
+                  "rounded-md border border-neutral-300 bg-background px-4 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50",
                   size === "sm" ? "h-8" : "h-9",
                 )}
               >
@@ -679,13 +679,13 @@ function NoResults({
       <span className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-300">
         <SearchLgIcon size={16} className="text-neutral-400" />
       </span>
-      <p className="mt-3 text-sm font-medium text-foreground">{title}</p>
+      <p className="mt-3 text-sm text-foreground">{title}</p>
       <p className="mt-1 text-sm text-neutral-600">{hint}</p>
       {action && (
         <button
           type="button"
           onClick={onClear}
-          className="mt-2.5 rounded-sm text-sm text-brand-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+          className="mt-2.5 rounded-sm text-sm font-semibold text-brand-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           {action}
         </button>

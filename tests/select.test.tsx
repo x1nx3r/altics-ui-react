@@ -312,8 +312,13 @@ describe("Select", () => {
     fireEvent.change(searchField, { target: { value: "zzz" } });
 
     expect(screen.queryAllByRole("option")).toHaveLength(0);
-    expect(screen.getByText("No teams found").className).toContain("font-medium");
-    expect(screen.getByText("Please try a different search term.")).toBeDefined();
+    // the spec pins the weights: the title and hint are regular, the way out
+    // is text-sm/semibold
+    expect(screen.getByText("No teams found").className).not.toMatch(/font-(medium|semibold)/);
+    expect(screen.getByText("Please try a different search term.").className).not.toMatch(
+      /font-(medium|semibold)/,
+    );
+    expect(screen.getByText("Clear search").className).toContain("font-semibold");
 
     fireEvent.click(screen.getByText("Clear search"));
     expect(screen.getAllByRole("option")).toHaveLength(4);
@@ -328,6 +333,9 @@ describe("Select", () => {
     fireEvent.click(screen.getByRole("button", { name: "Select all" }));
     // Thailand is disabled and stays out of the selection
     expect(onValuesChange).toHaveBeenLastCalledWith(["id", "my", "sg"]);
+    // the Figma spec pins these labels to text-sm/semibold
+    expect(screen.getByRole("button", { name: "Select all" }).className).toContain("font-semibold");
+    expect(screen.getByRole("button", { name: "Reset" }).className).toContain("font-semibold");
 
     fireEvent.click(screen.getByRole("button", { name: "Reset" }));
     expect(onValuesChange).toHaveBeenLastCalledWith([]);
