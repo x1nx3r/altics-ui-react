@@ -187,6 +187,35 @@ describe("Select", () => {
     expect(clearOf("lg")).toContain("right-[18px]");
   });
 
+  it("keeps the caret in the search field while the highlight moves", () => {
+    renderSelect({ options: OPTIONS, searchable: true });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "si" } });
+
+    // The most relevant row is highlighted and announced, but the field keeps
+    // the caret: typing continues without a focus steal.
+    expect(document.activeElement).toBe(searchField);
+    expect(options()[0].getAttribute("data-active")).toBe("true");
+    // floating-ui announces the virtual focus on the listbox itself
+    expect(screen.getByRole("listbox").getAttribute("aria-activedescendant")).toBe(options()[0].id);
+  });
+
+  it("lets the search field own Space, and chooses with Enter", () => {
+    const onValueChange = vi.fn();
+    renderSelect({ options: OPTIONS, searchable: true, onValueChange });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "sin" } });
+
+    fireEvent.keyDown(searchField, { key: " " });
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(screen.getByRole("listbox")).toBeDefined();
+
+    fireEvent.keyDown(searchField, { key: "Enter" });
+    expect(onValueChange).toHaveBeenCalledWith("sg");
+  });
+
   it("steps the panel's search mark with the field", () => {
     const mark = (size: SelectProps["size"]) =>
       renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })
@@ -253,11 +282,32 @@ describe("Select", () => {
     fireEvent.change(searchField, { target: { value: "zzz" } });
 
     expect(screen.queryAllByRole("option")).toHaveLength(0);
-    expect(screen.getByText("No results")).toBeDefined();
+    expect(screen.getByText("No teams found")).toBeDefined();
+    expect(screen.getByText("Please try a different search term.")).toBeDefined();
 
     fireEvent.click(screen.getByText("Clear search"));
     expect(screen.getAllByRole("option")).toHaveLength(4);
     expect((screen.getByPlaceholderText("Search") as HTMLInputElement).value).toBe("");
+  });
+
+  it("gives the multiple panel a footer that selects all and resets", () => {
+    const onValuesChange = vi.fn();
+    renderSelect({ options: OPTIONS, multiple: true, onValuesChange });
+    openPanel();
+
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+    // Thailand is disabled and stays out of the selection
+    expect(onValuesChange).toHaveBeenLastCalledWith(["id", "my", "sg"]);
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+    expect(onValuesChange).toHaveBeenLastCalledWith([]);
+  });
+
+  it("keeps the footer out of the single panel", () => {
+    renderSelect({ options: OPTIONS, searchable: true });
+    openPanel();
+    expect(screen.queryByRole("button", { name: "Reset" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Select all" })).toBeNull();
   });
 
   it("chooses the first match with Enter while searching", () => {

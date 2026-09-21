@@ -294,6 +294,9 @@ export function Select({
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const labelsRef = useRef<Array<string | null>>([]);
   const searchRef = useRef<HTMLInputElement>(null);
+  // floating-ui's virtual navigation writes the active row here; it must not be
+  // the search field's own ref, or the field's node is replaced by a row.
+  const virtualItemRef = useRef<HTMLElement | null>(null);
   const triggerId = useId();
 
   const matches = (option: SelectOption, text: string) =>
@@ -315,9 +318,18 @@ export function Select({
       onNavigate: setActiveIndex,
       loop: true,
       selectedIndex: highlightedIndex === -1 ? null : highlightedIndex,
-      // With a search field the keys come from it, so focus stays there: the
-      // navigation must not take it on open, nor follow the pointer.
-      ...(withSearch ? { focusItemOnOpen: false, focusItemOnHover: false } : null),
+      // With a search field the keys and the letters come from the input, so
+      // navigation runs virtually: the highlight moves to the most relevant
+      // row, the input announces it through aria-activedescendant, and the
+      // caret never leaves the field.
+      ...(withSearch
+        ? {
+            focusItemOnOpen: false,
+            focusItemOnHover: false,
+            virtual: true,
+            virtualItemRef,
+          }
+        : null),
     },
     // With a search field, the letters belong to it, not to typeahead.
     typeahead: withSearch ? undefined : { listRef: labelsRef, activeIndex, onMatch: setActiveIndex },
@@ -365,6 +377,25 @@ export function Select({
     }
     if (controlledValue === undefined) setUncontrolled("");
     onValueChange?.("");
+  }
+
+  // The footer's Reset: back to nothing selected, the search stays as it is.
+  function resetValues() {
+    if (controlledValues === undefined) setUncontrolledValues([]);
+    onValuesChange?.([]);
+  }
+
+  // The footer's Select all: every option in the list right now — the filtered
+  // matches under a search — joins the selection; chosen rows outside it stay.
+  function selectAllVisible() {
+    const next = Array.from(
+      new Set([
+        ...chosenValues,
+        ...visible.filter((option) => !option.disabled).map((option) => option.value),
+      ]),
+    );
+    if (controlledValues === undefined) setUncontrolledValues(next);
+    onValuesChange?.(next);
   }
 
   const fieldId = id ?? triggerId;
@@ -492,16 +523,22 @@ export function Select({
           fieldBorder(error),
         )}
         onKeyDown={(event) => {
-          if ((event.key === "Enter" || event.key === " ") && activeIndex !== null) {
+          // The search field owns Space — it types one. Enter chooses the
+          // highlighted option from the input or the list alike.
+          const typing = event.target === searchRef.current;
+          if ((event.key === "Enter" || (!typing && event.key === " ")) && activeIndex !== null) {
             const option = visible[activeIndex];
-            if (option) choose(option);
+            if (option) {
+              event.preventDefault();
+              choose(option);
+            }
           }
         }}
       >
         {withSearch && (
           <div
             className={cn(
-              "flex shrink-0 items-center gap-2 border-b border-neutral-200",
+              "flex shrink-0 items-center gap-2 border-b-2 border-neutral-200",
               size === "lg" ? "px-3.5" : "px-3",
               searchRow[size],
             )}
@@ -549,24 +586,55 @@ export function Select({
             ))
           )}
         </div>
+        {multiple && (
+          // The sheet's footer: Reset at the panel's left edge, Select all at
+          // its right, under a 2px divider — 44 tall at sm, 48 above.
+          <div className="shrink-0 border-t-2 border-neutral-200 px-3 py-1.5">
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={resetValues}
+                className={cn(
+                  "rounded-md border border-neutral-300 bg-background px-4 text-sm text-neutral-700 transition-colors hover:bg-neutral-50",
+                  size === "sm" ? "h-8" : "h-9",
+                )}
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                onClick={selectAllVisible}
+                className={cn(
+                  "rounded-md border border-neutral-300 bg-background px-4 text-sm text-neutral-700 transition-colors hover:bg-neutral-50",
+                  size === "sm" ? "h-8" : "h-9",
+                )}
+              >
+                Select all
+              </button>
+            </div>
+          </div>
+        )}
       </PopoverPanel>
     </div>
   );
 }
 
-/** The sheet's empty state: a circled mark, a title, a hint, and a way out. */
+/** The sheet's empty state: a boxed mark, a title, a hint, and a way out. */
 function NoResults({ onClear }: { onClear: () => void }) {
   return (
-    <div className="flex flex-col items-center px-6 py-7 text-center">
-      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300">
+    // Measured off the Search empty state cell: 18 under the search row, the
+    // 32px box with 6px corners, the title 12 after it, the hint 4 after that,
+    // the link 10 more, and 18 before the footer.
+    <div className="flex flex-col items-center px-6 pt-3 pb-3 text-center">
+      <span className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-300">
         <SearchLgIcon size={16} className="text-neutral-400" />
       </span>
-      <p className="mt-4 text-sm text-foreground">No results</p>
-      <p className="mt-1 text-sm text-neutral-600">Try a different search.</p>
+      <p className="mt-3 text-sm font-semibold text-foreground">No teams found</p>
+      <p className="mt-1 text-sm text-neutral-600">Please try a different search term.</p>
       <button
         type="button"
         onClick={onClear}
-        className="mt-3 rounded-sm text-sm text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        className="mt-2.5 rounded-sm text-sm text-brand-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
       >
         Clear search
       </button>
