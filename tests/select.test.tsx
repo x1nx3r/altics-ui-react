@@ -176,6 +176,17 @@ describe("Select", () => {
     ).toContain("flex-1");
   });
 
+  it("puts the clear mark where the sheet draws it", () => {
+    // The sheet's clear ink sits 12.5, 17 and 19 from the right edge; with our
+    // glyph that puts the button at 12, 16 and 18.
+    const clearOf = (size: SelectProps["size"]) =>
+      renderSelect({ options: OPTIONS, size, clearable: true, defaultValue: "id" })
+        .container.querySelector('button[aria-label="Clear"]')!.className;
+    expect(clearOf("sm")).toContain("right-3");
+    expect(clearOf("md")).toContain("right-4");
+    expect(clearOf("lg")).toContain("right-[18px]");
+  });
+
   it("steps the panel's search mark with the field", () => {
     const mark = (size: SelectProps["size"]) =>
       renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })

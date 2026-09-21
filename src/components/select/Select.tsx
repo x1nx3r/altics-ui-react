@@ -473,7 +473,7 @@ export function Select({
             }}
             className={cn(
               "absolute inset-y-0 flex items-center text-neutral-400 hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-              { sm: "right-2.5", md: "right-3", lg: "right-3.5" }[size],
+              { sm: "right-3", md: "right-4", lg: "right-[18px]" }[size],
             )}
           >
             <XCircleIcon size={size === "sm" ? 10 : 12} />
