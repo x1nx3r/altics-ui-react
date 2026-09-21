@@ -149,6 +149,25 @@ export type SelectProps<T = SelectOption> = {
   searchPlaceholder?: string;
 
   /**
+   * The search text, when the caller owns it. Left out, the field keeps its
+   * own and resets when the panel closes
+   * @default undefined
+   */
+  query?: string;
+
+  /**
+   * The search text the panel starts with
+   * @default ""
+   */
+  defaultQuery?: string;
+
+  /**
+   * Runs with the next search text as it changes
+   * @default undefined
+   */
+  onQueryChange?: (query: string) => void;
+
+  /**
    * The empty state's title, shown when a search matches nothing
    * @default "No teams found"
    */
@@ -330,6 +349,9 @@ export function Select<T = SelectOption>({
   leading,
   searchable,
   searchPlaceholder = "Search",
+  query: queryProp,
+  defaultQuery,
+  onQueryChange,
   noResultsTitle = "No teams found",
   noResultsHint = "Please try a different search term.",
   noResultsAction = "Clear search",
@@ -367,7 +389,8 @@ export function Select<T = SelectOption>({
   const selectedIndex = options.findIndex((option) => valueOf(option) === value);
   const selected = multiple || selectedIndex === -1 ? undefined : options[selectedIndex];
 
-  const [query, setQuery] = useState("");
+  const [uncontrolledQuery, setUncontrolledQuery] = useState(defaultQuery ?? "");
+  const query = queryProp ?? uncontrolledQuery;
   const [activeIndex, setActiveIndex] = useState<number | null>(
     selectedIndex === -1 ? null : selectedIndex,
   );
@@ -422,11 +445,12 @@ export function Select<T = SelectOption>({
 
   // A fresh panel starts with no query, the way the sheets draw it.
   useEffect(() => {
-    if (!popover.open) setQuery("");
+    if (!popover.open && queryProp === undefined) setUncontrolledQuery(defaultQuery ?? "");
   }, [popover.open]);
 
   function search(next: string) {
-    setQuery(next);
+    if (queryProp === undefined) setUncontrolledQuery(next);
+    onQueryChange?.(next);
     const nextVisible =
       withSearch && next ? options.filter((option) => matches(option, next)) : options;
     setActiveIndex(nextVisible.length ? 0 : null);

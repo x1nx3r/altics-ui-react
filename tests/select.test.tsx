@@ -290,6 +290,40 @@ describe("Select", () => {
     );
   });
 
+  it("lets the caller own the search text", () => {
+    const onQueryChange = vi.fn();
+    const { rerender } = renderSelect({
+      options: OPTIONS,
+      searchable: true,
+      query: "sin",
+      onQueryChange,
+    });
+    openPanel();
+    expect(options()).toHaveLength(1);
+
+    fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "siti" } });
+    expect(onQueryChange).toHaveBeenCalledWith("siti");
+
+    // the caller applies it — and the text is theirs, so it survives renders
+    rerender(
+      <Select
+        options={OPTIONS}
+        searchable
+        query="sin"
+        onQueryChange={onQueryChange}
+        platform={testPlatform}
+      />,
+    );
+    expect(options()).toHaveLength(1);
+    expect((screen.getByPlaceholderText("Search") as HTMLInputElement).value).toBe("sin");
+  });
+
+  it("starts the search from defaultQuery", () => {
+    renderSelect({ options: OPTIONS, searchable: true, defaultQuery: "si" });
+    openPanel();
+    expect(options()).toHaveLength(3);
+  });
+
   it("steps the panel's search mark with the field", () => {
     const mark = (size: SelectProps["size"]) =>
       renderSelect({ options: OPTIONS, size, searchable: true, defaultOpen: true })
