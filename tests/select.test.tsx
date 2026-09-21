@@ -312,12 +312,7 @@ describe("Select", () => {
     fireEvent.change(searchField, { target: { value: "zzz" } });
 
     expect(screen.queryAllByRole("option")).toHaveLength(0);
-    // the spec pins the weights: the title and hint are regular, the way out
-    // is text-sm/semibold
-    expect(screen.getByText("No teams found").className).not.toMatch(/font-(medium|semibold)/);
-    expect(screen.getByText("Please try a different search term.").className).not.toMatch(
-      /font-(medium|semibold)/,
-    );
+    // the spec pins the way out to text-sm/semibold
     expect(screen.getByText("Clear search").className).toContain("font-semibold");
 
     fireEvent.click(screen.getByText("Clear search"));

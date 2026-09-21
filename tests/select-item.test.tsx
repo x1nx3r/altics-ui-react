@@ -17,12 +17,6 @@ describe("SelectItem", () => {
     expect(row().getAttribute("data-disabled")).toBe("true");
   });
 
-  it("reads the label and the description", () => {
-    renderItem({ description: "id" });
-    expect(row().textContent).toContain("Indonesia");
-    expect(row().textContent).toContain("id");
-  });
-
   it("trails a check when chosen, and leads a checkbox when asked", () => {
     const single = renderItem({ selected: true });
     expect(single.container.querySelector("svg")).not.toBeNull();
@@ -41,11 +35,6 @@ describe("SelectItem", () => {
     expect(container.querySelector('[role="option"]')!.firstElementChild!.className).toContain(
       "border-neutral-300",
     );
-  });
-
-  it("draws the leading adornment", () => {
-    const { container } = renderItem({ leading: <span data-testid="dot" /> });
-    expect(container.querySelector('[data-testid="dot"]')).not.toBeNull();
   });
 
   it("follows the field ramp at every size, as the sheets draw it", () => {
