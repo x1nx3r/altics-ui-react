@@ -312,7 +312,7 @@ describe("Select", () => {
     fireEvent.change(searchField, { target: { value: "zzz" } });
 
     expect(screen.queryAllByRole("option")).toHaveLength(0);
-    expect(screen.getByText("No teams found")).toBeDefined();
+    expect(screen.getByText("No teams found").className).toContain("font-medium");
     expect(screen.getByText("Please try a different search term.")).toBeDefined();
 
     fireEvent.click(screen.getByText("Clear search"));

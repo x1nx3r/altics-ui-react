@@ -679,7 +679,7 @@ function NoResults({
       <span className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-300">
         <SearchLgIcon size={16} className="text-neutral-400" />
       </span>
-      <p className="mt-3 text-sm font-semibold text-foreground">{title}</p>
+      <p className="mt-3 text-sm font-medium text-foreground">{title}</p>
       <p className="mt-1 text-sm text-neutral-600">{hint}</p>
       {action && (
         <button
