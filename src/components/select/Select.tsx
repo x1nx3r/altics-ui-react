@@ -144,6 +144,13 @@ export type SelectProps<T = SelectOption> = {
   readOnly?: boolean;
 
   /**
+   * Caps how many options a multiple select may hold. Choosing past the cap
+   * does nothing, and Select all fills up to it
+   * @default undefined
+   */
+  maxSelectedValues?: number;
+
+  /**
    * Content before the value: the sheets' types lead with an avatar, a dot or
    * an icon
    * @default undefined
@@ -380,6 +387,7 @@ export function Select<T = SelectOption>({
   portalRoot,
   disabled,
   readOnly,
+  maxSelectedValues,
   error,
   leading,
   searchable,
@@ -424,14 +432,57 @@ export function Select<T = SelectOption>({
     multiple ? chosenValues.includes(valueOf(option)) : valueOf(option) === value;
   const withSearch = searchable ?? multiple;
 
-  const selectedIndex = options.findIndex((option) => valueOf(option) === value);
-  const selected = multiple || selectedIndex === -1 ? undefined : options[selectedIndex];
+  // The options belong to the backend. Guard the shape, then warn on the two
+  // contracts a malformed list would quietly break: string values (the
+  // selection compares strictly) and unique values (duplicate keys and an
+  // ambiguous selection).
+  const list = Array.isArray(options) ? options : [];
+  if (process.env.NODE_ENV !== "production") {
+    if (!Array.isArray(options)) {
+      console.error("[altics-ui] Select: options must be an array.");
+    }
+    const seen = new Set<string>();
+    for (const option of list) {
+      const value = valueOf(option);
+      if (typeof value !== "string") {
+        console.error(
+          `[altics-ui] Select: option values must be strings; got ${typeof value}. The selection compares values strictly.`,
+        );
+      }
+      if (seen.has(value)) {
+        console.error(
+          `[altics-ui] Select: two options share the value ${JSON.stringify(String(value))}. The selection is ambiguous.`,
+        );
+      }
+      seen.add(value);
+    }
+  }
+
+  const selectedIndex = list.findIndex((option) => valueOf(option) === value);
+  const selected = multiple || selectedIndex === -1 ? undefined : list[selectedIndex];
+
+  // Chosen values the list doesn't contain — a deleted record, or a fetch still
+  // in flight — stay visible as themselves instead of hiding behind the
+  // placeholder, because the form is about to submit them.
+  const knownValues = new Set(list.map((option) => valueOf(option)));
+  const unknownChosen = chosenValues.filter((chosen) => !knownValues.has(chosen));
 
   const [uncontrolledQuery, setUncontrolledQuery] = useState(defaultQuery ?? "");
   const query = queryProp ?? uncontrolledQuery;
   const [activeIndex, setActiveIndex] = useState<number | null>(
     selectedIndex === -1 ? null : selectedIndex,
   );
+  // The options belong to the backend: when the list changes under an open
+  // panel, the highlight restarts at the top rather than pointing at a stale
+  // row. Guarded by the previous length, so the mount keeps its chosen
+  // highlight. Same reset a search performs.
+  const previousLength = useRef(list.length);
+  useEffect(() => {
+    if (popover.open && previousLength.current !== list.length) {
+      setActiveIndex(visible.length ? 0 : null);
+    }
+    previousLength.current = list.length;
+  });
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const labelsRef = useRef<Array<string | null>>([]);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -445,7 +496,7 @@ export function Select<T = SelectOption>({
     return `${labelOf(option)} ${o.description ?? ""}`.toLowerCase().includes(text.toLowerCase());
   };
   const visible =
-    withSearch && query ? options.filter((option) => matches(option, query)) : options;
+    withSearch && query ? list.filter((option) => matches(option, query)) : list;
   // A multiple select starts with no highlight; a single one starts on its value.
   const highlightedIndex = multiple ? -1 : visible.findIndex((option) => valueOf(option) === value);
 
@@ -490,17 +541,23 @@ export function Select<T = SelectOption>({
     if (queryProp === undefined) setUncontrolledQuery(next);
     onQueryChange?.(next);
     const nextVisible =
-      withSearch && next ? options.filter((option) => matches(option, next)) : options;
+      withSearch && next ? list.filter((option) => matches(option, next)) : list;
     setActiveIndex(nextVisible.length ? 0 : null);
   }
 
   function choose(option: T) {
     if (asOption(option).disabled) return;
     if (multiple) {
-      // Toggling leaves the panel open, as the sheets draw it.
-      const next = chosenValues.includes(valueOf(option))
-        ? chosenValues.filter((chosen) => chosen !== valueOf(option))
-        : [...chosenValues, valueOf(option)];
+      // Toggling leaves the panel open, as the sheets draw it. The cap refuses
+      // additions silently — the count keeps telling the truth.
+      const chosen = valueOf(option);
+      const already = chosenValues.includes(chosen);
+      if (!already && maxSelectedValues !== undefined && chosenValues.length >= maxSelectedValues) {
+        return;
+      }
+      const next = already
+        ? chosenValues.filter((value) => value !== chosen)
+        : [...chosenValues, chosen];
       if (controlledValues === undefined) setUncontrolledValues(next);
       onValuesChange?.(next);
       return;
@@ -510,10 +567,15 @@ export function Select<T = SelectOption>({
     popover.setOpen(false);
   }
 
-  const chosenOptions = options.filter((option) => chosenValues.includes(valueOf(option)));
+  const chosenOptions = list.filter((option) => chosenValues.includes(valueOf(option)));
   const accessibleValue = multiple
-    ? chosenOptions.map((option) => labelOf(option)).join(", ") || placeholder
-    : (selected !== undefined ? labelOf(selected) : placeholder);
+    ? [...chosenOptions.map((option) => labelOf(option)), ...unknownChosen.map(String)].join(", ") ||
+      placeholder
+    : selected !== undefined
+      ? labelOf(selected)
+      : value
+        ? String(value)
+        : placeholder;
   const hasValue = multiple ? chosenValues.length > 0 : Boolean(value);
   const showClear = clearable && hasValue && !disabled && !readOnly;
 
@@ -525,6 +587,14 @@ export function Select<T = SelectOption>({
     }
     if (controlledValue === undefined) setUncontrolled("");
     onValueChange?.("");
+  }
+
+  // Drops one value by identity — how a fallback chip for an unknown chosen
+  // value removes itself, without an option object to choose.
+  function removeValue(value: string) {
+    const next = chosenValues.filter((chosen) => chosen !== value);
+    if (controlledValues === undefined) setUncontrolledValues(next);
+    onValuesChange?.(next);
   }
 
   // The footer's Reset: back to nothing selected, the search stays as it is.
@@ -539,7 +609,11 @@ export function Select<T = SelectOption>({
     const next = Array.from(
       new Set([
         ...chosenValues,
-        ...visible.filter((option) => !asOption(option).disabled).map((option) => valueOf(option)),
+        ...visible
+          .filter((option) => !asOption(option).disabled)
+          .map((option) => valueOf(option))
+          .filter((value) => !chosenValues.includes(value))
+          .slice(0, Math.max(0, (maxSelectedValues ?? Infinity) - chosenValues.length)),
       ]),
     );
     if (controlledValues === undefined) setUncontrolledValues(next);
@@ -619,6 +693,14 @@ export function Select<T = SelectOption>({
                   leading={asOption(option).leading}
                   size={size}
                   onRemove={() => choose(option)}
+                />
+              ))}
+              {unknownChosen.map((value) => (
+                <Chip
+                  key={value}
+                  label={String(value)}
+                  size={size}
+                  onRemove={() => removeValue(value)}
                 />
               ))}
             </span>
@@ -727,7 +809,7 @@ export function Select<T = SelectOption>({
                   onClear={() => search("")}
                   title={noResultsTitle}
                   hint={noResultsHint}
-                  action={noResultsAction}
+                  action={query ? noResultsAction : undefined}
                 />
               ))
             : visible.map((option, index) => (

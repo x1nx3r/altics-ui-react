@@ -637,6 +637,96 @@ describe("Select", () => {
     expect(screen.getByRole("listbox")).toBeDefined();
   });
 
+  it("keeps chosen values the options list doesn't contain", () => {
+    // A record deleted server-side, or a fetch still in flight: the value is
+    // real and about to be submitted, so it renders as itself everywhere.
+    const onValuesChange = vi.fn();
+    renderSelect({
+      options: OPTIONS,
+      multiple: true,
+      chips: true,
+      defaultValues: ["id", "ghost"],
+      onValuesChange,
+      name: "teams",
+    });
+    openPanel();
+    expect(screen.getAllByRole("option")).toHaveLength(4);
+    expect(document.querySelectorAll('[data-slot="tag"]')).toHaveLength(2);
+    expect(document.querySelector('[data-slot="tag"]')!.textContent).toContain("Indonesia");
+    expect(onValuesChange).not.toHaveBeenCalled();
+
+    const ghostChip = [...document.querySelectorAll('[data-slot="tag"]')].find((chip) =>
+      chip.textContent?.includes("ghost"),
+    )!;
+    fireEvent.click(ghostChip.querySelector("button")!);
+    expect(onValuesChange).toHaveBeenLastCalledWith(["id"]);
+  });
+
+  it("renders a single select's unknown value instead of the placeholder", () => {
+    const onValueChange = vi.fn();
+    const { container } = renderSelect({
+      options: OPTIONS,
+      defaultValue: "ghost",
+      onValueChange,
+      name: "team",
+    });
+    expect(field().textContent).toContain("ghost");
+    expect(field().textContent).not.toContain("Placeholder");
+    expect(container.querySelector('input[name="team"]')).not.toBeNull();
+  });
+
+  it("warns on the option contracts a malformed list would quietly break", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    renderSelect({
+      options: [
+        { value: "id", label: "Indonesia" },
+        { value: 42, label: "Answer" },
+        { value: "id", label: "Duplicate" },
+      ] as unknown as SelectProps["options"],
+    });
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("option values must be strings"));
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("two options share the value"));
+    error.mockRestore();
+  });
+
+  it("survives options that are not an array", () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    renderSelect({ options: undefined as unknown as SelectProps["options"] });
+    openPanel();
+    expect(screen.queryAllByRole("option")).toHaveLength(0);
+    expect(error).toHaveBeenCalledWith(expect.stringContaining("options must be an array"));
+    error.mockRestore();
+  });
+
+  it("refuses to choose past maxSelectedValues, and Select all fills up to it", () => {
+    const onValuesChange = vi.fn();
+    renderSelect({
+      options: OPTIONS,
+      multiple: true,
+      maxSelectedValues: 2,
+      defaultValues: ["id"],
+      onValuesChange,
+    });
+    openPanel();
+
+    fireEvent.click(options()[1]); // Malaysia — within the cap
+    expect(onValuesChange).toHaveBeenLastCalledWith(["id", "my"]);
+
+    fireEvent.click(options()[2]); // Singapore — the cap refuses
+    expect(onValuesChange).toHaveBeenLastCalledWith(["id", "my"]);
+
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+    // fills to the cap: the chosen first, then the visible not-chosen, sliced
+    expect(onValuesChange).toHaveBeenLastCalledWith(["id", "my"]);
+  });
+
+  it("shows the empty state's way out only while a search is active", () => {
+    renderSelect({ options: [], searchable: true });
+    openPanel();
+    expect(screen.getByText("No teams found")).toBeDefined();
+    expect(screen.queryByText("Clear search")).toBeNull();
+  });
+
   it("portals the panel into the container it is given", () => {
     function Contained() {
       const root = useRef<HTMLDivElement>(null);
