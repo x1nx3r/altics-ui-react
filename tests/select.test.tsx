@@ -757,6 +757,20 @@ describe("Select", () => {
     expect(onValuesChange).toHaveBeenLastCalledWith(["id"]);
   });
 
+  it("shows fallback chips when none of the chosen values are loaded yet", () => {
+    // A paginated list where the chosen page hasn't arrived: the chips branch
+    // must key off the chosen values, not the resolved ones.
+    renderSelect({
+      options: OPTIONS,
+      multiple: true,
+      chips: true,
+      defaultValues: ["ghost-1", "ghost-2"],
+    });
+    expect(document.querySelectorAll('[data-slot="tag"]')).toHaveLength(2);
+    expect(field().textContent).toContain("ghost-1");
+    expect(field().textContent).not.toContain("selected");
+  });
+
   it("renders a single select's unknown value instead of the placeholder", () => {
     const onValueChange = vi.fn();
     const { container } = renderSelect({

@@ -750,7 +750,7 @@ export function Select<T = SelectOption>({
           )}
         >
           {leading}
-          {chips && chosenOptions.length > 0 ? (
+          {chips && chosenValues.length > 0 ? (
             <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
               {chosenOptions.map((option) => (
                 <Chip
