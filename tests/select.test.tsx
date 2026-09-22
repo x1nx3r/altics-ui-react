@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { Field, Select, type SelectProps } from "../src";
+import { Field, Select, type SelectOption, type SelectProps } from "../src";
 import { testPlatform } from "./floating";
 
 const OPTIONS = [
@@ -265,31 +265,6 @@ describe("Select", () => {
     expect(screen.getByRole("combobox").parentElement!.textContent).toContain("Siti Rahma");
   });
 
-  it("shows a loading row while the options are on their way", () => {
-    renderSelect({ options: OPTIONS, searchable: true, loading: true });
-    openPanel();
-    const searchField = screen.getByPlaceholderText("Search");
-    fireEvent.change(searchField, { target: { value: "zzz" } });
-
-    // loading outranks the empty state, and the field stays live
-    expect(screen.getByText("Loading…")).toBeDefined();
-    expect(screen.queryByText("No teams found")).toBeNull();
-    expect(screen.queryAllByRole("option")).toHaveLength(0);
-    expect(document.activeElement).toBe(searchField);
-
-    cleanup();
-    const renamed = renderSelect({
-      options: OPTIONS,
-      searchable: true,
-      loading: true,
-      loadingLabel: "Fetching teams…",
-    });
-    openPanel();
-    expect(document.querySelector('[data-slot="loading"]')!.textContent).toContain(
-      "Fetching teams…",
-    );
-  });
-
   it("lets the caller own the search text", () => {
     const onQueryChange = vi.fn();
     const { rerender } = renderSelect({
@@ -359,6 +334,126 @@ describe("Select", () => {
     expect(trigger().getAttribute("aria-disabled")).toBeNull();
     expect(trigger().hasAttribute("disabled")).toBe(false);
     expect(container.querySelector('input[name="team"]')).not.toBeNull();
+  });
+
+  it("hands filtering to the backend when filter is false", () => {
+    renderSelect({ options: OPTIONS, searchable: true, filter: false });
+    openPanel();
+    fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "sin" } });
+    // the server decides what matches — the options render as given
+    expect(screen.getAllByRole("option")).toHaveLength(4);
+  });
+
+  it("lets a custom filter replace the built-in matcher", () => {
+    renderSelect({
+      options: OPTIONS,
+      searchable: true,
+      filter: (option, query) =>
+        String((option as SelectOption).label).toLowerCase().startsWith(query.toLowerCase()),
+    });
+    openPanel();
+    fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "si" } });
+    // starts-with: Indonesia and Malaysia contain "si" but don't start with it
+    expect(screen.getAllByRole("option")).toHaveLength(1);
+    expect(screen.getAllByRole("option")[0].textContent).toContain("Singapore");
+  });
+
+  it("shows a loading row while the options are on their way", () => {
+    renderSelect({ options: [], searchable: true, loading: true });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "zzz" } });
+
+    // first load: the loading row replaces the list and the empty state,
+    // and the field stays live
+    expect(screen.getByText("Loading…")).toBeDefined();
+    expect(screen.queryByText("No teams found")).toBeNull();
+    expect(screen.queryAllByRole("option")).toHaveLength(0);
+    expect(document.activeElement).toBe(searchField);
+
+    cleanup();
+    // pagination: the loaded list stays up while the next page fetches, with
+    // the loading row as a sentinel underneath it
+    const paginated = renderSelect({
+      options: OPTIONS,
+      searchable: true,
+      loading: true,
+      loadingLabel: "Fetching more teams…",
+    });
+    openPanel();
+    expect(screen.getAllByRole("option")).toHaveLength(4);
+    expect(
+      paginated.container.ownerDocument.querySelector('[data-slot="options"] [data-slot="loading"]'),
+    ).not.toBeNull();
+    expect(document.querySelector('[data-slot="loading"]')!.textContent).toContain(
+      "Fetching more teams…",
+    );
+  });
+
+  it("asks for the next page when the list bottom comes into view", () => {
+    const onLoadMore = vi.fn();
+    let fire: (() => void) | undefined;
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          fire = () => callback([{ isIntersecting: true } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+
+    renderSelect({ options: OPTIONS, searchable: true, onLoadMore, hasMore: true });
+    openPanel();
+    const sentinel = document.querySelector('[data-slot="load-more"]');
+    expect(sentinel).not.toBeNull();
+    fire?.();
+    expect(onLoadMore).toHaveBeenCalledTimes(1);
+
+    vi.unstubAllGlobals();
+  });
+
+  it("stops asking when there is no next page, no trigger, or a fetch in flight", () => {
+    const onLoadMore = vi.fn();
+    const { container } = renderSelect({ options: OPTIONS, searchable: true, hasMore: true });
+    openPanel();
+    // no onLoadMore: no sentinel
+    expect(container.ownerDocument.querySelector('[data-slot="load-more"]')).toBeNull();
+
+    cleanup();
+    const noMore = renderSelect({ options: OPTIONS, searchable: true, onLoadMore });
+    openPanel();
+    // no hasMore: no sentinel
+    expect(noMore.container.ownerDocument.querySelector('[data-slot="load-more"]')).toBeNull();
+
+    cleanup();
+    const busy = renderSelect({
+      options: OPTIONS,
+      searchable: true,
+      onLoadMore,
+      hasMore: true,
+      loading: true,
+    });
+    openPanel();
+    // while a page is in flight the sentinel is gone, so the asks cannot pile up
+    expect(busy.container.ownerDocument.querySelector('[data-slot="load-more"]')).toBeNull();
+  });
+
+  it("wires the footer buttons to backend triggers when the caller supplies them", () => {
+    const onSelectAll = vi.fn();
+    const onReset = vi.fn();
+    renderSelect({ options: OPTIONS, multiple: true, onSelectAll, onReset });
+    openPanel();
+
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }));
+    expect(onSelectAll).toHaveBeenCalledTimes(1);
+    // the client-side union never ran
+    expect(screen.getAllByRole("option")).toHaveLength(4);
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+    expect(onReset).toHaveBeenCalledTimes(1);
   });
 
   it("steps the panel's search mark with the field", () => {

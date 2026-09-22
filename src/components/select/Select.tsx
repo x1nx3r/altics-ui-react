@@ -191,6 +191,14 @@ export type SelectProps<T = SelectOption> = {
   onQueryChange?: (query: string) => void;
 
   /**
+   * Replaces the built-in matcher — case-insensitive over the label and the
+   * description. `false` hands filtering to the backend: the options render
+   * as given, whatever the field contains
+   * @default undefined
+   */
+  filter?: false | ((option: T, query: string) => boolean);
+
+  /**
    * The empty state's title, shown when a search matches nothing
    * @default "No teams found"
    */
@@ -221,6 +229,21 @@ export type SelectProps<T = SelectOption> = {
   selectAllLabel?: string;
 
   /**
+   * Replaces Select all's behaviour — a backend trigger selecting every
+   * matching row, most of them never fetched. Left out, the button selects
+   * every option in the list
+   * @default undefined
+   */
+  onSelectAll?: () => void;
+
+  /**
+   * Replaces Reset's behaviour — a backend trigger. Left out, the button
+   * empties the selection
+   * @default undefined
+   */
+  onReset?: () => void;
+
+  /**
    * The options are on their way — the panel shows a loading row instead of
    * the list or the empty state
    * @default false
@@ -232,6 +255,21 @@ export type SelectProps<T = SelectOption> = {
    * @default "Loading…"
    */
   loadingLabel?: string;
+
+  /**
+   * Runs when the bottom of the list comes into view — by scroll, or by the
+   * highlighted row reaching it — so the next page can be fetched. Stop the
+   * asks with `hasMore`
+   * @default undefined
+   */
+  onLoadMore?: () => void;
+
+  /**
+   * Whether more pages exist. When false, or while loading, the sentinel
+   * stops asking
+   * @default undefined
+   */
+  hasMore?: boolean;
 
   /**
    * Replaces the footer the sheets draw — Reset at the left, Select all at the
@@ -402,6 +440,11 @@ export function Select<T = SelectOption>({
   selectAllLabel = "Select all",
   loading = false,
   loadingLabel = "Loading…",
+  onLoadMore,
+  hasMore,
+  filter,
+  onSelectAll,
+  onReset,
   footer,
   getOptionValue,
   getOptionLabel,
@@ -486,17 +529,20 @@ export function Select<T = SelectOption>({
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const labelsRef = useRef<Array<string | null>>([]);
   const searchRef = useRef<HTMLInputElement>(null);
+  const optionsRegionRef = useRef<HTMLDivElement | null>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   // floating-ui's virtual navigation writes the active row here; it must not be
   // the search field's own ref, or the field's node is replaced by a row.
   const virtualItemRef = useRef<HTMLElement | null>(null);
   const triggerId = useId();
 
   const matches = (option: T, text: string) => {
+    if (filter === false) return true;
+    if (filter) return filter(option, text);
     const o = asOption(option);
     return `${labelOf(option)} ${o.description ?? ""}`.toLowerCase().includes(text.toLowerCase());
   };
-  const visible =
-    withSearch && query ? list.filter((option) => matches(option, query)) : list;
+  const visible = withSearch && query ? list.filter((option) => matches(option, query)) : list;
   // A multiple select starts with no highlight; a single one starts on its value.
   const highlightedIndex = multiple ? -1 : visible.findIndex((option) => valueOf(option) === value);
 
@@ -537,11 +583,30 @@ export function Select<T = SelectOption>({
     if (!popover.open && queryProp === undefined) setUncontrolledQuery(defaultQuery ?? "");
   }, [popover.open]);
 
+  // The sentinel asks for the next page when the bottom of the list comes into
+  // view — by scroll, or by the highlighted row scrolling it into view, which
+  // covers keyboard users with the same mechanism. No dependency list: every
+  // render reconnects against the latest nodes, and while a page is loading the
+  // sentinel is gone, so the asks cannot double-fire.
+  useEffect(() => {
+    const region = optionsRegionRef.current;
+    const sentinel = sentinelRef.current;
+    if (!onLoadMore || !hasMore || loading || !region || !sentinel) return;
+    if (typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) onLoadMore();
+      },
+      { root: region, rootMargin: "0px 0px 40px 0px" },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  });
+
   function search(next: string) {
     if (queryProp === undefined) setUncontrolledQuery(next);
     onQueryChange?.(next);
-    const nextVisible =
-      withSearch && next ? list.filter((option) => matches(option, next)) : list;
+    const nextVisible = withSearch && next ? list.filter((option) => matches(option, next)) : list;
     setActiveIndex(nextVisible.length ? 0 : null);
   }
 
@@ -569,8 +634,9 @@ export function Select<T = SelectOption>({
 
   const chosenOptions = list.filter((option) => chosenValues.includes(valueOf(option)));
   const accessibleValue = multiple
-    ? [...chosenOptions.map((option) => labelOf(option)), ...unknownChosen.map(String)].join(", ") ||
-      placeholder
+    ? [...chosenOptions.map((option) => labelOf(option)), ...unknownChosen.map(String)].join(
+        ", ",
+      ) || placeholder
     : selected !== undefined
       ? labelOf(selected)
       : value
@@ -793,9 +859,15 @@ export function Select<T = SelectOption>({
           </div>
         )}
 
-        <div data-slot="options" className="min-h-0 flex-1 overflow-auto py-1.5">
-          {loading ? (
+        <div
+          ref={optionsRegionRef}
+          data-slot="options"
+          className="min-h-0 flex-1 overflow-auto py-1.5"
+        >
+          {visible.length === 0 && loading ? (
             // The sheets never draw this state — a designed row: centred, quiet.
+            // With pages already loaded, loading becomes a sentinel row at the
+            // bottom instead: the list stays up while the next page fetches.
             <div
               data-slot="loading"
               className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-neutral-600"
@@ -803,16 +875,18 @@ export function Select<T = SelectOption>({
               <Spinner size={16} />
               {loadingLabel}
             </div>
-          ) : visible.length === 0
-            ? (noResults ?? (
-                <NoResults
-                  onClear={() => search("")}
-                  title={noResultsTitle}
-                  hint={noResultsHint}
-                  action={query ? noResultsAction : undefined}
-                />
-              ))
-            : visible.map((option, index) => (
+          ) : visible.length === 0 ? (
+            (noResults ?? (
+              <NoResults
+                onClear={() => search("")}
+                title={noResultsTitle}
+                hint={noResultsHint}
+                action={query ? noResultsAction : undefined}
+              />
+            ))
+          ) : (
+            <>
+              {visible.map((option, index) => (
                 <SelectItem
                   key={valueOf(option)}
                   {...popover.getItemProps()}
@@ -832,40 +906,55 @@ export function Select<T = SelectOption>({
                   onChoose={() => choose(option)}
                 />
               ))}
+              {loading && (
+                // A page is on its way: the row sits at the bottom, under the
+                // list, so the loaded options stay up while it fetches.
+                <div
+                  data-slot="loading"
+                  className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-neutral-600"
+                >
+                  <Spinner size={16} />
+                  {loadingLabel}
+                </div>
+              )}
+            </>
+          )}
+          {onLoadMore && hasMore && !loading && (
+            <div ref={sentinelRef} data-slot="load-more" aria-hidden="true" className="h-px" />
+          )}
         </div>
         {multiple &&
           // The sheet's footer: Reset at the panel's left edge, Select all at
           // its right, under a 2px divider — 44 tall at sm, 48 above. A
           // consumer's footer replaces it; null removes it.
           (footer === undefined ? (
-          <div data-slot="footer" className="shrink-0 border-t-2 border-neutral-200 px-3 py-1.5">
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={resetValues}
-                className={cn(
-                  "rounded-md border border-neutral-300 bg-background px-4 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50",
-                  size === "sm" ? "h-8" : "h-9",
-                )}
-              >
-                {resetLabel}
-              </button>
-              <button
-                type="button"
-                onClick={selectAllVisible}
-                className={cn(
-                  "rounded-md border border-neutral-300 bg-background px-4 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50",
-                  size === "sm" ? "h-8" : "h-9",
-                )}
-              >
-                {selectAllLabel}
-              </button>
+            <div data-slot="footer" className="shrink-0 border-t-2 border-neutral-200 px-3 py-1.5">
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={onReset ?? resetValues}
+                  className={cn(
+                    "rounded-md border border-neutral-300 bg-background px-4 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50",
+                    size === "sm" ? "h-8" : "h-9",
+                  )}
+                >
+                  {resetLabel}
+                </button>
+                <button
+                  type="button"
+                  onClick={onSelectAll ?? selectAllVisible}
+                  className={cn(
+                    "rounded-md border border-neutral-300 bg-background px-4 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50",
+                    size === "sm" ? "h-8" : "h-9",
+                  )}
+                >
+                  {selectAllLabel}
+                </button>
+              </div>
             </div>
-          </div>
           ) : (
             footer
           ))}
-
       </PopoverPanel>
     </div>
   );
