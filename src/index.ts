@@ -31,6 +31,7 @@ export { Field, Label, type FieldProps } from "./components/field";
 export {
   Select,
   SelectItem,
+  type SelectClassNames,
   type SelectItemProps,
   type SelectOption,
   type SelectProps,

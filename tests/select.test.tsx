@@ -355,6 +355,55 @@ describe("Select", () => {
     expect(screen.getByRole("button", { name: "Clear country" })).toBeDefined();
   });
 
+  it("merges per-part classes over the sheet's own", () => {
+    const { container } = renderSelect({
+      options: OPTIONS,
+      multiple: true,
+      searchable: true,
+      loading: true,
+      clearable: true,
+      defaultValues: ["id"],
+      classNames: {
+        select: "ring-2",
+        search: "bg-neutral-50",
+        options: "py-3",
+        footer: "px-6",
+        "no-results": "py-10",
+        clear: "text-neutral-900",
+        loading: "py-6",
+      },
+    });
+    openPanel();
+    const slot = (name: string) =>
+      container.ownerDocument.querySelector(`[data-slot="${name}"]`)!.className;
+    // consumer classes land alongside — never over — the measured ones
+    expect(slot("select")).toContain("ring-2");
+    expect(slot("select")).toContain("rounded-md");
+    expect(slot("search")).toContain("bg-neutral-50");
+    expect(slot("search")).toContain("border-b-2");
+    expect(slot("options")).toContain("py-3");
+    expect(slot("options")).toContain("overflow-auto");
+    expect(slot("footer")).toContain("px-6");
+    expect(slot("footer")).toContain("border-t-2");
+    expect(slot("loading")).toContain("py-6");
+    expect(slot("loading")).toContain("justify-center");
+    expect(slot("clear")).toContain("text-neutral-900");
+    expect(slot("clear")).toContain("absolute");
+  });
+
+  it("styles the empty state through its classNames key", () => {
+    renderSelect({
+      options: OPTIONS,
+      searchable: true,
+      classNames: { "no-results": "py-10" },
+    });
+    openPanel();
+    fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "zzz" } });
+    const empty = document.querySelector('[data-slot="no-results"]')!;
+    expect(empty.className).toContain("py-10");
+    expect(empty.className).toContain("text-center");
+  });
+
   it("keeps the caret in the search field while the highlight moves", () => {
     renderSelect({ options: OPTIONS, searchable: true });
     openPanel();

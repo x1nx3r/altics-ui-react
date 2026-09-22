@@ -16,6 +16,16 @@ import { PopoverPanel, usePopover } from "../popover";
 import { Chip } from "../chip";
 import { SelectItem } from "./SelectItem";
 
+/**
+ * Per-part classes for the select, keyed by the data-slot each part emits.
+ * Values merge over the sheet's classes through `cn()` — geometry cannot be
+ * removed, only extended. State styling stays on the attribute selectors the
+ * slots already carry.
+ */
+export type SelectClassNames = Partial<
+  Record<"select" | "search" | "options" | "footer" | "no-results" | "clear" | "loading", string>
+>;
+
 export type SelectOption = {
   /** What a form receives, and what `value` matches against */
   value: string;
@@ -441,6 +451,15 @@ export type SelectProps<T = SelectOption> = {
   clearLabel?: string;
 
   /**
+   * Classes for the panel's parts, merged over the sheet's own — the typed
+   * front door to the data-slots. State stays on the attributes the slots
+   * already carry (`data-selected`, `aria-expanded`), so these are plain
+   * strings, never state callbacks
+   * @default undefined
+   */
+  classNames?: SelectClassNames;
+
+  /**
    * The platform floating-ui measures with. Left out in the browser; a test or
    * a non-DOM environment passes a deterministic one, because jsdom has no
    * layout and the DOM platform churns without it
@@ -536,6 +555,7 @@ export function Select<T = SelectOption>({
   onHighlightChange,
   clearIcon,
   clearLabel = "Clear",
+  classNames = {},
 }: SelectProps<T>) {
   // The identity and label resolvers. With the default SelectOption shape they
   // read the fields; with domain-shaped options the caller supplies them, and
@@ -813,6 +833,7 @@ export function Select<T = SelectOption>({
           fieldFocus,
           fieldFocusColour(error),
           disabled && "cursor-not-allowed opacity-50",
+          classNames.select,
         )}
       >
         {/* The button is bare and sits under the layer: the layer cannot hold
@@ -908,6 +929,7 @@ export function Select<T = SelectOption>({
             className={cn(
               "absolute inset-y-0 flex items-center text-neutral-400 hover:text-neutral-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
               { sm: "right-3", md: "right-4", lg: "right-[18px]" }[size],
+              classNames.clear,
             )}
           >
             {clearIcon ?? <XCircleIcon size={size === "sm" ? 10 : 12} />}
@@ -945,6 +967,7 @@ export function Select<T = SelectOption>({
               "flex shrink-0 items-center gap-2 border-b-2 border-neutral-200",
               size === "lg" ? "px-3.5" : "px-3",
               searchRow[size],
+              classNames.search,
             )}
           >
             <SearchLgIcon size={size === "sm" ? 16 : 20} className="shrink-0 text-neutral-400" />
@@ -1001,7 +1024,10 @@ export function Select<T = SelectOption>({
         <div
           ref={optionsRegionRef}
           data-slot="options"
-          className="min-h-0 flex-1 overflow-auto py-1.5 motion-safe:scroll-smooth"
+          className={cn(
+            "min-h-0 flex-1 overflow-auto py-1.5 motion-safe:scroll-smooth",
+            classNames.options,
+          )}
         >
           {visible.length === 0 && loading ? (
             // The sheets never draw this state — a designed row: centred, quiet.
@@ -1009,7 +1035,10 @@ export function Select<T = SelectOption>({
             // bottom instead: the list stays up while the next page fetches.
             <div
               data-slot="loading"
-              className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-neutral-600"
+              className={cn(
+                "flex items-center justify-center gap-2 px-3 py-3 text-sm text-neutral-600",
+                classNames.loading,
+              )}
             >
               <Spinner size={16} />
               {loadingLabel}
@@ -1021,6 +1050,7 @@ export function Select<T = SelectOption>({
                 title={noResultsTitle}
                 hint={noResultsHint}
                 action={query ? noResultsAction : undefined}
+                className={classNames["no-results"]}
               />
             ))
           ) : (
@@ -1050,7 +1080,10 @@ export function Select<T = SelectOption>({
                 // list, so the loaded options stay up while it fetches.
                 <div
                   data-slot="loading"
-                  className="flex items-center justify-center gap-2 px-3 py-3 text-sm text-neutral-600"
+                  className={cn(
+                    "flex items-center justify-center gap-2 px-3 py-3 text-sm text-neutral-600",
+                    classNames.loading,
+                  )}
                 >
                   <Spinner size={16} />
                   {loadingLabel}
@@ -1067,7 +1100,10 @@ export function Select<T = SelectOption>({
           // its right, under a 2px divider — 44 tall at sm, 48 above. A
           // consumer's footer replaces it; null removes it.
           (footer === undefined ? (
-            <div data-slot="footer" className="shrink-0 border-t-2 border-neutral-200 px-3 py-1.5">
+            <div
+            data-slot="footer"
+            className={cn("shrink-0 border-t-2 border-neutral-200 px-3 py-1.5", classNames.footer)}
+          >
               <div className="flex items-center justify-between">
                 <button
                   type="button"
@@ -1105,17 +1141,22 @@ function NoResults({
   title,
   hint,
   action,
+  className,
 }: {
   onClear: () => void;
   title: string;
   hint: string;
   action?: string;
+  className?: string;
 }) {
   return (
     // Measured off the Search empty state cell: 18 under the search row, the
     // 32px box with 6px corners, the title 12 after it, the hint 4 after that,
     // the link 10 more, and 18 before the footer.
-    <div data-slot="no-results" className="flex flex-col items-center px-6 pt-3 pb-3 text-center">
+    <div
+      data-slot="no-results"
+      className={cn("flex flex-col items-center px-6 pt-3 pb-3 text-center", className)}
+    >
       <span className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-300">
         <SearchLgIcon size={16} className="text-neutral-400" />
       </span>
