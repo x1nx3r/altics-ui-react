@@ -310,6 +310,51 @@ describe("Select", () => {
     expect(screen.queryByRole("listbox")).toBeNull();
   });
 
+  it("keeps the panel open on single choose when told, and closes multi on choose", () => {
+    const staying = vi.fn();
+    renderSelect({ options: OPTIONS, onValueChange: staying, closeOnSelect: false });
+    openPanel();
+    fireEvent.click(options()[0]);
+    expect(staying).toHaveBeenLastCalledWith("id");
+    expect(screen.getByRole("listbox")).toBeDefined();
+
+    cleanup();
+    const closing = vi.fn();
+    renderSelect({ options: OPTIONS, multiple: true, onValuesChange: closing, closeOnSelect: true });
+    openPanel();
+    fireEvent.click(options()[0]);
+    expect(closing).toHaveBeenLastCalledWith(["id"]);
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("reports the highlight as it moves", () => {
+    // Stepping further moves real focus between options, which jsdom does not
+    // reproduce; the first step and the pointer are what it can verify.
+    const onHighlightChange = vi.fn();
+    renderSelect({ options: OPTIONS, onHighlightChange });
+    openPanel();
+    press("ArrowDown");
+    expect(onHighlightChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ value: "id" }),
+    );
+    fireEvent.mouseMove(options()[2]);
+    expect(onHighlightChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ value: "sg" }),
+    );
+  });
+
+  it("lets the clear button's mark and name be replaced", () => {
+    const { container } = renderSelect({
+      options: OPTIONS,
+      defaultValue: "id",
+      clearable: true,
+      clearIcon: <span data-testid="broom">broom</span>,
+      clearLabel: "Clear country",
+    });
+    expect(container.querySelector('[data-testid="broom"]')).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Clear country" })).toBeDefined();
+  });
+
   it("keeps the caret in the search field while the highlight moves", () => {
     renderSelect({ options: OPTIONS, searchable: true });
     openPanel();

@@ -415,6 +415,32 @@ export type SelectProps<T = SelectOption> = {
   openMenuOnClick?: boolean;
 
   /**
+   * Closes the panel when an option is chosen. Defaults to closing on single
+   * and staying open on multiple; set explicitly to override either way
+   * @default !multiple
+   */
+  closeOnSelect?: boolean;
+
+  /**
+   * Runs with the highlighted option — or null when nothing is — as the
+   * highlight moves by keyboard or pointer. A preview pane's hook
+   * @default undefined
+   */
+  onHighlightChange?: (option: T | null) => void;
+
+  /**
+   * Replaces the clear button's mark
+   * @default an XCircle on the size ramp
+   */
+  clearIcon?: ReactNode;
+
+  /**
+   * Names the clear button for assistive technology
+   * @default "Clear"
+   */
+  clearLabel?: string;
+
+  /**
    * The platform floating-ui measures with. Left out in the browser; a test or
    * a non-DOM environment passes a deterministic one, because jsdom has no
    * layout and the DOM platform churns without it
@@ -506,6 +532,10 @@ export function Select<T = SelectOption>({
   tabSelectsValue = false,
   openOnFocus = false,
   openMenuOnClick = true,
+  closeOnSelect = !multiple,
+  onHighlightChange,
+  clearIcon,
+  clearLabel = "Clear",
 }: SelectProps<T>) {
   // The identity and label resolvers. With the default SelectOption shape they
   // read the fields; with domain-shaped options the caller supplies them, and
@@ -568,7 +598,7 @@ export function Select<T = SelectOption>({
   const previousLength = useRef(list.length);
   useEffect(() => {
     if (popover.open && previousLength.current !== list.length) {
-      setActiveIndex(visible.length ? 0 : null);
+      setHighlight(visible.length ? 0 : null);
     }
     previousLength.current = list.length;
   });
@@ -596,6 +626,12 @@ export function Select<T = SelectOption>({
   );
   // A multiple select starts with no highlight; a single one starts on its value.
   const highlightedIndex = multiple ? -1 : visible.findIndex((option) => valueOf(option) === value);
+  // The highlight's single exit: state plus the observer, so a preview pane
+  // can follow the caret by keyboard or pointer alike.
+  const setHighlight = (index: number | null) => {
+    setActiveIndex(index);
+    onHighlightChange?.(index === null ? null : (visible[index] ?? null));
+  };
 
   const popover = usePopover({
     role: "listbox",
@@ -608,7 +644,7 @@ export function Select<T = SelectOption>({
     listNavigation: {
       listRef,
       activeIndex,
-      onNavigate: setActiveIndex,
+      onNavigate: setHighlight,
       loop: true,
       selectedIndex: highlightedIndex === -1 ? null : highlightedIndex,
       // With a search field the keys and the letters come from the input, so
@@ -627,7 +663,7 @@ export function Select<T = SelectOption>({
     // With a search field, the letters belong to it, not to typeahead.
     typeahead: withSearch
       ? undefined
-      : { listRef: labelsRef, activeIndex, onMatch: setActiveIndex },
+      : { listRef: labelsRef, activeIndex, onMatch: setHighlight },
   });
 
   // A fresh panel starts with no query, the way the sheets draw it.
@@ -661,7 +697,7 @@ export function Select<T = SelectOption>({
     const nextVisible = (withSearch && next ? list.filter((option) => matches(option, next)) : list).filter(
       (option) => !hideSelectedOptions || !isChosen(option),
     );
-    setActiveIndex(nextVisible.length ? 0 : null);
+    setHighlight(nextVisible.length ? 0 : null);
   }
 
   function choose(option: T) {
@@ -678,6 +714,7 @@ export function Select<T = SelectOption>({
         : [...chosenValues, chosen];
       if (controlledValues === undefined) setUncontrolledValues(next);
       onValuesChange?.(next);
+      if (closeOnSelect) popover.setOpen(false);
       return;
     }
     if (controlledValue === undefined) {
@@ -686,7 +723,7 @@ export function Select<T = SelectOption>({
       setUncontrolled(allowDeselect && valueOf(option) === value ? "" : valueOf(option));
     }
     onValueChange?.(allowDeselect && valueOf(option) === value ? "" : valueOf(option));
-    popover.setOpen(false);
+    if (closeOnSelect) popover.setOpen(false);
   }
 
   const chosenOptions = list.filter((option) => chosenValues.includes(valueOf(option)));
@@ -861,7 +898,7 @@ export function Select<T = SelectOption>({
         {showClear && (
           <button
             type="button"
-            aria-label="Clear"
+            aria-label={clearLabel}
             data-slot="clear"
             onMouseDown={(event) => event.preventDefault()}
             onClick={(event) => {
@@ -873,7 +910,7 @@ export function Select<T = SelectOption>({
               { sm: "right-3", md: "right-4", lg: "right-[18px]" }[size],
             )}
           >
-            <XCircleIcon size={size === "sm" ? 10 : 12} />
+            {clearIcon ?? <XCircleIcon size={size === "sm" ? 10 : 12} />}
           </button>
         )}
       </div>
