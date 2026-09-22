@@ -69,6 +69,13 @@ export type UsePopoverOptions = {
   disabled?: boolean;
 
   /**
+   * Whether a click on the trigger opens and closes the panel. Disable to
+   * drive the panel from `open` alone
+   * @default true
+   */
+  openOnTriggerClick?: boolean;
+
+  /**
    * Take focus on open and give it back on close, and let the listbox follow:
    * floating-ui focuses the selected option on open unless told otherwise. Left
    * out, the panel is pointer-only and nothing moves focus
@@ -151,6 +158,7 @@ export function usePopover({
   disabled,
   role,
   platform,
+  openOnTriggerClick = true,
   focus = true,
   listNavigation,
   typeahead,
@@ -211,7 +219,7 @@ export function usePopover({
     reference?.focus?.({ preventScroll: true });
   }, [open, refs]);
 
-  const click = useClick(context, { enabled: !disabled });
+  const click = useClick(context, { enabled: !disabled && openOnTriggerClick });
   const dismiss = useDismiss(context);
   const floatingRole = useRole(context, role ? { role } : {});
   // Both stay inert until a listbox passes its options. Passing the options

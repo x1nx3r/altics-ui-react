@@ -375,6 +375,46 @@ export type SelectProps<T = SelectOption> = {
   autoFocus?: boolean;
 
   /**
+   * Choosing the already-chosen option on a single select clears it. Disable
+   * to keep the value on re-choose
+   * @default true
+   */
+  allowDeselect?: boolean;
+
+  /**
+   * Hides chosen options from the list, so a multiple select only offers what
+   * is not yet picked
+   * @default false
+   */
+  hideSelectedOptions?: boolean;
+
+  /**
+   * Commits the highlighted option when the search field loses focus to
+   * somewhere outside the panel. Single select only
+   * @default false
+   */
+  autoSelectOnBlur?: boolean;
+
+  /**
+   * Commits the highlighted option on Tab, before focus moves on
+   * @default false
+   */
+  tabSelectsValue?: boolean;
+
+  /**
+   * Opens the panel when the trigger gains focus
+   * @default false
+   */
+  openOnFocus?: boolean;
+
+  /**
+   * Opens and closes the panel on trigger click. Disable to drive the panel
+   * from `open` alone
+   * @default true
+   */
+  openMenuOnClick?: boolean;
+
+  /**
    * The platform floating-ui measures with. Left out in the browser; a test or
    * a non-DOM environment passes a deterministic one, because jsdom has no
    * layout and the DOM platform churns without it
@@ -460,6 +500,12 @@ export function Select<T = SelectOption>({
   onFocus,
   onBlur,
   autoFocus,
+  allowDeselect = true,
+  hideSelectedOptions = false,
+  autoSelectOnBlur = false,
+  tabSelectsValue = false,
+  openOnFocus = false,
+  openMenuOnClick = true,
 }: SelectProps<T>) {
   // The identity and label resolvers. With the default SelectOption shape they
   // read the fields; with domain-shaped options the caller supplies them, and
@@ -529,6 +575,9 @@ export function Select<T = SelectOption>({
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const labelsRef = useRef<Array<string | null>>([]);
   const searchRef = useRef<HTMLInputElement>(null);
+  // Set on an Escape that closes the panel, so the blur it causes does not
+  // commit through autoSelectOnBlur. Consumed and cleared on every blur.
+  const escapeDismissed = useRef(false);
   const optionsRegionRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   // floating-ui's virtual navigation writes the active row here; it must not be
@@ -542,7 +591,9 @@ export function Select<T = SelectOption>({
     const o = asOption(option);
     return `${labelOf(option)} ${o.description ?? ""}`.toLowerCase().includes(text.toLowerCase());
   };
-  const visible = withSearch && query ? list.filter((option) => matches(option, query)) : list;
+  const visible = (withSearch && query ? list.filter((option) => matches(option, query)) : list).filter(
+    (option) => !hideSelectedOptions || !isChosen(option),
+  );
   // A multiple select starts with no highlight; a single one starts on its value.
   const highlightedIndex = multiple ? -1 : visible.findIndex((option) => valueOf(option) === value);
 
@@ -553,6 +604,7 @@ export function Select<T = SelectOption>({
     open,
     defaultOpen,
     onOpenChange,
+    openOnTriggerClick: openMenuOnClick,
     listNavigation: {
       listRef,
       activeIndex,
@@ -606,14 +658,15 @@ export function Select<T = SelectOption>({
   function search(next: string) {
     if (queryProp === undefined) setUncontrolledQuery(next);
     onQueryChange?.(next);
-    const nextVisible = withSearch && next ? list.filter((option) => matches(option, next)) : list;
+    const nextVisible = (withSearch && next ? list.filter((option) => matches(option, next)) : list).filter(
+      (option) => !hideSelectedOptions || !isChosen(option),
+    );
     setActiveIndex(nextVisible.length ? 0 : null);
   }
 
   function choose(option: T) {
     if (asOption(option).disabled) return;
-    if (multiple) {
-      // Toggling leaves the panel open, as the sheets draw it. The cap refuses
+    if (multiple) {      // Toggling leaves the panel open, as the sheets draw it. The cap refuses
       // additions silently — the count keeps telling the truth.
       const chosen = valueOf(option);
       const already = chosenValues.includes(chosen);
@@ -627,8 +680,12 @@ export function Select<T = SelectOption>({
       onValuesChange?.(next);
       return;
     }
-    if (controlledValue === undefined) setUncontrolled(valueOf(option));
-    onValueChange?.(valueOf(option));
+    if (controlledValue === undefined) {
+      // Re-choosing the chosen value clears a single select, unless the
+      // caller keeps it.
+      setUncontrolled(allowDeselect && valueOf(option) === value ? "" : valueOf(option));
+    }
+    onValueChange?.(allowDeselect && valueOf(option) === value ? "" : valueOf(option));
     popover.setOpen(false);
   }
 
@@ -733,8 +790,16 @@ export function Select<T = SelectOption>({
           aria-invalid={error ? true : undefined}
           className="absolute inset-0 w-full rounded-md focus:outline-none"
           {...popover.getReferenceProps({
-            onFocus,
+            onFocus: (event) => {
+              onFocus?.(event as React.FocusEvent<HTMLButtonElement>);
+              if (openOnFocus && !popover.open && !disabled && !readOnly) popover.setOpen(true);
+            },
             onBlur,
+            onKeyDown: (event) => {
+              if (event.key === "Backspace" && multiple && chosenValues.length > 0) {
+                removeValue(chosenValues[chosenValues.length - 1]);
+              }
+            },
             ...(autoFocus ? { autoFocus: true } : null),
           })}
         >
@@ -850,6 +915,43 @@ export function Select<T = SelectOption>({
               ref={searchRef}
               value={query}
               onChange={(event) => search(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Backspace" && multiple && !query && chosenValues.length > 0) {
+                  // An empty field hands Backspace to the chips: drop the last.
+                  removeValue(chosenValues[chosenValues.length - 1]);
+                  return;
+                }
+                if (event.key === "Tab" && tabSelectsValue && activeIndex !== null) {
+                  // Commit the highlight, then let focus move on naturally.
+                  const option = visible[activeIndex];
+                  if (option) choose(option);
+                  return;
+                }
+                if (event.key === "Escape") {
+                  if (query) {
+                    // Clear the search and hold the panel — the dismissal
+                    // listener never sees the key.
+                    event.stopPropagation();
+                    search("");
+                  } else {
+                    // A closing Escape must not commit through autoSelectOnBlur.
+                    escapeDismissed.current = true;
+                  }
+                }
+              }}
+              onBlur={(event) => {
+                const wasEscape = escapeDismissed.current;
+                escapeDismissed.current = false;
+                if (wasEscape) return;
+                if (!autoSelectOnBlur || multiple || activeIndex === null) return;
+                // Commit only when focus truly leaves the panel — a pointer
+                // moving to a row still chooses through the click.
+                const panel = (event.target as HTMLElement).closest('[data-slot="popover"]');
+                const to = event.relatedTarget as Node | null;
+                if (panel && to && panel.contains(to)) return;
+                const option = visible[activeIndex];
+                if (option) choose(option);
+              }}
               placeholder={searchPlaceholder}
               className={cn(
                 "min-w-0 flex-1 bg-transparent text-foreground placeholder:text-placeholder focus:outline-none",

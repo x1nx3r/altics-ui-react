@@ -187,6 +187,129 @@ describe("Select", () => {
     expect(clearOf("lg")).toContain("right-[18px]");
   });
 
+  it("clears a single select when its chosen option is re-chosen", () => {
+    const onValueChange = vi.fn();
+    renderSelect({ options: OPTIONS, defaultValue: "id", onValueChange });
+    openPanel();
+    fireEvent.click(options()[0]);
+    expect(onValueChange).toHaveBeenLastCalledWith("");
+    expect(field().textContent).toContain("Select");
+  });
+
+  it("keeps the value on re-choose when allowDeselect is off", () => {
+    const onValueChange = vi.fn();
+    renderSelect({ options: OPTIONS, defaultValue: "id", onValueChange, allowDeselect: false });
+    openPanel();
+    fireEvent.click(options()[0]);
+    expect(onValueChange).toHaveBeenLastCalledWith("id");
+    expect(field().textContent).toContain("Indonesia");
+  });
+
+  it("hides chosen options from the list when asked", () => {
+    renderSelect({ options: OPTIONS, multiple: true, defaultValues: ["id"], hideSelectedOptions: true });
+    openPanel();
+    const rows = screen.getAllByRole("option");
+    expect(rows).toHaveLength(3);
+    expect(rows.map((row) => row.textContent).join("|")).not.toContain("Indonesia");
+  });
+
+  it("drops the last chip on Backspace with an empty search field", () => {
+    const onValuesChange = vi.fn();
+    renderSelect({
+      options: OPTIONS,
+      multiple: true,
+      chips: true,
+      searchable: true,
+      defaultValues: ["id", "my"],
+      onValuesChange,
+    });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "x" } });
+    fireEvent.keyDown(searchField, { key: "Backspace" });
+    // typing text: Backspace edits the field, chips stay
+    expect(onValuesChange).not.toHaveBeenCalled();
+
+    fireEvent.change(searchField, { target: { value: "" } });
+    fireEvent.keyDown(searchField, { key: "Backspace" });
+    expect(onValuesChange).toHaveBeenLastCalledWith(["id"]);
+  });
+
+  it("drops the last chip on Backspace from the trigger without search", () => {
+    const onValuesChange = vi.fn();
+    renderSelect({
+      options: OPTIONS,
+      multiple: true,
+      chips: true,
+      defaultValues: ["id", "my"],
+      onValuesChange,
+    });
+    fireEvent.keyDown(trigger(), { key: "Backspace" });
+    expect(onValuesChange).toHaveBeenLastCalledWith(["id"]);
+  });
+
+  it("commits the highlight when the search field blurs outside, if asked", () => {
+    const onValueChange = vi.fn();
+    renderSelect({ options: OPTIONS, searchable: true, onValueChange, autoSelectOnBlur: true });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "sin" } });
+    fireEvent.blur(searchField);
+    expect(onValueChange).toHaveBeenLastCalledWith("sg");
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("does not commit on blur by default, nor on an Escape-dismissed blur", () => {
+    const onValueChange = vi.fn();
+    renderSelect({ options: OPTIONS, searchable: true, onValueChange, autoSelectOnBlur: true });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "sin" } });
+    // Escape with a query clears the search and holds the panel; the blur
+    // that follows a closing Escape must not commit either.
+    fireEvent.keyDown(searchField, { key: "Escape" });
+    expect((searchField as HTMLInputElement).value).toBe("");
+    expect(screen.getByRole("listbox")).toBeDefined();
+    fireEvent.keyDown(searchField, { key: "Escape" });
+    fireEvent.blur(searchField);
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it("commits the highlight on Tab when asked, without hijacking focus", () => {
+    const onValueChange = vi.fn();
+    renderSelect({ options: OPTIONS, searchable: true, onValueChange, tabSelectsValue: true });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "sin" } });
+    const tabbed = fireEvent.keyDown(searchField, { key: "Tab" });
+    expect(onValueChange).toHaveBeenLastCalledWith("sg");
+    // default Tab behavior preserved: focus moves on
+    expect(tabbed).toBe(true);
+  });
+
+  it("clears the query on Escape but holds the panel", () => {
+    renderSelect({ options: OPTIONS, searchable: true });
+    openPanel();
+    const searchField = screen.getByPlaceholderText("Search");
+    fireEvent.change(searchField, { target: { value: "sin" } });
+    expect(options()).toHaveLength(1);
+    fireEvent.keyDown(searchField, { key: "Escape" });
+    expect((searchField as HTMLInputElement).value).toBe("");
+    expect(screen.getByRole("listbox")).toBeDefined();
+    expect(options()).toHaveLength(4);
+  });
+
+  it("opens on trigger focus when asked, and stays shut on click when told", () => {
+    renderSelect({ options: OPTIONS, openOnFocus: true });
+    fireEvent.focus(trigger());
+    expect(screen.getByRole("listbox")).toBeDefined();
+
+    cleanup();
+    renderSelect({ options: OPTIONS, openMenuOnClick: false });
+    fireEvent.click(trigger());
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
   it("keeps the caret in the search field while the highlight moves", () => {
     renderSelect({ options: OPTIONS, searchable: true });
     openPanel();
@@ -585,6 +708,10 @@ describe("Select", () => {
     renderSelect({ options: OPTIONS, searchable: true });
     openPanel();
     fireEvent.change(screen.getByPlaceholderText("Search"), { target: { value: "sin" } });
+    press("Escape");
+    // first Escape clears the query and holds the panel; second closes it
+    expect((screen.getByPlaceholderText("Search") as HTMLInputElement).value).toBe("");
+    expect(screen.getByRole("listbox")).toBeDefined();
     press("Escape");
     openPanel();
     expect((screen.getByPlaceholderText("Search") as HTMLInputElement).value).toBe("");
