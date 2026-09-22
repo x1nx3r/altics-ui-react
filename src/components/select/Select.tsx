@@ -862,7 +862,7 @@ export function Select<T = SelectOption>({
         <div
           ref={optionsRegionRef}
           data-slot="options"
-          className="min-h-0 flex-1 overflow-auto py-1.5"
+          className="min-h-0 flex-1 overflow-auto py-1.5 motion-safe:scroll-smooth"
         >
           {visible.length === 0 && loading ? (
             // The sheets never draw this state — a designed row: centred, quiet.
