@@ -17,39 +17,39 @@ import { Chip } from "../chip";
 import { SelectItem } from "./SelectItem";
 
 /**
- * Per-part classes for the select, keyed by the data-slot each part emits.
- * Values merge over the sheet's classes through `cn()` — geometry cannot be
- * removed, only extended. State styling stays on the attribute selectors the
- * slots already carry.
+ * Classes for each part of the select. The keys are the data-slot names that
+ * the parts emit. The values merge with the classes from the sheets through
+ * `cn()`. You can extend the geometry, but you cannot remove it. For state
+ * styling, use the attribute selectors that the slots already have.
  */
 export type SelectClassNames = Partial<
   Record<"select" | "search" | "options" | "footer" | "no-results" | "clear" | "loading", string>
 >;
 
 export type SelectOption = {
-  /** What a form receives, and what `value` matches against */
+  /** The value that the form receives. The `value` prop matches against it */
   value: string;
 
-  /** The line the trigger shows once chosen */
+  /** The text that the trigger shows after the user selects the option */
   label: string;
 
   /**
-   * A quieter line beside the label, the way the sheets draw a subscribed
-   * option — an email, a count, anything that tells two similar names apart
+   * A second line beside the label. The sheets show it for a subscribed
+   * option, for example an email or a count. It tells two similar names apart
    * @default undefined
    */
   description?: string;
 
   /**
-   * An adornment before the label — the sheets' Avatar, Dot and Icon leading
-   * types. Size it at the call site: 24 for an avatar, 16 for an icon, 8 for a
-   * dot
+   * An adornment before the label. The sheets show an avatar, a dot, or an
+   * icon. Size it where you use it: 24 for an avatar, 16 for an icon, and 8
+   * for a dot
    * @default undefined
    */
   leading?: ReactNode;
 
   /**
-   * Cannot be highlighted or chosen
+   * The user cannot highlight or select this option
    * @default undefined
    */
   disabled?: boolean;
@@ -63,293 +63,304 @@ export type SelectProps<T = SelectOption> = {
   options: readonly T[];
 
   /**
-   * Reads the identity a choice is stored under. Required when the options
-   * aren't SelectOption-shaped
+   * Reads the identity that a choice is stored under. This is necessary when
+   * the options do not have the SelectOption shape
    * @default (option) => option.value
    */
   getOptionValue?: (option: T) => string;
 
   /**
-   * Reads the text the trigger and the rows render
+   * Reads the text that the trigger and the rows show
    * @default (option) => option.label
    */
   getOptionLabel?: (option: T) => string;
 
   /**
-   * The chosen value. Give this and `onValueChange` to control the field
+   * The chosen value. To control the field, give this prop and `onValueChange`
    * @default undefined
    */
   value?: string;
 
   /**
-   * The value to start with, for uncontrolled use
+   * The value that the field shows first, for uncontrolled use
    * @default undefined
    */
   defaultValue?: string;
 
   /**
-   * Runs with the next value whenever one is chosen
+   * Receives the next value when the user selects an option
    * @default undefined
    */
   onValueChange?: (value: string) => void;
 
   /**
-   * Choose several options. The value props change with it: `values` and
-   * `onValuesChange`. The panel keeps a search field, stays open while rows are
-   * toggled, and every row carries a checkbox
+   * Set this to select more than one option. Then use `values` and
+   * `onValuesChange` for the value props. The panel keeps a search field and
+   * stays open while the user selects options. Every row shows a checkbox
    * @default false
    */
   multiple?: boolean;
 
   /**
-   * The chosen values, for a multiple select. Give this and `onValuesChange` to
-   * control the field
+   * The chosen values of a multiple select. To control the field, give this
+   * prop and `onValuesChange`
    * @default undefined
    */
   values?: string[];
 
   /**
-   * The values to start with, for an uncontrolled multiple select
+   * The values that the field shows first, for an uncontrolled multiple select
    * @default undefined
    */
   defaultValues?: string[];
 
   /**
-   * Runs with the next set of values whenever one is toggled
+   * Receives the next values when the user selects or deselects an option
    * @default undefined
    */
   onValuesChange?: (values: string[]) => void;
 
   /**
-   * What the field shows while nothing is chosen, in the placeholder grey
+   * The text that the field shows while nothing is selected. It uses the
+   * placeholder color
    * @default "Select"
    */
   placeholder?: string;
 
   /**
-   * Field size, following the input ramp: 36, 40 and 44 tall
+   * The size of the field. It follows the input ramp: 36, 40, and 44 tall
    * @default "md"
    */
   size?: "sm" | "md" | "lg";
 
   /**
-   * Leave the field inert
+   * Disables the field
    * @default undefined
    */
   disabled?: boolean;
 
   /**
-   * Error state, painted like every other field: red-300 at rest, red-500
-   * focused. A string does the same and `Field` prints the string below
+   * The error state. It looks like every other field: red-300 at rest, red-500
+   * when focused. A string does the same, and `Field` shows the string below
+   * the field
    * @default undefined
    */
   error?: string | boolean;
 
   /**
-   * Locked but present: the panel never opens and the clear disappears, yet
-   * the field stays focusable and the value still submits — unlike disabled,
-   * which fades the field and blocks submission
+   * The field is locked but present. The panel never opens and the clear
+   * button disappears. The field still receives focus, and the form still
+   * sends the value. Disabled is stronger: you cannot use the field and the
+   * form does not send the value
    * @default false
    */
   readOnly?: boolean;
 
   /**
-   * Caps how many options a multiple select may hold. Choosing past the cap
-   * does nothing, and Select all fills up to it
+   * The maximum number of options that a multiple select can hold. The user
+   * cannot select more options than this number. Select all fills the
+   * selection up to this number
    * @default undefined
    */
   maxSelectedValues?: number;
 
   /**
-   * Content before the value: the sheets' types lead with an avatar, a dot or
-   * an icon
+   * Content before the value. The sheet types show an avatar, a dot, or an
+   * icon
    * @default undefined
    */
   leading?: ReactNode;
 
   /**
-   * Put a search field at the top of the panel, filtering the options as it is
-   * typed. The field takes focus when the panel opens, and the list keeps its
-   * keyboard behaviour — arrows step, Enter chooses
+   * The panel shows a search field at the top. The field filters the options
+   * as the user types them. The field receives focus when the panel opens.
+   * Arrow keys move the highlight, and Enter selects the option
    * @default false, and true with `multiple`, as the sheets draw it
    */
   searchable?: boolean;
 
   /**
-   * The search field's placeholder
+   * The placeholder of the search field
    * @default "Search"
    */
   searchPlaceholder?: string;
 
   /**
-   * The search text, when the caller owns it. Left out, the field keeps its
-   * own and resets when the panel closes
+   * The search text, when the caller owns it. If you leave this out, the
+   * field keeps its own text and resets it when the panel closes
    * @default undefined
    */
   query?: string;
 
   /**
-   * The search text the panel starts with
+   * The search text that the panel shows first
    * @default ""
    */
   defaultQuery?: string;
 
   /**
-   * Runs with the next search text as it changes
+   * Receives the next search text when it changes
    * @default undefined
    */
   onQueryChange?: (query: string) => void;
 
   /**
-   * Replaces the built-in matcher — case-insensitive over the label and the
-   * description. `false` hands filtering to the backend: the options render
-   * as given, whatever the field contains
+   * Replaces the built-in matcher. The built-in matcher ignores case in the
+   * label and the description. `false` gives filtering to the backend, and
+   * the options show as given
    * @default undefined
    */
   filter?: false | ((option: T, query: string) => boolean);
 
   /**
-   * The empty state's title, shown when a search matches nothing
+   * The title of the empty state. The panel shows it when a search finds no
+   * options
    * @default "No teams found"
    */
   noResultsTitle?: string;
 
   /**
-   * The empty state's hint, under the title
+   * The hint of the empty state. It shows below the title
    * @default "Please try a different search term."
    */
   noResultsHint?: string;
 
   /**
-   * The empty state's way out, which clears the search. An empty string hides it
+   * The control of the empty state. It clears the search. An empty string
+   * hides the control
    * @default "Clear search"
    */
   noResultsAction?: string;
 
   /**
-   * The multiple panel's footer button that empties the selection
+   * The footer button that deletes the selection of the multiple panel
    * @default "Reset"
    */
   resetLabel?: string;
 
   /**
-   * The multiple panel's footer button that adds every option in the list
+   * The footer button that selects every option in the list
    * @default "Select all"
    */
   selectAllLabel?: string;
 
   /**
-   * Replaces Select all's behaviour — a backend trigger selecting every
-   * matching row, most of them never fetched. Left out, the button selects
-   * every option in the list
+   * Replaces the Select all button. Use it for a backend trigger that selects
+   * every matching row, including rows that the list never shows. If you leave
+   * it out, the button selects every option in the list
    * @default undefined
    */
   onSelectAll?: () => void;
 
   /**
-   * Replaces Reset's behaviour — a backend trigger. Left out, the button
-   * empties the selection
+   * Replaces the Reset button. Use it for a backend trigger. If you leave it
+   * out, the button deletes the selection
    * @default undefined
    */
   onReset?: () => void;
 
   /**
-   * The options are on their way — the panel shows a loading row instead of
-   * the list or the empty state
+   * The options are loading. The panel shows a loading row instead of the list
+   * or the empty state
    * @default false
    */
   loading?: boolean;
 
   /**
-   * The loading row's text
+   * The text of the loading row
    * @default "Loading…"
    */
   loadingLabel?: string;
 
   /**
-   * Runs when the bottom of the list comes into view — by scroll, or by the
-   * highlighted row reaching it — so the next page can be fetched. Stop the
-   * asks with `hasMore`
+   * Tells the caller to load the next page. This starts when the user scrolls
+   * to the bottom of the list, or when the highlighted row gets to the bottom.
+   * Set `hasMore` to false to stop more pages from loading
    * @default undefined
    */
   onLoadMore?: () => void;
 
   /**
-   * Whether more pages exist. When false, or while loading, the sentinel
-   * stops asking
+   * There are more pages to load. Set this to false when no more pages exist.
+   * While loading is true, the list loads no more pages
    * @default undefined
    */
   hasMore?: boolean;
 
   /**
-   * Replaces the footer the sheets draw — Reset at the left, Select all at the
-   * right. `null` renders no footer at all
+   * Replaces the footer from the sheets. That footer shows Reset on the left
+   * and Select all on the right. `null` shows no footer
    * @default undefined
    */
   footer?: ReactNode;
 
   /**
-   * Replace the built-in empty state, which the sheets draw as a circled mark,
-   * a title, a hint and a way to clear the search
+   * Replaces the built-in empty state. The sheets draw it with a boxed mark, a
+   * title, a hint, and a control that clears the search
    * @default undefined
    */
   noResults?: ReactNode;
 
   /**
-   * Name for native form submission. The value is mirrored into a hidden input
+   * The name that the form sends with the value. A hidden input holds a copy
+   * of the value
    * @default undefined
    */
   name?: string;
 
   /**
-   * Open state. Give this and `onOpenChange` to control the panel
+   * The open state of the panel. To control the panel, give this prop and
+   * `onOpenChange`
    * @default undefined
    */
   open?: boolean;
 
   /**
-   * The initial open state, for uncontrolled use
+   * The open state that the panel shows first, for uncontrolled use
    * @default undefined
    */
   defaultOpen?: boolean;
 
   /**
-   * Runs with the next open state
+   * Receives the next open state when the panel opens or closes
    * @default undefined
    */
   onOpenChange?: (open: boolean) => void;
 
   /**
-   * Where the panel is portalled. Left out it goes to the body; a layout that
-   * must keep the panel beside its field passes the container it belongs in
+   * The container that holds the panel. If you leave this out, the panel goes
+   * to the body. Some layouts must show the panel close to its field. Those
+   * layouts pass the container that the panel belongs in
    * @default undefined
    */
   portalRoot?: RefObject<HTMLElement | null>;
 
   /**
-   * Show the chosen options as chips in the trigger, which is the sheets' Tags
-   * type: chips 24 tall with the option's own adornment, a label, and a remove
-   * that takes that option back out. Only applies to `multiple`
+   * Shows the chosen options as chips in the trigger. This is the Tags type
+   * from the sheets. The chips are 24 tall. Each chip shows the adornment of
+   * the option, a label, and a remove button that deletes the option. This
+   * works on `multiple` only
    * @default false
    */
   chips?: boolean;
 
   /**
-   * Clear the field from the trigger. The sheets' Search type is a leading mark
-   * plus this: while a value is set it shows a clear mark; empty, it shows
-   * nothing rather than a chevron
+   * Clears the field from the trigger. The Search type from the sheets is a
+   * leading mark plus this prop. While a value is set, the trigger shows a
+   * clear mark. While empty, the trigger shows nothing instead of a chevron
    * @default false
    */
   clearable?: boolean;
 
   /**
-   * Extra classes for the field
+   * More classes for the field
    * @default undefined
    */
   className?: string;
 
   /**
-   * The control's id. `Field` supplies one so its label can point at the field
+   * The id of the control. `Field` supplies one, so its label points at the
+   * field
    * @default undefined
    */
   id?: string;
@@ -361,108 +372,110 @@ export type SelectProps<T = SelectOption> = {
   "aria-describedby"?: string;
 
   /**
-   * Marks the field required. `Field` supplies it
+   * Shows that the field is required. `Field` supplies it
    * @default undefined
    */
   required?: boolean;
 
   /**
-   * Runs when the trigger gains focus
+   * Receives the focus event when the trigger receives focus
    * @default undefined
    */
   onFocus?: FocusEventHandler<HTMLButtonElement>;
 
   /**
-   * Runs when the trigger loses focus
+   * Receives the blur event when focus moves away from the trigger
    * @default undefined
    */
   onBlur?: FocusEventHandler<HTMLButtonElement>;
 
   /**
-   * Focuses the trigger on mount
+   * The trigger receives focus on mount
    * @default false
    */
   autoFocus?: boolean;
 
   /**
-   * Choosing the already-chosen option on a single select clears it. Disable
-   * to keep the value on re-choose
+   * Selecting the selected option again clears a single select. Set this to
+   * false, and the value stays
    * @default true
    */
   allowDeselect?: boolean;
 
   /**
-   * Hides chosen options from the list, so a multiple select only offers what
-   * is not yet picked
+   * Removes chosen options from the list. A multiple select then shows only
+   * unselected options
    * @default false
    */
   hideSelectedOptions?: boolean;
 
   /**
-   * Commits the highlighted option when the search field loses focus to
-   * somewhere outside the panel. Single select only
+   * Selects the highlighted option when focus moves from the search field to a
+   * place outside the panel. This works on single selects only
    * @default false
    */
   autoSelectOnBlur?: boolean;
 
   /**
-   * Commits the highlighted option on Tab, before focus moves on
+   * Selects the highlighted option on Tab, before focus moves on
    * @default false
    */
   tabSelectsValue?: boolean;
 
   /**
-   * Opens the panel when the trigger gains focus
+   * Set this, and the panel opens when the trigger receives focus
    * @default false
    */
   openOnFocus?: boolean;
 
   /**
-   * Opens and closes the panel on trigger click. Disable to drive the panel
-   * from `open` alone
+   * A click on the trigger opens and closes the panel. Set this to false to
+   * control the panel through `open` only
    * @default true
    */
   openMenuOnClick?: boolean;
 
   /**
-   * Closes the panel when an option is chosen. Defaults to closing on single
-   * and staying open on multiple; set explicitly to override either way
+   * The panel closes when the user selects an option. On single selects the
+   * panel closes. On multiple selects the panel stays open. Set this prop to
+   * change that behavior
    * @default !multiple
    */
   closeOnSelect?: boolean;
 
   /**
-   * Runs with the highlighted option — or null when nothing is — as the
-   * highlight moves by keyboard or pointer. A preview pane's hook
+   * Receives the highlighted option when the highlight moves by keyboard or
+   * pointer. It receives null when nothing is highlighted. Use this prop for a
+   * preview pane
    * @default undefined
    */
   onHighlightChange?: (option: T | null) => void;
 
   /**
-   * Replaces the clear button's mark
+   * Replaces the mark of the clear button
    * @default an XCircle on the size ramp
    */
   clearIcon?: ReactNode;
 
   /**
-   * Names the clear button for assistive technology
+   * Sets the name of the clear button for assistive technology
    * @default "Clear"
    */
   clearLabel?: string;
 
   /**
-   * Classes for the panel's parts, merged over the sheet's own — the typed
-   * front door to the data-slots. State stays on the attributes the slots
-   * already carry (`data-selected`, `aria-expanded`), so these are plain
-   * strings, never state callbacks
+   * Sets classes for the parts of the panel. The classes merge with the
+   * classes from the sheets through `cn()`. The keys are the data-slot names
+   * of the parts. These are plain strings, not functions of state. For state,
+   * use the attribute selectors that the slots already have, for example
+   * `data-selected` and `aria-expanded`
    * @default undefined
    */
   classNames?: SelectClassNames;
 
   /**
-   * The platform floating-ui measures with. Left out in the browser; a test or
-   * a non-DOM environment passes a deterministic one, because jsdom has no
-   * layout and the DOM platform churns without it
+   * The platform that floating-ui uses. Leave this out in the browser. A test
+   * passes a deterministic platform because jsdom has no layout
    * @default undefined
    */
   platform?: Platform;
@@ -472,19 +485,19 @@ export type SelectProps<T = SelectOption> = {
 const searchRow = { sm: "h-11", md: "h-11", lg: "h-12" };
 
 /**
- * Choose one option from a list.
+ * Select one option from a list.
  *
- * The trigger is the input's chassis without an input: same heights, insets,
- * border and ring, with the value in place of the text. The panel is the
- * listbox base — `role="listbox"` on the floating element, options focusable
- * but not tab stops — so the keys, typeahead, dismissal and focus return come
- * from there.
+ * The trigger has the same heights, insets, border, and ring as the input. It
+ * shows the value where the input shows text. The panel is a listbox. The
+ * floating element has `role="listbox"`. The options can receive
+ * focus but are not tab stops. The panel supplies the keys, the typeahead,
+ * the dismissal, and the focus return.
  *
  * @example
  * <Select options={[{ value: "id", label: "Indonesia" }]} placeholder="Country" />
  *
  * @example
- * // Searchable, filtered as it is typed
+ * // Searchable: the list filters as the user types
  * <Select searchable options={countries} />
  *
  * @example
@@ -1135,7 +1148,7 @@ export function Select<T = SelectOption>({
   );
 }
 
-/** The sheet's empty state: a boxed mark, a title, a hint, and a way out. */
+/** The empty state from the sheet: a boxed mark, a title, a hint, and a control that clears the search. */
 function NoResults({
   onClear,
   title,
