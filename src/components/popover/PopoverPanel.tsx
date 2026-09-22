@@ -4,45 +4,46 @@ import type { Popover } from "./usePopover";
 
 export type PopoverPanelProps = Omit<HTMLAttributes<HTMLDivElement>, "popover"> & {
   /**
-   * The `usePopover` result the trigger was wired with. The name collides with
-   * the DOM's `popover` attribute, which `HTMLAttributes` carries and this
-   * panel does not use — it positions with floating-ui instead.
+   * The `usePopover` result that the trigger uses. The name is the same as the
+   * `popover` attribute of the DOM. `HTMLAttributes` has that attribute, but
+   * this panel does not use it. floating-ui sets the position of the panel
    */
   popover: Popover;
 
   /**
-   * What to focus instead of the panel — the search input a searchable select
-   * renders inside it
+   * The element to focus instead of the panel: the search input that a
+   * searchable select shows inside the panel
    * @default undefined
    */
   initialFocus?: RefObject<HTMLElement | null>;
 
   /**
-   * Where the panel is portalled. Left out it goes to the body; a layout that
-   * must keep a panel beside its field — a grid of open fields, a dialog —
-   * passes the container it belongs in.
+   * The container that holds the panel. If you leave this out, the panel goes
+   * to the body. Some layouts must show the panel close to its field, for
+   * example a grid of open fields or a dialog. Those layouts pass the
+   * container that the panel belongs in.
    *
-   * That container should be positioned (`relative`) when it sits inside a
-   * scrolled or zoomed surface: an absolutely positioned panel takes its
-   * containing block from the nearest positioned ancestor, and a static one
-   * leaves the panel anchored to the document — it neither follows the surface's
-   * scroll nor its zoom
+   * Position that container (`relative`) when it sits in a scrolled or zoomed
+   * surface. An absolutely positioned panel takes its containing block from
+   * the nearest positioned ancestor. A static container leaves the panel
+   * anchored to the document. The panel then does not move with the scroll or
+   * the zoom of the surface
    * @default undefined
    */
   portalRoot?: RefObject<HTMLElement | null>;
 };
 
 /**
- * The panel itself: a portal, the floating position, focus, and the open state.
- * It draws no chrome — the caller passes the sheet's border, radius and shadow
- * through `className` — and renders nothing while closed, so the panel's
- * contents mount only when the trigger opens them.
+ * The panel is a portal at the floating position. It receives focus and it
+ * shows only when open. It has no chrome. The caller passes the border,
+ * radius, and shadow of the sheet through `className`. The contents mount
+ * only when the trigger opens the panel.
  *
- * The caller's `style` is merged under the position floating-ui computes:
- * passing it straight through would replace `top`/`left` and leave the panel
- * wherever it lands in the document.
+ * The `style` of the caller merges under the position that floating-ui
+ * computes. Passing `style` straight through would replace `top` and `left`.
+ * The panel would then show wherever it lands in the document.
  *
- * @see usePopover — it returns focus to the trigger when the panel closes.
+ * @see usePopover, which moves focus back to the trigger when the panel closes.
  */
 export function PopoverPanel({
   popover,

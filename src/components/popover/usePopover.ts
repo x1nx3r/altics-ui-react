@@ -23,91 +23,92 @@ export type PopoverRole = "listbox" | "menu" | "dialog" | "tree" | "grid";
 
 export type UsePopoverOptions = {
   /**
-   * Open state. Give this and `onOpenChange` to control the panel yourself
+   * The open state of the panel. To control the panel, give this prop and
+   * `onOpenChange`
    * @default undefined
    */
   open?: boolean;
 
   /**
-   * The initial open state, for uncontrolled use
+   * The open state that the panel shows first, for uncontrolled use
    * @default false
    */
   defaultOpen?: boolean;
 
   /**
-   * Runs with the next open state
+   * Receives the next open state
    * @default undefined
    */
   onOpenChange?: (open: boolean) => void;
 
   /**
-   * Where the panel prefers to sit. It flips and shifts to stay in view. The
-   * default is centred: a panel that matches its trigger's width looks the same
-   * either way, and an aligned placement is one `flip` pass away from looping
-   * when there is no layout to measure
+   * The side of the trigger where the panel prefers to sit. The panel flips
+   * and shifts to stay in view. The default is centered: a panel that matches
+   * the width of its trigger looks the same either way. An aligned placement
+   * can loop after one flip pass when there is no layout to measure
    * @default "bottom"
    */
   placement?: Placement;
 
   /**
-   * Distance from the trigger, in pixels
+   * The distance from the trigger, in pixels
    * @default 4
    */
   offset?: number;
 
   /**
-   * Make the panel as wide as the trigger, which is how the sheets draw the
-   * select menu
+   * The panel becomes as wide as the trigger. The sheets draw the select menu
+   * this way
    * @default true
    */
   matchTriggerWidth?: boolean;
 
   /**
-   * Leave the trigger inert — no click, no keyboard
+   * Disables the trigger. Clicks and keys do nothing
    * @default undefined
    */
   disabled?: boolean;
 
   /**
-   * Whether a click on the trigger opens and closes the panel. Disable to
-   * drive the panel from `open` alone
+   * A click on the trigger opens and closes the panel. Set this to false to
+   * control the panel through `open` only
    * @default true
    */
   openOnTriggerClick?: boolean;
 
   /**
-   * Take focus on open and give it back on close, and let the listbox follow:
-   * floating-ui focuses the selected option on open unless told otherwise. Left
-   * out, the panel is pointer-only and nothing moves focus
+   * The panel receives focus when it opens and moves focus back to the trigger
+   * when it closes. The listbox follows: floating-ui focuses the selected
+   * option on open unless told otherwise. If you leave this out, the panel is
+   * pointer-only and nothing moves focus
    * @default true
    */
   focus?: boolean;
 
   /**
-   * Announce the panel as this role. `useRole` then sets `aria-haspopup`,
-   * `aria-expanded` and `aria-controls` on the trigger
+   * The role of the panel for assistive technology. `useRole` then sets
+   * `aria-haspopup`, `aria-expanded` and `aria-controls` on the trigger
    * @default undefined
    */
   role?: PopoverRole;
 
   /**
-   * The platform floating-ui measures with. Left out in the browser; tests
-   * pass a deterministic one, because jsdom has no layout and an aligned
-   * placement with no size never settles
+   * The platform that floating-ui uses. Leave this out in the browser. A test
+   * passes a deterministic platform because jsdom has no layout
    * @default undefined
    */
   platform?: Platform;
 
   /**
-   * Keyboard navigation over the options, wired on the trigger: arrow keys,
-   * Home and End, and `aria-activedescendant`. The listbox supplies its
-   * `listRef` and active index. Left out, the panel takes clicks only
+   * Keyboard navigation over the options. The trigger wires arrow keys, Home
+   * and End, and `aria-activedescendant`. The listbox supplies its `listRef`
+   * and active index. If you leave this out, the panel takes clicks only
    * @default undefined
    */
   listNavigation?: Parameters<typeof useListNavigation>[1];
 
   /**
-   * Letter keys jump to the option whose text starts with them
+   * Letter keys move to the option whose text starts with them
    * @default undefined
    */
   typeahead?: Parameters<typeof useTypeahead>[1];
@@ -124,24 +125,25 @@ export type Popover = {
   getFloatingProps: UseInteractionsReturn["getFloatingProps"];
   /**
    * Props for each option. floating-ui keeps navigation on the panel and moves
-   * real focus between items, so every option needs these: they sync the active
-   * option, follow the pointer, and return focus to the trigger on leave
+   * real focus between items. Every option needs these props. They sync the
+   * active option and follow the pointer. When the pointer moves away, they
+   * move focus back to the trigger
    */
   getItemProps: UseInteractionsReturn["getItemProps"];
-  /** Whether the panel takes focus, which the navigation follows */
+  /** Whether the panel receives focus, which the navigation follows */
   focus: boolean;
 };
 
 /**
- * An anchored panel's state and wiring, on floating-ui.
+ * State and wiring for an anchored panel, built on floating-ui.
  *
- * floating-ui composes interaction handlers in one call, so the interactions
- * live here rather than in a provider component: a consumer that needs more of
- * them (the listbox's navigation and typeahead) adds them to this hook, where
- * `useInteractions` can still compose them safely.
+ * floating-ui composes interaction handlers in one call. The interactions live
+ * here, not in a provider component. A consumer that needs more of them (the
+ * navigation and typeahead of the listbox) adds them to this hook. In this
+ * hook `useInteractions` still composes them safely.
  *
- * The hook only wires behaviour: no styles, no DOM of its own. `PopoverPanel`
- * renders the portal; the caller brings the chrome.
+ * The hook only wires behavior. It has no styles and no DOM of its own.
+ * `PopoverPanel` renders the portal. The caller supplies the chrome.
  *
  * @example
  * const popover = usePopover({ role: "listbox" });
