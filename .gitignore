@@ -13,8 +13,11 @@ scratchpad
 # Shallow clones of other design systems, read for reference only.
 /refs/
 
-# Storybook docs trial, gitignored until it graduates to its own home.
-/docs/
+# Storybook docs app. Source files are tracked so the storybook repo's
+# snapshot.sh can fetch them; build output and installs stay out.
+# (node_modules and storybook-static match the root patterns above.)
+/docs/storybook-static/
+/docs/debug-storybook.log
 
 *storybook.log
 storybook-static
