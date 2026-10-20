@@ -13,7 +13,12 @@ import "@altics/ui/styles.css";
 import { Button, Card, Input } from "@altics/ui";
 
 export function SignIn() {
-  return <Card className="p-6"><Input placeholder="Email" /><Button className="mt-4">Continue</Button></Card>;
+  return (
+    <Card className="p-6">
+      <Input placeholder="Email" />
+      <Button className="mt-4">Continue</Button>
+    </Card>
+  );
 }
 ```
 
@@ -96,12 +101,12 @@ headless Chromium, and prints the page DOM, including the JSON that the page
 writes into `<pre id="out">`. The page imports `@altics/ui/styles.css` and
 renders one of each shape. Set `PROBE_PORT` to change the port.
 
-| Page | Measures |
-| --- | --- |
-| `probe.html` | Input family: chips, slot markers, focus, error colors, dividers, textareas, pin/OTP cells, `cn` merges |
-| `select-probe.html` | Select bases: panel width and gap, stepping, flip, scroll containment, focus policy, disabled rows |
-| `pagination-probe.html` | Load-more: rows, chips, panel, search |
-| `index.html?page=sheet` | Sheet-parity grid, drawn with the real components |
+| Page                    | Measures                                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| `probe.html`            | Input family: chips, slot markers, focus, error colors, dividers, textareas, pin/OTP cells, `cn` merges |
+| `select-probe.html`     | Select bases: panel width and gap, stepping, flip, scroll containment, focus policy, disabled rows      |
+| `pagination-probe.html` | Load-more: rows, chips, panel, search                                                                   |
+| `index.html?page=sheet` | Sheet-parity grid, drawn with the real components                                                       |
 
 The first three run through `npm run probe`. The sheet-parity page needs the
 dev server and the CDP driver; see `probes/README.md`.
