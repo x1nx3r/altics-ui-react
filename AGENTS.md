@@ -81,6 +81,9 @@ each shape. `npm run probe -- <page>` selects another page.
 A probe reads the live DOM, not the source. The sheet cell under `sheets/` is
 the other side of the comparison.
 
+The probe pages are a workbench, not a showcase. Keep every shape and the raw
+JSON in view; do not tidy them into a gallery.
+
 ### Why this is easier and auditable
 
 An LLM can read a screenshot and describe it; it cannot measure it. The probe

@@ -111,6 +111,12 @@ renders one of each shape. Set `PROBE_PORT` to change the port.
 The first three run through `npm run probe`. The sheet-parity page needs the
 dev server and the CDP driver; see `probes/README.md`.
 
+The probe pages are a playground, not a showcase. They are deliberately rough:
+repeated cases, visible labels, raw JSON, and every shape and state in view. The
+agent and the human use the same page. The agent changes a case and reruns; the
+human opens the page and checks the same case. Do not tidy them into a gallery. A
+tidy page that hides a case is worse than a rough page that shows it.
+
 A probe reads the live DOM, not the source. The sheet cell under `sheets/` is
 the other side of the comparison. `probes/tool/svg-bbox.py` reads the sheet's
 exact path geometry with the same idea.

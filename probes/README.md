@@ -10,10 +10,12 @@ impression. The sheet is evidence too, but Figma frames are often scaled, so a
 raw decimal is not automatically a target. Compare with the library's scale,
 round to the nearest step, and record the reconciliation in the plan.
 
-This is not a demo. The showcase pages exist so the probes can render one of
-each shape. A probe that measures a single shape hides defects in the others —
-an early run measured only the tags card and missed the doubled slot margins on
-the plain field.
+This is not a demo. The pages are a workbench: deliberately rough, dense, and
+repetitive, with every shape and the raw JSON in view. Do not tidy them into a
+gallery. A tidy page that hides a case is worse than a rough page that shows it.
+Each page renders every shape in its family. A probe that measures a single
+shape hides defects in the others — an early run measured only the tags card
+and missed the doubled slot margins on the plain field.
 
 ## Run
 
