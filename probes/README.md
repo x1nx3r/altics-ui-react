@@ -1,8 +1,14 @@
 # Probes
 
 The measurement rig. Unit tests assert classes; these pages assert geometry,
-focus, and interaction. Every number quoted in `docs/plans/` came from here or
-from the sheet.
+focus, and interaction. Every number quoted in `docs/plans/` came from here,
+from the sheet, or from the library's scale.
+
+An LLM can read a screenshot and describe it. It cannot measure it. The probe
+returns the box, the gap, and the computed style; the image returns an
+impression. The sheet is evidence too, but Figma frames are often scaled, so a
+raw decimal is not automatically a target. Compare with the library's scale,
+round to the nearest step, and record the reconciliation in the plan.
 
 This is not a demo. The showcase pages exist so the probes can render one of
 each shape. A probe that measures a single shape hides defects in the others —

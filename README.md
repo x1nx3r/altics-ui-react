@@ -115,11 +115,33 @@ A probe reads the live DOM, not the source. The sheet cell under `sheets/` is
 the other side of the comparison. `probes/tool/svg-bbox.py` reads the sheet's
 exact path geometry with the same idea.
 
+### When the sheet scale is wrong
+
+Figma frames are often scaled, and an SVG export carries the transform. A 2x
+export doubles every value. A 1.5x frame turns 8 into 12. Check the factor
+against a known reference: a 16 icon, a spacing step, or a 1px border.
+
+Then compare the cell with the library's scale: the spacing tokens in
+`src/theme/tokens.css`, the width and radius ramps in
+`src/theme/theme-extend.ts`, and the type ramp in
+`src/components/typography/Text.tsx`. If the value falls between steps, round
+to the nearest step and record the raw value, the chosen step, and the reason
+in the plan. Record the token name beside the value: for spacing, 16 is `xl`,
+12 is `lg`, 8 is `md`.
+
+The target is an exact match to the chosen step, not to a raw decimal that the
+frame transform produced. The probe proves the component hits it. A one-off
+cell can stay a quirk, but it does not become a new rule. The sheet is
+evidence. The scale is the baseline. The probe is the check.
+
 ### Why this makes agent work easier
 
-The agent gets a number, not an opinion. It can run one command, compare the
-JSON with the sheet, change one shape, and rerun. The loop is short and the
-answer is unambiguous.
+An LLM can read a screenshot and describe it. It cannot measure it reliably.
+The eye says "the gap is tight"; the probe says 13.67. That is the difference
+between a guess and a match.
+
+The agent can run one command, compare the JSON with the sheet, change one
+shape, and rerun. The loop is short and the answer is unambiguous.
 
 The probes also catch the failure that unit tests miss: the classes are right,
 but the box moves. An early probe measured only the tags card and missed
@@ -129,9 +151,9 @@ shape, so the next run sees both.
 ### Why this makes the work auditable
 
 Every geometry claim has a command and an output. A plan quotes the sheet's
-value and the probe's value side by side. A commit or PR can quote the same
-JSON. A reviewer reruns the same command on the same page and gets the same
-numbers.
+value, the scale step, and the probe's value side by side. A commit or PR can
+quote the same JSON. A reviewer reruns the same command on the same page and
+gets the same numbers.
 
 The page is versioned with the code. The sheet cell is tracked under `sheets/`.
 The plan records both. That is the audit trail: source, measurement, decision.
@@ -247,6 +269,10 @@ high, or its pattern is dated. Record what the rejection costs.
 reference: the sheet measures another value, the house pattern composes
 differently, or the ref has a defect we will not copy. Record the ref's value,
 our value, and the reason. The sheet is the tie-breaker.
+
+The same applies when the sheet is off-scale. A sheet that is off-scale is a
+rectification too. Figma frames are often scaled, so a raw decimal is not
+automatically the target. Record the raw value, the scale step, and why.
 
 **Why this package?** A reference and a dependency are different decisions.
 `refs/` is read-only material; nothing in `src/` imports it. A runtime package

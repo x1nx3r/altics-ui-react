@@ -36,7 +36,8 @@ States, keyboard paths, focus, ARIA, controlled and uncontrolled modes, edge
 cases. Say what the sheet draws and what each reference does.
 
 ## The sheets
-Cells, matrix, measured values. The sheet's value beside ours.
+Cells, matrix, measured values. The sheet's value beside ours. If the sheet
+scale is off, record the raw value, the scale step, and why.
 
 ## Reference survey
 | Ref | Pin | What it does | We take | We reject | Why |
@@ -76,7 +77,9 @@ be answered somewhere. `select.md` is the model.
 
 - A plan is **living while active**. Edit it as the work moves.
 - Record a finding as a measured value, with the sheet's value beside ours.
-  A number that did not come from `probes/` or the sheet does not belong here.
+  A number that did not come from `probes/`, the sheet, or the library's scale
+  does not belong here. If the sheet is off-scale, record the raw value, the
+  scale step, and why.
 - Mark items `DONE` when they land. Record what was deferred and why.
 - When the work closes, set `Status: done` and freeze the body. Put corrections
   in a new plan or a dated `## Addendum` section.

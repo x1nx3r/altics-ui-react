@@ -29,7 +29,10 @@ in `README.md` under "Working on a module".
 ## The measurement rule
 
 A number in a plan, a commit message, or a Storybook title must come from a
-probe or from the sheet. Never infer geometry from the source.
+probe, the sheet, or the library's scale. Never infer geometry from the source.
+
+An LLM can read an image; it cannot measure one reliably. Do not accept a
+visual estimate as a measurement. Run the probe.
 
 - `probes/src/probe.tsx` measures the input family.
 - `probes/src/select-probe.tsx` measures the select bases.
@@ -40,6 +43,30 @@ probe or from the sheet. Never infer geometry from the source.
 Render one of each shape. A probe that measures one shape hides defects in the
 others. Import `@altics/ui/styles.css` in every probe page, or the numbers are
 meaningless.
+
+### Scale reconciliation
+
+Figma frames are often scaled, and an SVG export can carry the transform. A 2x
+export doubles every value. A 1.5x frame turns 8 into 12. Check the factor
+against a known reference: a 16 icon, a spacing step, or a 1px border. If a
+whole cell is off by a factor, correct the factor first; do not round each
+value separately.
+
+Then compare the cell with the library's scale: the spacing tokens in
+`src/theme/tokens.css`, the width and radius ramps in
+`src/theme/theme-extend.ts`, and the type ramp in
+`src/components/typography/Text.tsx`. If the value falls between steps, round
+to the nearest step and record:
+
+1. the raw sheet value;
+2. the scale step we use;
+3. why (frame scale, pixel scan, export transform, or a one-off quirk);
+4. the probe value after implementation.
+
+Record the token name beside the value when one exists. The target is an exact
+match to the chosen step, not to the raw decimal. The probe proves the component
+hits it. A one-off cell can stay a quirk, but it does not become a new rule. The
+sheet is evidence, the scale is the baseline, the probe is the check.
 
 ## Probes
 
@@ -56,17 +83,21 @@ the other side of the comparison.
 
 ### Why this is easier and auditable
 
+An LLM can read a screenshot and describe it; it cannot measure it. The probe
+gives a number that a reviewer can reproduce.
+
 The agent reports a command, a JSON value, and the sheet value beside it. The
-plan records both. A reviewer reruns the command and gets the same numbers. A
-commit or PR can quote the same output, so a geometry change has a before and
-after.
+plan records the sheet value, the scale step, and the probe value. A reviewer
+reruns the command and gets the same numbers. A commit or PR can quote the same
+output, so a geometry change has a before and after.
 
 Before you claim a geometry fix:
 
 1. Run the page that renders the shape.
 2. Compare each number with the sheet cell.
-3. Record both in the plan.
-4. Quote the output in the commit or PR.
+3. If the sheet is off-scale, round to the scale step and record the raw value.
+4. Record the sheet value, the scale step, and the probe value in the plan.
+5. Quote the output in the commit or PR.
 
 The page list, traps, and CDP driver are in `probes/README.md`.
 
