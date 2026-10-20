@@ -70,6 +70,22 @@ Before you claim a geometry fix:
 
 The page list, traps, and CDP driver are in `probes/README.md`.
 
+## Sheets
+
+The SVG cells under `sheets/` are the tracked source for geometry. The sheet is
+the source; do not infer a value from the code.
+
+To add cells, select all variants on the Figma sheet page and export them as SVG
+at 1x with Outline text on; `svg-bbox.py` reads paths, not live text. Keep the
+variant names, put the files in the family folder, and run
+`npm run sheets:check`.
+
+If Figma MCP is available, export the selected variants into `sheets/<family>/`
+yourself, keep the names, run the check, and report the count and paths. Do not
+rename a value to match the code.
+
+The naming rules and the folder map are in `sheets/README.md`.
+
 ## Layout
 
 | Path | What |

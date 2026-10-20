@@ -83,7 +83,7 @@ the `files` allowlist. `prepublishOnly` builds the package before `npm publish`.
 ## How the probes work
 
 Unit tests assert classes and behaviour. They cannot prove geometry. The probes
-render the real components in Chromium and print the measurements as JSON.
+render the real components in Chromium and write the measurements as JSON.
 
 ```bash
 npm run probe          # builds, then runs probe.html
@@ -155,13 +155,26 @@ git switch -c feat/<module>
 
 ### 2. Export the sheet cells
 
-Export the module's cells from Figma as SVG into `sheets/`, under the family
-folder. Keep the Figma layer name; the cells are named
+In Figma, open the module's sheet page and select all of its variants. Export
+them as SVG:
+
+- Format: SVG
+- Scale: 1x
+- Outline text: on. `svg-bbox.py` reads paths; live text is not measured.
+
+Figma writes one file per selected variant and keeps the variant name. It may
+download a ZIP; extract it before you copy the files. Put the files under the
+family folder in `sheets/`. Do not rename a value to match the code. The cells
+are named from the Figma variant properties, for example
 `Size=…, Type=…, Destructive=…, State=…`:
 
 ```
 sheets/input/input/Size=md, Type=Default, Destructive=False, State=Focused.svg
 ```
+
+If Figma MCP is available, ask the agent to export the selected variants into
+`sheets/<family>/` and run `npm run sheets:check`. Review the names and the
+count.
 
 Check the names, then read the exact geometry:
 
@@ -218,12 +231,15 @@ npm run probe -- select-probe
 `npm run probe` rebuilds the library first. Set `PROBE_SKIP_BUILD=1` to reuse
 the current `dist`.
 
-The probe prints JSON. Compare each number with the sheet, then record both in
-the plan.
+The page writes the measurements as JSON. Compare each number with the sheet,
+then record both in the plan.
 
 If the module has no page, add one under `probes/src/pages/` and list it in
 `probes/README.md`. The page must import `@altics/ui/styles.css` and render one
 of each shape. A probe that measures one shape hides defects in the others.
+
+For a sheet-parity grid, add the module to `probes/src/pages/SheetParity.tsx`
+and open `index.html?page=sheet`.
 
 For canvas work, drive the sheet over CDP:
 

@@ -48,16 +48,22 @@ identical. The state is part of the matrix.
 
 ## Add a cell
 
-1. Export the frame from Figma as SVG.
-2. Put it in the family folder under `sheets/`.
-3. Run `npm run sheets:check`.
-4. Measure it:
+In Figma, open the module's sheet page and select all of its variants. Export
+them as SVG at 1x with **Outline text** on. Figma writes one file per variant
+and keeps the variant name. `svg-bbox.py` reads paths, not live text.
+
+If Figma MCP is available, ask the agent to export the selected variants into
+`sheets/<family>/`, run `npm run sheets:check`, and report the paths.
+
+1. Put the files in the family folder under `sheets/`.
+2. Run `npm run sheets:check`.
+3. Measure it:
 
    ```bash
    python3 probes/tool/svg-bbox.py "sheets/<family>/Size=..., Key=Value.svg"
    ```
 
-5. Cite the path and the measured value in the plan.
+4. Cite the path and the measured value in the plan.
 
 Do not edit an SVG by hand. Re-export the frame. `probes/tool/svg-bbox.py` reads
 the paths directly, so keep the export flat.
