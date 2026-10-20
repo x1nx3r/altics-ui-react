@@ -2,7 +2,6 @@ node_modules
 dist
 coverage
 .DS_Store
-scratchpad
 
 # Local design reference exports, not part of the package.
 # Anchored to the repo root: an unanchored `input/` also matched

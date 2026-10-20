@@ -61,7 +61,7 @@ describe("Select", () => {
   it("chooses the highlighted option with Enter", async () => {
     // Stepping further moves real focus between options, which jsdom does not
     // reproduce; the first step and the choice are what it can verify. The
-    // browser probe covers the multi-step sequence (scratchpad/select-probe).
+    // browser probe covers the multi-step sequence (probes/select-probe).
     const onValueChange = vi.fn();
     renderSelect({ options: OPTIONS, onValueChange });
     openPanel();

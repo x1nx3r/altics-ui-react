@@ -119,7 +119,7 @@ describe("Listbox", () => {
     await settle();
     // Stepping onwards moves real focus between options, which jsdom does not
     // reproduce. The browser probe covers that sequence
-    // (scratchpad/select-probe.html: fruit-0, then fruit-1).
+    // (probes/select-probe.html: fruit-0, then fruit-1).
     const highlighted = active();
     expect(highlighted).not.toBeUndefined();
     expect(options()).toContain(highlighted);
