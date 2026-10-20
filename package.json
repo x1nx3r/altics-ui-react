@@ -32,6 +32,7 @@
     "refs:sync": "node tool/refs-sync.mjs",
     "probe": "bash probes/tool/probe.sh",
     "probe:cdp": "node probes/tool/sheet-cdp.mjs",
+    "verify": "bash tool/verify.sh",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",

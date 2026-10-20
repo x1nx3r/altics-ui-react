@@ -63,12 +63,15 @@ The library's components merge with the library's own scales, so a `className` c
 
 ```bash
 npm install
-npm run dev
-npm run typecheck
-npm run lint
-npm test
-npm run build
+npm run dev          # playground
+npm run verify       # typecheck, lint, test, build
+npm run probe        # headless geometry probe (needs chromium)
 npm pack --dry-run
 ```
 
-The playground is development-only and is excluded from npm through the `files` allowlist. `prepublishOnly` builds the package before `npm publish`.
+Contributor and agent notes live in `AGENTS.md`. The measurement rig is
+documented in `probes/README.md`. The design references are pinned submodules,
+synced with `npm run refs:sync` (see `docs/references.md`).
+
+The playground and probes are development-only and excluded from npm through
+the `files` allowlist. `prepublishOnly` builds the package before `npm publish`.
