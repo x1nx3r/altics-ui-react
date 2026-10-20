@@ -191,7 +191,7 @@ python3 probes/tool/svg-bbox.py "sheets/input/input/Size=md, Type=Default, Destr
 `getBBox` is more reliable than a pixel scan. Anti-aliasing confounds small
 text, and curve control points overstate a path's extent.
 
-### 3. Read the references
+### 3. Sync the references
 
 Sync only the refs the module needs:
 
@@ -199,21 +199,83 @@ Sync only the refs the module needs:
 npm run refs:sync -- mui mantine react-select
 ```
 
-Read `refs/<name>/` for API shape, edge cases, and focus behaviour. The worktree
-is sparse, but the history is complete; use `git -C refs/<name> log` to find the
-commit behind a behavior. The refs are material to read. Nothing in `src/`
-imports from them.
+The worktree is sparse, but the history is complete. `refs/` is material to
+read; nothing in `src/` imports from it. If you need a path outside the sparse
+set, add it with `git -C refs/<name> sparse-checkout add <path>`.
 
-### 4. Discuss and write the plan
+### 4. Explore the references and write the plan
 
-Copy the header from `docs/plans/README.md` into `docs/plans/<module>.md`.
-Record:
+The plan is the contract. Write it before the component. The agent's job in this
+phase is exploration: read the refs, trace the behavior, and bring back
+evidence. Your job is to decide.
 
-- the sheet measurements, with the sheet's value beside ours;
-- what each reference does, and why we follow or reject it;
-- the decisions and the open questions.
+Read `refs/<name>/` for API shape, edge cases, and focus behaviour. Use
+`git -C refs/<name> log` to find the commit behind a behavior. The agent can
+read several refs in parallel and bring back the comparison, with citations.
 
-Discuss the plan with the agent before implementation. The plan is the contract.
+Copy the template from `docs/plans/README.md` into `docs/plans/<module>.md`.
+`docs/plans/select.md` is the model: it records the sheet matrix, the base
+components, the dependency decision, the rejected alternatives, and the order
+of work.
+
+Answer these questions in the plan:
+
+**What behavior do we want?** List the states and the paths, not adjectives.
+For a select: open, close, focus return, outside press, Escape, Tab, typeahead,
+Up/Down/Home/End, PageUp/PageDown, disabled options, empty list, long list,
+controlled and uncontrolled value, form reset, SSR, reduced motion. For each,
+say what the sheet draws and what the reference does.
+
+Ask for the smallest behavior set that satisfies the sheet, not the union of
+every reference. A feature that no cell draws is a decision, not a default.
+
+**What does each reference do?** Use a table:
+
+| Ref | Pin | What it does | We take | We reject | Why |
+| --- | --- | --- | --- | --- | --- |
+
+Cite the file and the test. The pin is in `docs/references.md`; if the behavior
+came from an older commit, cite that commit too. A claim without a path is a
+guess.
+
+**What do we reject?** Rejection is a decision, not a taste. Name the reason:
+the ref's DOM assumes its own CSS, its API leaks a provider, its accessibility
+pattern fights `Field`, its behavior is not in the sheet, its bundle cost is too
+high, or its pattern is dated. Record what the rejection costs.
+
+**What do we rectify?** A rectification is a deliberate difference from the
+reference: the sheet measures another value, the house pattern composes
+differently, or the ref has a defect we will not copy. Record the ref's value,
+our value, and the reason. The sheet is the tie-breaker.
+
+**Why this package?** A reference and a dependency are different decisions.
+`refs/` is read-only material; nothing in `src/` imports it. A runtime package
+earns its place only when it owns a hard, tested surface we should not rebuild,
+such as positioning, focus, or virtualisation. Record the license, the bundle
+cost, the API lock-in, and what we rejected. `@floating-ui/react` in the select
+plan is the example: it earns its place for flip/shift/collision, a portal,
+dismiss, and focus return; a bespoke positioner would be a second source of
+truth. For each package, say why we add it and why we do not write it. For each
+reference, say why we read it and why we do not depend on it.
+
+**What are the open questions?** Put the question, the owner, and what it
+blocks. A plan with no open questions is usually a plan that did not look.
+
+**What is out of scope?** Say it. A plan that lists everything ships nothing.
+
+**How do we know it is done?** List the tests, the probe pages, the sheet cells,
+and the accessibility checks.
+
+The agent can read the refs faster than you can. Ask it for a comparison, not a
+verdict:
+
+> Read `refs/mui` and `refs/mantine` for the combobox open and focus behavior.
+> Cite the file and the test for each claim. Tell me where they disagree, what
+> the sheet draws, and which questions need my decision. Do not write code yet.
+
+Review the evidence, make the call, and record it in the plan. If a finding
+changes the scope, update the plan before the code. Implementation that is not
+in the plan is out of scope.
 
 ### 5. Implement
 

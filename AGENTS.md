@@ -113,11 +113,18 @@ audited (see `docs/references.md`).
 
 A component or a cross-cutting change starts as a plan in `docs/plans/`.
 
-1. Copy the header from `docs/plans/README.md`.
+1. Copy the template from `docs/plans/README.md`.
 2. Record findings as measured values, with the sheet's value beside ours.
+   Record what we take, reject, and rectify from each reference, and why a
+   package earns its place.
 3. Mark items `DONE` as they land; record what was deferred and why.
 4. Set `Status: done` when the work closes. Frozen plans are history; put
    corrections in a new plan or an addendum.
+
+During exploration, read the refs and return the behavior with file, commit, and
+test citations. Give the human the tradeoffs and the open questions. Do not
+decide the house style or start the component before the plan records the
+decision.
 
 ## Commits
 
