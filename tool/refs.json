@@ -1,0 +1,142 @@
+{
+  "note": "Reference-only submodules. Pin the commit that was audited; bump deliberately. `sparse` lists the directories the plans actually read. Run `npm run refs:sync` after a clone or an update.",
+  "refs": [
+    {
+      "name": "react-select",
+      "path": "refs/react-select",
+      "url": "https://github.com/JedWatson/react-select.git",
+      "sha": "4b6948078684bee394e09dd8e7cdc2d7f89e0fad",
+      "license": "MIT",
+      "why": "Select props, menu placement, and the unstyled base.",
+      "sparse": ["packages/react-select/src"]
+    },
+    {
+      "name": "mantine",
+      "path": "refs/mantine",
+      "url": "https://github.com/mantinedev/mantine.git",
+      "sha": "edd42fa2962473fc7addf1dbd1317a4ea1588743",
+      "license": "MIT",
+      "why": "Combobox, Select, MultiSelect, Autocomplete, TagsInput, and the hooks behind them.",
+      "sparse": [
+        "packages/@mantine/core/src/components/Select",
+        "packages/@mantine/core/src/components/Combobox",
+        "packages/@mantine/core/src/components/MultiSelect",
+        "packages/@mantine/core/src/components/Autocomplete",
+        "packages/@mantine/core/src/components/TagsInput",
+        "packages/@mantine/core/src/components/Pill",
+        "packages/@mantine/core/src/components/Input",
+        "packages/@mantine/core/src/components/InputBase",
+        "packages/@mantine/core/src/components/Popover",
+        "packages/@mantine/hooks/src"
+      ]
+    },
+    {
+      "name": "ark",
+      "path": "refs/ark",
+      "url": "https://github.com/chakra-ui/ark.git",
+      "sha": "931f720a3cfe9f42419a6e1452266491a51240f1",
+      "license": "MIT",
+      "why": "Machine-driven select and combobox state, collection handling, focus traps.",
+      "sparse": [
+        "packages/react/src/components/select",
+        "packages/react/src/components/combobox",
+        "packages/react/src/components/collection",
+        "packages/react/src/components/listbox",
+        "packages/react/src/components/popover",
+        "packages/react/src/components/focus-trap",
+        "packages/react/src/components/field"
+      ]
+    },
+    {
+      "name": "mui",
+      "path": "refs/mui",
+      "url": "https://github.com/mui/material-ui.git",
+      "sha": "669f221d59237183a791e7ada51e19ed3f537f86",
+      "license": "MIT",
+      "why": "Autocomplete and useAutocomplete: option shaping, filtering, multiple, freeSolo.",
+      "sparse": [
+        "packages/mui-material/src/Autocomplete",
+        "packages/mui-material/src/useAutocomplete",
+        "packages/mui-material/src/Select",
+        "packages/mui-material/src/InputBase",
+        "packages/mui-material/src/Input",
+        "packages/mui-material/src/Chip",
+        "packages/mui-material/src/Popper",
+        "packages/mui-material/src/MenuItem",
+        "packages/mui-material/src/ListSubheader",
+        "packages/mui-material/src/FormControl",
+        "packages/mui-material/src/FormHelperText",
+        "packages/mui-material/src/InputLabel",
+        "packages/mui-utils/src",
+        "packages/mui-system/src"
+      ]
+    },
+    {
+      "name": "ant-design",
+      "path": "refs/ant-design",
+      "url": "https://github.com/ant-design/ant-design.git",
+      "sha": "777c552cf38fd4fdb06a51a42cef4f1c4f33f4a6",
+      "license": "MIT",
+      "why": "Select modes, fieldNames, filtering, and the empty/tag states.",
+      "sparse": [
+        "components/select",
+        "components/input",
+        "components/_util",
+        "components/empty",
+        "components/tag"
+      ]
+    },
+    {
+      "name": "primer",
+      "path": "refs/primer",
+      "url": "https://github.com/primer/react.git",
+      "sha": "9d0632ccc6c23e92cbbe786ce922795c92931b04",
+      "license": "MIT",
+      "why": "Select panels, anchored overlays, token inputs, and ActionList rows.",
+      "sparse": [
+        "packages/react/src/Select",
+        "packages/react/src/Autocomplete",
+        "packages/react/src/TextInput",
+        "packages/react/src/TextInputWithTokens",
+        "packages/react/src/Token",
+        "packages/react/src/ActionList",
+        "packages/react/src/AnchoredOverlay",
+        "packages/react/src/Overlay",
+        "packages/react/src/Portal",
+        "packages/react/src/FilteredActionList",
+        "packages/react/src/Button",
+        "packages/react/src/FormControl",
+        "packages/react/src/Checkbox"
+      ]
+    },
+    {
+      "name": "react-spectrum",
+      "path": "refs/react-spectrum",
+      "url": "https://github.com/adobe/react-spectrum.git",
+      "sha": "4693fcc844a341107e7dd26fe456edb1e269e44c",
+      "license": "Apache-2.0",
+      "why": "React Aria Components and the stately/aria layers behind Select, ComboBox, ListBox.",
+      "sparse": [
+        "packages/react-aria-components/src",
+        "packages/react-aria/src",
+        "packages/@react-aria/select",
+        "packages/@react-aria/combobox",
+        "packages/@react-aria/listbox",
+        "packages/@react-aria/overlays",
+        "packages/@react-stately/select",
+        "packages/@react-stately/combobox",
+        "packages/@react-types/select",
+        "packages/@react-types/combobox"
+      ]
+    },
+    {
+      "name": "rc-overflow",
+      "path": "refs/rc-overflow",
+      "url": "https://github.com/react-component/overflow.git",
+      "sha": "f1c801c98d76af8763448d3c55f88a7fc40ab5bc",
+      "license": "MIT",
+      "why": "The wrap/scroll overflow measurement used by the tag fields.",
+      "sparse": ["src"]
+    }
+  ]
+}

@@ -10,9 +10,6 @@ scratchpad
 /input/
 /❖ Design System Altics 2.0(3)/
 
-# Shallow clones of other design systems, read for reference only.
-/refs/
-
 # Storybook docs app. Source files are tracked so the storybook repo's
 # snapshot.sh can fetch them; build output and installs stay out.
 # (node_modules and storybook-static match the root patterns above.)

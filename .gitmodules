@@ -1,0 +1,32 @@
+[submodule "refs/rc-overflow"]
+	path = refs/rc-overflow
+	url = https://github.com/react-component/overflow.git
+	shallow = true
+[submodule "refs/ant-design"]
+	path = refs/ant-design
+	url = https://github.com/ant-design/ant-design.git
+	shallow = true
+[submodule "refs/ark"]
+	path = refs/ark
+	url = https://github.com/chakra-ui/ark.git
+	shallow = true
+[submodule "refs/mantine"]
+	path = refs/mantine
+	url = https://github.com/mantinedev/mantine.git
+	shallow = true
+[submodule "refs/mui"]
+	path = refs/mui
+	url = https://github.com/mui/material-ui.git
+	shallow = true
+[submodule "refs/primer"]
+	path = refs/primer
+	url = https://github.com/primer/react.git
+	shallow = true
+[submodule "refs/react-select"]
+	path = refs/react-select
+	url = https://github.com/JedWatson/react-select.git
+	shallow = true
+[submodule "refs/react-spectrum"]
+	path = refs/react-spectrum
+	url = https://github.com/adobe/react-spectrum.git
+	shallow = true
