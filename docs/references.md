@@ -32,12 +32,40 @@ npm run refs:sync -- --full    # full worktrees, no sparse checkout
 ```
 
 The script pins each ref to the commit recorded in `tool/refs.json`, then applies
-the sparse pathspecs from the same file. The full worktrees total about 1.4 GB;
-the sparse ones keep only the directories the plans read.
+the sparse pathspecs from the same file. `--full` only changes the worktree;
+the history is always complete.
 
-`git submodule update --init --depth 1 --filter=blob:none` fetches the objects.
-Sparse patterns are local configuration, so they are applied by the script after
-the checkout; `.gitmodules` cannot carry them.
+The full worktrees total about 1.4 GB. The sparse worktrees are much smaller,
+but the git data still holds every commit. The first sync downloads that
+history. The cost is deliberate: a shallow ref is a single frame. You can read
+the current API, but not the commit that changed it, the test that fixed it, or
+the discussion around it. The refs are teaching material, so the history is part
+of the material. Sync one ref at a time if you do not need all eight.
+
+`git submodule update --init` fetches the full history. Sparse patterns are local
+configuration, so they are applied by the script after the checkout;
+`.gitmodules` cannot carry them. An existing shallow checkout is unshallowed on
+the next sync for that ref.
+
+## Reading a ref
+
+The worktree is sparse: `ls` shows only the paths the plans read. The history is
+complete. Use Git on the submodule:
+
+```bash
+git -C refs/mui log --oneline -- packages/mui-material/src/Autocomplete
+git -C refs/mui blame packages/mui-material/src/Autocomplete/Autocomplete.js
+git -C refs/mui show <sha>:packages/mui-material/src/useAutocomplete/useAutocomplete.js
+git -C refs/mui log -S'useAutocomplete' --oneline
+```
+
+To see a path outside the sparse set without a re-clone:
+
+```bash
+git -C refs/mui sparse-checkout add packages/mui-material/src
+```
+
+To restore the sparse set, run `npm run refs:sync -- mui`.
 
 ## Updating a pin
 

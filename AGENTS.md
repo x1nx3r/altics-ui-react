@@ -95,7 +95,7 @@ The naming rules and the folder map are in `sheets/README.md`.
 | `docs/plans/` | Plans, measurements, and decisions. Start here before a component. |
 | `probes/` | The measurement rig. |
 | `sheets/` | Exported SVG cells from the design sheets. |
-| `refs/` | Pinned design-system submodules. Read only. |
+| `refs/` | Pinned design-system submodules, full history, sparse worktree. Read only. |
 | `tool/` | Build, icon, ref, and verify scripts. |
 | `playground/` | The quick dev app. |
 
@@ -104,9 +104,10 @@ The Storybook app and stories are maintained in
 references.
 
 `refs/` is reference material. Nothing under `src/` may import from it, and
-nothing under `refs/` ships in the package. Run `npm run refs:sync` when a task
-needs upstream API shapes. Do not bump a pin without a reason: the pins are the
-commits the plans audited (see `docs/references.md`).
+nothing under `refs/` ships in the package. The submodules keep full history;
+the worktree is sparse. Run `npm run refs:sync` when a task needs upstream API
+shapes. Do not bump a pin without a reason: the pins are the commits the plans
+audited (see `docs/references.md`).
 
 ## Plans
 

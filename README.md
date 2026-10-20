@@ -194,8 +194,10 @@ Sync only the refs the module needs:
 npm run refs:sync -- mui mantine react-select
 ```
 
-Read `refs/<name>/` for API shape, edge cases, and focus behaviour. The refs are
-material to read. Nothing in `src/` imports from them.
+Read `refs/<name>/` for API shape, edge cases, and focus behaviour. The worktree
+is sparse, but the history is complete; use `git -C refs/<name> log` to find the
+commit behind a behavior. The refs are material to read. Nothing in `src/`
+imports from them.
 
 ### 4. Discuss and write the plan
 

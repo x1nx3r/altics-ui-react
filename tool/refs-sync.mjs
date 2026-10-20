@@ -1,10 +1,13 @@
 #!/usr/bin/env node
-// Initialise the reference submodules and cut each worktree down to the paths
-// the plans actually read. Safe to re-run.
+// Initialise the reference submodules with full history and cut each worktree
+// down to the paths the plans actually read. Safe to re-run.
 //
-//   node tool/refs-sync.mjs            all refs, sparse
-//   node tool/refs-sync.mjs --full     all refs, full worktree
+//   node tool/refs-sync.mjs            all refs, sparse worktrees
+//   node tool/refs-sync.mjs --full     all refs, full worktrees
 //   node tool/refs-sync.mjs mui ark    named refs only
+//
+// The history is always complete. A shallow ref is a snapshot; the commit that
+// changed a behavior is part of the reference.
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -43,12 +46,16 @@ for (const ref of refs) {
       "submodule",
       "update",
       "--init",
-      "--depth",
-      "1",
-      "--filter=blob:none",
       "--",
       ref.path,
     ]);
+  }
+
+  const shallow =
+    inRef(ref.path, ["rev-parse", "--is-shallow-repository"], true).trim() === "true";
+  if (shallow) {
+    console.log("  fetch full history");
+    inRef(ref.path, ["fetch", "--unshallow", "origin"], true);
   }
 
   const head = inRef(ref.path, ["rev-parse", "HEAD"], true).trim();
@@ -66,7 +73,7 @@ for (const ref of refs) {
     try {
       inRef(ref.path, ["cat-file", "-e", `${ref.sha}^{commit}`], true);
     } catch {
-      inRef(ref.path, ["fetch", "--depth", "1", "origin", ref.sha]);
+      inRef(ref.path, ["fetch", "origin", ref.sha]);
     }
     inRef(ref.path, ["checkout", "--detach", ref.sha]);
   } else if (onBranch) {
