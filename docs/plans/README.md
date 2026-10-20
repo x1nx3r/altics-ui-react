@@ -13,7 +13,7 @@ set out to do, what the sheets measured, what we built, and what we deferred.
 | [input-family](input-family.md) | active, phase 5 next | `PasswordInput`, `NumberInput`, `FileInput`, dividers |
 | [select](select.md) | done | `Select`, `MultiSelect`, `SelectItem`, panels, sheet parity |
 | [flexibility](flexibility.md) | active, phase 5 | Configure, restyle, compose; backend lists |
-| [docs](docs.md) | active, wave 4 optional | Storybook coverage and autodocs |
+| [docs](docs.md) | dropped, app moved out | Storybook coverage and autodocs |
 
 ## Header
 

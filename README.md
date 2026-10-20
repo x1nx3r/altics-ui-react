@@ -73,5 +73,8 @@ Contributor and agent notes live in `AGENTS.md`. The measurement rig is
 documented in `probes/README.md`. The design references are pinned submodules,
 synced with `npm run refs:sync` (see `docs/references.md`).
 
+Storybook lives in a separate snapshot repository
+(`x1nx3r/altics-ui-react-storybook`); `docs/` keeps the plans and references.
+
 The playground and probes are development-only and excluded from npm through
 the `files` allowlist. `prepublishOnly` builds the package before `npm publish`.

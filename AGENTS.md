@@ -1,7 +1,8 @@
 # AGENTS.md
 
 Altics UI is an accessible React component library. Components are built from
-the design sheets, verified by measurement, and documented in Storybook.
+the design sheets, verified by measurement, and documented in a separate
+Storybook snapshot repository.
 
 ## Commands
 
@@ -40,12 +41,16 @@ meaningless.
 | Path | What |
 | --- | --- |
 | `src/` | The library. The only code that ships. |
-| `docs/` | Storybook app and stories. |
+| `docs/` | Plans and repository documents. |
 | `docs/plans/` | Plans, measurements, and decisions. Start here before a component. |
 | `probes/` | The measurement rig. |
 | `refs/` | Pinned design-system submodules. Read only. |
 | `tool/` | Build, icon, ref, and verify scripts. |
 | `playground/` | The quick dev app. |
+
+The Storybook app and stories are maintained in
+`x1nx3r/altics-ui-react-storybook`; this repository keeps only the plans and
+references.
 
 `refs/` is reference material. Nothing under `src/` may import from it, and
 nothing under `refs/` ships in the package. Run `npm run refs:sync` when a task

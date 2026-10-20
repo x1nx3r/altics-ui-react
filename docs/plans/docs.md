@@ -1,10 +1,15 @@
 # Plan: Storybook coverage
 
-Status: active (wave 4 optional)
+Status: dropped (the app moved to x1nx3r/altics-ui-react-storybook)
 Opened: 2026-09-21
 Last updated: 2026-10-20
 Owner: x1nx3r
-Related: `docs/plans/input-base.md`, `probes/`
+Related: `docs/plans/input-base.md`, `probes/`,
+`x1nx3r/altics-ui-react-storybook`
+
+> The Storybook app and stories were removed from this repository. Storybook is
+> maintained separately in `x1nx3r/altics-ui-react-storybook`. This plan stays
+> as the record of the coverage work done here.
 
 Goal: every component in the library gets a Storybook page — the generated props
 table (autodocs), stories that carry the sheet-parity rows, and narrative MDX
@@ -81,7 +86,7 @@ it and how do I use it"; the plan file keeps the sheet archaeology.
     string|boolean, `divider` object, `textAlign`).
 18. Graduation call: stories move beside the components, `docs/` gets its own
     home. Until then everything in here stays gitignored — no commits. (Superseded:
-    `docs/` is now tracked.)
+    the app moved to `x1nx3r/altics-ui-react-storybook`; this repo keeps the plan.)
 
 ## Constraints
 

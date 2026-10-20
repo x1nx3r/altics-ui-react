@@ -8,12 +8,3 @@ coverage
 # src/components/input/ and silently ignored new component files.
 /input/
 /❖ Design System Altics 2.0(3)/
-
-# Storybook docs app. Source files are tracked so the storybook repo's
-# snapshot.sh can fetch them; build output and installs stay out.
-# (node_modules and storybook-static match the root patterns above.)
-/docs/storybook-static/
-/docs/debug-storybook.log
-
-*storybook.log
-storybook-static
