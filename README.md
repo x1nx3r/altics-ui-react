@@ -78,3 +78,124 @@ Storybook lives in a separate snapshot repository
 
 The playground and probes are development-only and excluded from npm through
 the `files` allowlist. `prepublishOnly` builds the package before `npm publish`.
+
+## Working on a module
+
+One module per branch. The branch carries a plan, the implementation, and the
+probe that proves it. The agent can run the commands; you own the scope, the
+plan, and the final check.
+
+### 1. Scope the module
+
+Pick one component family, for example `Select` or the input family. Keep the
+branch to that family. A change that crosses families gets its own plan.
+
+Start the branch from the current default branch:
+
+```bash
+git switch master
+git pull --ff-only
+git switch -c feat/<module>
+```
+
+### 2. Export the sheet cells
+
+Export the module's cells from Figma as SVG into the local sheet directory. The
+directory is gitignored. Keep the Figma layer name; the cells are named
+`Size=…, Type=…, Destructive=…, State=…`:
+
+```
+❖ Design System Altics 2.0(3)/button/input/input/Size=md, Type=Default, Destructive=False, State=Focused.svg
+```
+
+Read the exact geometry with:
+
+```bash
+python3 probes/tool/svg-bbox.py "❖ Design System Altics 2.0(3)/button/input/input/Size=md, Type=Default, Destructive=False, State=Focused.svg"
+```
+
+`getBBox` is more reliable than a pixel scan. Anti-aliasing confounds small
+text, and curve control points overstate a path's extent.
+
+### 3. Read the references
+
+Sync only the refs the module needs:
+
+```bash
+npm run refs:sync -- mui mantine react-select
+```
+
+Read `refs/<name>/` for API shape, edge cases, and focus behaviour. The refs are
+material to read. Nothing in `src/` imports from them.
+
+### 4. Discuss and write the plan
+
+Copy the header from `docs/plans/README.md` into `docs/plans/<module>.md`.
+Record:
+
+- the sheet measurements, with the sheet's value beside ours;
+- what each reference does, and why we follow or reject it;
+- the decisions and the open questions.
+
+Discuss the plan with the agent before implementation. The plan is the contract.
+
+### 5. Implement
+
+Work on the branch. Keep the component, its tests, and its exports together.
+Run the gate as the work moves:
+
+```bash
+npm run verify
+```
+
+Unit tests assert classes and behaviour. They do not prove geometry.
+
+### 6. Verify with the probes
+
+Build the library, then run the page that renders the module:
+
+```bash
+npm run build
+npm run probe
+npm run probe -- select-probe
+```
+
+The probe prints JSON. Compare each number with the sheet, then record both in
+the plan.
+
+If the module has no page, add one under `probes/src/pages/` and list it in
+`probes/README.md`. The page must import `@altics/ui/styles.css` and render one
+of each shape. A probe that measures one shape hides defects in the others.
+
+For canvas work, drive the sheet over CDP:
+
+```bash
+npm run dev -- --port 5173 --strictPort
+chromium --remote-debugging-port=9223 "http://localhost:5173/?page=sheet"
+npm run probe:cdp
+```
+
+The agent runs the probe. Repeat it yourself before you approve the result.
+
+### 7. Close the plan and open a PR
+
+Set the plan to `Status: done`, mark what you deferred, and commit. Use
+Conventional Commits, one logical change per commit.
+
+```bash
+git push -u origin <branch>
+gh pr create --repo dionisius77/altics-ui-react --base master \
+  --head <you>:<branch>
+```
+
+Replace `<you>` with your fork owner. The PR body links the plan and quotes the
+probe output. The reviewer repeats the probe step. The diff alone is not the
+review.
+
+### Checklist
+
+- [ ] The plan records every sheet measurement and the probe's value.
+- [ ] `npm run verify` passes.
+- [ ] The probe renders one of each shape and matches the sheet.
+- [ ] Nothing in `src/` imports from `refs/`.
+- [ ] The PR links the plan and quotes the probe output.

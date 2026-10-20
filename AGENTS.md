@@ -22,6 +22,9 @@ Storybook snapshot repository.
 `npm run verify` runs typecheck, lint, test, then build. Run it before every
 commit. Probes are separate: they need Chromium and a dev server.
 
+The end-to-end workflow for a module (sheet export, refs, plan, probe, PR) is
+in `README.md` under "Working on a module".
+
 ## The measurement rule
 
 A number in a plan, a commit message, or a Storybook title must come from a

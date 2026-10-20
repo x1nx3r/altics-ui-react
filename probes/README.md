@@ -42,8 +42,8 @@ Two traps the pages must respect:
 ## Tools
 
 ```bash
-python3 tool/svg-bbox.py <file.svg>       # exact path geometry via Chromium getBBox
-node tool/sheet-cdp.mjs                   # drive the sheet canvas over CDP
+python3 probes/tool/svg-bbox.py <file.svg>   # exact path geometry via Chromium getBBox
+node probes/tool/sheet-cdp.mjs               # drive the sheet canvas over CDP
 ```
 
 `svg-bbox.py` renders an SVG in headless Chromium and reads `getBBox` per path.
