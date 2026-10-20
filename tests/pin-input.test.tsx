@@ -132,7 +132,8 @@ describe("PinInput", () => {
   });
 
   it("draws the cells at the verification sheet's size", () => {
-    // Figma: button/input/verification. Square cells, one step per size — 64,
+    // Figma: button/input/verification (tracked at sheets/input/verification).
+    // Square cells, one step per size — 64,
     // 80 and 96 — on gaps of 8 and 12, with display digits at 48 and 60.
     const sm = render(<PinInput size="sm" />);
     expect(slots(sm.container)[0].className).toContain("w-16 h-16");

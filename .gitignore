@@ -3,8 +3,9 @@ dist
 coverage
 .DS_Store
 
-# Local design reference exports, not part of the package.
+# Local design exports, not part of the package. The SVG cells under sheets/
+# are tracked; the PDF boards and the raw /input/ export stay local.
 # Anchored to the repo root: an unanchored `input/` also matched
 # src/components/input/ and silently ignored new component files.
 /input/
-/❖ Design System Altics 2.0(3)/
+/sheets/reference/

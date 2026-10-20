@@ -4,7 +4,7 @@ Status: active (phase 5 next, phase 6 deferred to its own plans)
 Opened: 2026-09-15
 Last updated: 2026-09-15
 Owner: x1nx3r
-Related: `docs/plans/input-base.md`, `input/` reference sheets (local only), upstream PR #3 (vito), pending colour-token revision
+Related: `docs/plans/input-base.md`, sheets at `sheets/input/`, upstream PR #3 (vito), pending colour-token revision
 
 ## Goal
 

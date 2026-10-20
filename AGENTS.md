@@ -18,6 +18,7 @@ Storybook snapshot repository.
 | Probe, headless | `npm run probe [-- <page>]` |
 | Probe, CDP | `npm run probe:cdp` |
 | Reference submodules | `npm run refs:sync [-- <name>]` |
+| Sheets check | `npm run sheets:check` |
 
 `npm run verify` runs typecheck, lint, test, then build. Run it before every
 commit. Probes are separate: they need Chromium and a dev server.
@@ -47,6 +48,7 @@ meaningless.
 | `docs/` | Plans and repository documents. |
 | `docs/plans/` | Plans, measurements, and decisions. Start here before a component. |
 | `probes/` | The measurement rig. |
+| `sheets/` | Exported SVG cells from the design sheets. |
 | `refs/` | Pinned design-system submodules. Read only. |
 | `tool/` | Build, icon, ref, and verify scripts. |
 | `playground/` | The quick dev app. |
@@ -73,13 +75,14 @@ A component or a cross-cutting change starts as a plan in `docs/plans/`.
 ## Commits
 
 Conventional Commits, imperative mood, one logical change per commit. Scope by
-area (`select`, `input`, `typography`, `docs`, `probes`, `refs`). Example:
+area (`select`, `input`, `typography`, `docs`, `probes`, `refs`, `sheets`). Example:
 
 ```
 fix(select): keep the panel on the trigger width
 ```
 
-Do not commit `dist/`, `node_modules/`, or sheet exports.
+Do not commit `dist/`, `node_modules/`, or the local PDF boards under
+`sheets/reference/`.
 
 ## Generated files
 

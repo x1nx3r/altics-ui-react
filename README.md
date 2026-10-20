@@ -66,6 +66,7 @@ npm install
 npm run dev          # playground
 npm run verify       # typecheck, lint, test, build
 npm run probe        # headless geometry probe (needs chromium)
+npm run sheets:check # validate the tracked sheet cells
 npm pack --dry-run
 ```
 
@@ -100,18 +101,19 @@ git switch -c feat/<module>
 
 ### 2. Export the sheet cells
 
-Export the module's cells from Figma as SVG into the local sheet directory. The
-directory is gitignored. Keep the Figma layer name; the cells are named
+Export the module's cells from Figma as SVG into `sheets/`, under the family
+folder. Keep the Figma layer name; the cells are named
 `Size=…, Type=…, Destructive=…, State=…`:
 
 ```
-❖ Design System Altics 2.0(3)/button/input/input/Size=md, Type=Default, Destructive=False, State=Focused.svg
+sheets/input/input/Size=md, Type=Default, Destructive=False, State=Focused.svg
 ```
 
-Read the exact geometry with:
+Check the names, then read the exact geometry:
 
 ```bash
-python3 probes/tool/svg-bbox.py "❖ Design System Altics 2.0(3)/button/input/input/Size=md, Type=Default, Destructive=False, State=Focused.svg"
+npm run sheets:check
+python3 probes/tool/svg-bbox.py "sheets/input/input/Size=md, Type=Default, Destructive=False, State=Focused.svg"
 ```
 
 `getBBox` is more reliable than a pixel scan. Anti-aliasing confounds small
@@ -195,6 +197,7 @@ review.
 ### Checklist
 
 - [ ] The plan records every sheet measurement and the probe's value.
+- [ ] The cells are under `sheets/` and `npm run sheets:check` passes.
 - [ ] `npm run verify` passes.
 - [ ] The probe renders one of each shape and matches the sheet.
 - [ ] Nothing in `src/` imports from `refs/`.

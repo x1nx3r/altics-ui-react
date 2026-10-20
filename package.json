@@ -30,6 +30,7 @@
     "build": "vite build && tsc -p tsconfig.build.json && node tool/build-preset.mjs",
     "generate:icons": "node tool/generate-icons.mjs",
     "refs:sync": "node tool/refs-sync.mjs",
+    "sheets:check": "node tool/check-sheets.mjs",
     "probe": "bash probes/tool/probe.sh",
     "probe:cdp": "node probes/tool/sheet-cdp.mjs",
     "verify": "bash tool/verify.sh",

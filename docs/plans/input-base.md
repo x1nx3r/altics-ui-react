@@ -4,7 +4,7 @@ Status: done (item 6 deferred by design)
 Opened: 2026-09-15
 Last updated: 2026-09-17
 Owner: x1nx3r
-Related: `docs/plans/input-family.md`, `docs/references.md`, sheets at `❖ Design System Altics 2.0(3)/button/input/{input,textarea}/` (local only)
+Related: `docs/plans/input-family.md`, `docs/references.md`, sheets at `sheets/input/{input,textarea}/`
 
 ## Goal
 
@@ -254,8 +254,8 @@ So the only wrong case is a `leading` or `trailing` slot behind a divider.
 ### 8. Reconcile Textarea with its sheet by reusing the base — DONE
 
 The sheets moved under the button folder and gained a textarea one:
-`❖ Design System Altics 2.0(3)/button/input/input/` (294 cells, the 14 types, unchanged) and
-`.../input/textarea/` (42 cells: Default, Tags inner and Tags outer × 2 sizes × 7 states).
+`sheets/input/input/` (294 cells, the 14 types, unchanged) and
+`sheets/input/textarea/` (42 cells: Default, Tags inner and Tags outer × 2 sizes × 7 states).
 
 Measured on the rendered cells, md with sm in brackets:
 

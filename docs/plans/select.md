@@ -7,7 +7,7 @@ Owner: x1nx3r
 Related: `docs/plans/flexibility.md`, `docs/references.md`
 
 The select family, built on base primitives first. Every number below is
-measured from the sheets (`❖ Design System Altics 2.0(3)/select/`), not read
+measured from the sheets (`sheets/select/`), not read
 off a design doc.
 
 ## The sheets

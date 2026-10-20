@@ -45,5 +45,8 @@ Related: links to plans, sheets, refs
 ## Conventions
 
 - One plan per component family or cross-cutting change, not per ticket.
-- Keep sheet paths as they are; the sheets themselves are local-only.
+- Cite sheet cells by their path under `sheets/`. The PDF boards under
+  `sheets/reference/` are local-only.
+- The exports moved from `❖ Design System Altics 2.0(3)/` to `sheets/` on
+  2026-10-20; plan paths use the new location.
 - Plans may quote upstream APIs. The pins live in `docs/references.md`.
