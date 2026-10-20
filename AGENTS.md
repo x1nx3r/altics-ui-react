@@ -33,12 +33,42 @@ probe or from the sheet. Never infer geometry from the source.
 
 - `probes/src/probe.tsx` measures the input family.
 - `probes/src/select-probe.tsx` measures the select bases.
-- `probes/tool/svg-bbox.py` reads exact path geometry from the sheet export.
+- `probes/src/pagination-probe.tsx` measures the load-more rows and panel.
+- `probes/tool/svg-bbox.py` reads exact path geometry from a sheet cell.
 - `probes/tool/sheet-cdp.mjs` drives the sheet canvas with real input events.
 
 Render one of each shape. A probe that measures one shape hides defects in the
 others. Import `@altics/ui/styles.css` in every probe page, or the numbers are
 meaningless.
+
+## Probes
+
+### How it runs
+
+`npm run probe` builds the library, starts Vite on 5173, loads the page in
+headless Chromium, and prints the page DOM, including the JSON from
+`<pre id="out">`. The page imports `@altics/ui/styles.css` and renders one of
+each shape. `npm run probe -- <page>` selects another page.
+`PROBE_SKIP_BUILD=1` reuses `dist`; `PROBE_PORT` changes the port.
+
+A probe reads the live DOM, not the source. The sheet cell under `sheets/` is
+the other side of the comparison.
+
+### Why this is easier and auditable
+
+The agent reports a command, a JSON value, and the sheet value beside it. The
+plan records both. A reviewer reruns the command and gets the same numbers. A
+commit or PR can quote the same output, so a geometry change has a before and
+after.
+
+Before you claim a geometry fix:
+
+1. Run the page that renders the shape.
+2. Compare each number with the sheet cell.
+3. Record both in the plan.
+4. Quote the output in the commit or PR.
+
+The page list, traps, and CDP driver are in `probes/README.md`.
 
 ## Layout
 

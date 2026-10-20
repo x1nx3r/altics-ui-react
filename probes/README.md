@@ -11,17 +11,18 @@ the plain field.
 
 ## Run
 
-Build the library first: the probe imports `@altics/ui/styles.css` from `dist`.
+The probe imports `@altics/ui/styles.css` from `dist`. `npm run probe` builds
+the library first, then runs the page.
 
 ```bash
-npm run build            # from the repo root
 npm run probe            # probe.html
 npm run probe -- select-probe
+PROBE_SKIP_BUILD=1 npm run probe   # reuse the current dist
 ```
 
 `npm run probe` starts Vite on 5173, runs `chromium --headless --dump-dom`, and
-prints the JSON the page wrote into `<pre id="out">`. Set `PROBE_SKIP_BUILD=1`
-to skip the rebuild, or `PROBE_PORT` to change the port.
+prints the page DOM, including the JSON the page wrote into `<pre id="out">`.
+Set `PROBE_PORT` to change the port.
 
 Two traps the pages must respect:
 

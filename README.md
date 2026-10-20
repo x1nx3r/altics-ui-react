@@ -70,15 +70,69 @@ npm run sheets:check # validate the tracked sheet cells
 npm pack --dry-run
 ```
 
-Contributor and agent notes live in `AGENTS.md`. The measurement rig is
-documented in `probes/README.md`. The design references are pinned submodules,
-synced with `npm run refs:sync` (see `docs/references.md`).
+Contributor and agent notes live in `AGENTS.md`. The detailed rig is documented
+in `probes/README.md`. The design references are pinned submodules, synced with
+`npm run refs:sync` (see `docs/references.md`).
 
 Storybook lives in a separate snapshot repository
 (`x1nx3r/altics-ui-react-storybook`); `docs/` keeps the plans and references.
 
 The playground and probes are development-only and excluded from npm through
 the `files` allowlist. `prepublishOnly` builds the package before `npm publish`.
+
+## How the probes work
+
+Unit tests assert classes and behaviour. They cannot prove geometry. The probes
+render the real components in Chromium and print the measurements as JSON.
+
+```bash
+npm run probe          # builds, then runs probe.html
+npm run probe -- select-probe
+PROBE_SKIP_BUILD=1 npm run probe   # reuse the current dist
+```
+
+`npm run probe` builds the library, starts Vite on port 5173, loads the page in
+headless Chromium, and prints the page DOM, including the JSON that the page
+writes into `<pre id="out">`. The page imports `@altics/ui/styles.css` and
+renders one of each shape. Set `PROBE_PORT` to change the port.
+
+| Page | Measures |
+| --- | --- |
+| `probe.html` | Input family: chips, slot markers, focus, error colors, dividers, textareas, pin/OTP cells, `cn` merges |
+| `select-probe.html` | Select bases: panel width and gap, stepping, flip, scroll containment, focus policy, disabled rows |
+| `pagination-probe.html` | Load-more: rows, chips, panel, search |
+| `index.html?page=sheet` | Sheet-parity grid, drawn with the real components |
+
+The first three run through `npm run probe`. The sheet-parity page needs the
+dev server and the CDP driver; see `probes/README.md`.
+
+A probe reads the live DOM, not the source. The sheet cell under `sheets/` is
+the other side of the comparison. `probes/tool/svg-bbox.py` reads the sheet's
+exact path geometry with the same idea.
+
+### Why this makes agent work easier
+
+The agent gets a number, not an opinion. It can run one command, compare the
+JSON with the sheet, change one shape, and rerun. The loop is short and the
+answer is unambiguous.
+
+The probes also catch the failure that unit tests miss: the classes are right,
+but the box moves. An early probe measured only the tags card and missed
+doubled slot margins on the plain field. The page now renders one of each
+shape, so the next run sees both.
+
+### Why this makes the work auditable
+
+Every geometry claim has a command and an output. A plan quotes the sheet's
+value and the probe's value side by side. A commit or PR can quote the same
+JSON. A reviewer reruns the same command on the same page and gets the same
+numbers.
+
+The page is versioned with the code. The sheet cell is tracked under `sheets/`.
+The plan records both. That is the audit trail: source, measurement, decision.
+
+The detailed rig, including the CDP sheet driver and the probe traps, is in
+`probes/README.md`.
 
 ## Working on a module
 
@@ -154,13 +208,15 @@ Unit tests assert classes and behaviour. They do not prove geometry.
 
 ### 6. Verify with the probes
 
-Build the library, then run the page that renders the module:
+Run the page that renders the module:
 
 ```bash
-npm run build
 npm run probe
 npm run probe -- select-probe
 ```
+
+`npm run probe` rebuilds the library first. Set `PROBE_SKIP_BUILD=1` to reuse
+the current `dist`.
 
 The probe prints JSON. Compare each number with the sheet, then record both in
 the plan.
