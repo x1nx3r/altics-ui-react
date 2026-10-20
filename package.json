@@ -30,6 +30,8 @@
     "build": "vite build && tsc -p tsconfig.build.json && node tool/build-preset.mjs",
     "generate:icons": "node tool/generate-icons.mjs",
     "refs:sync": "node tool/refs-sync.mjs",
+    "probe": "bash probes/tool/probe.sh",
+    "probe:cdp": "node probes/tool/sheet-cdp.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
