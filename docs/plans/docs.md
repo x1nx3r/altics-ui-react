@@ -1,4 +1,10 @@
-# PLAN-docs
+# Plan: Storybook coverage
+
+Status: active (wave 4 optional)
+Opened: 2026-09-21
+Last updated: 2026-10-20
+Owner: x1nx3r
+Related: `docs/plans/input-base.md`, `probes/`
 
 Goal: every component in the library gets a Storybook page — the generated props
 table (autodocs), stories that carry the sheet-parity rows, and narrative MDX
@@ -7,12 +13,12 @@ for what a table cannot say. The pattern-setters are `Input.stories.tsx` and
 
 ## Where the material comes from
 
-- The showcase rows in `scratchpad/src/pages/InputShowcase.tsx` are the source
+- The showcase rows in `probes/src/pages/InputShowcase.tsx` are the source
   for the input family's stories — port nearly verbatim, titles carrying the
   measured values.
 - `src/components/*/*.examples.tsx` (Button, IconButton, LinkButton, Text) port
   to CSF mechanically.
-- The measured numbers live in `scratchpad/PLAN-input-base.md`; they become the
+- The measured numbers live in `docs/plans/input-base.md`; they become the
   MDX callouts.
 
 ## Wave 0 — infrastructure — DONE
@@ -64,7 +70,7 @@ badge variants, icon grid, card content all render.
 ## Wave 3 — narrative MDX — DROPPED
 
 Decided against: the measured numbers stay where they already live — in the
-docstrings (which autodocs renders) and in `scratchpad/PLAN-input-base.md` —
+docstrings (which autodocs renders) and in `docs/plans/input-base.md` —
 rather than being duplicated into narrative pages. The docs answer "what is
 it and how do I use it"; the plan file keeps the sheet archaeology.
 
@@ -74,12 +80,13 @@ it and how do I use it"; the plan file keeps the sheet archaeology.
 17. Controls pass: argTypes where the generated ones mislead (`error`
     string|boolean, `divider` object, `textAlign`).
 18. Graduation call: stories move beside the components, `docs/` gets its own
-    home. Until then everything in here stays gitignored — no commits.
+    home. Until then everything in here stays gitignored — no commits. (Superseded:
+    `docs/` is now tracked.)
 
 ## Constraints
 
 - Stories import from `../../src` (source, live HMR), never from `dist` —
-  `docs/` is a dev workbench, not a consumer; the scratchpad already covers
+  `docs/` is a dev workbench, not a consumer; `probes/` already covers
   the built-artifact path.
 - Story styles come from `docs/docs.css` (a copy of the source stylesheet's
   three lines): Vite picks the PostCSS config by the CSS file's location, so
