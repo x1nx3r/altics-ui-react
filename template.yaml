@@ -1,0 +1,11 @@
+apiVersion: manus-dei/v2
+name: altics-ui-react
+environment:
+  profile: base
+  version: "2026.10"
+workspace: template
+opencode:
+  mode: connect
+  model: opencode/deepseek-v4.1-flash
+install:
+  - npm ci
